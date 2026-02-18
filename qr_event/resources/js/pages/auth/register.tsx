@@ -13,7 +13,7 @@ export default function Register() {
     return (
         <AuthLayout
             title="Create an account"
-            description="Enter your details below to create your account"
+            description="Enter your details below to create your account for Movement"
         >
             <Head title="Register" />
             <Form
@@ -26,7 +26,7 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="last_name">Last Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -34,8 +34,8 @@ export default function Register() {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
+                                    name="last_name"
+                                    placeholder="Last Name"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -44,18 +44,24 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="first_name">First Name</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
+                                    id="name"
+                                    type="text"
                                     required
-                                    tabIndex={2}
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder="email@example.com"
+                                    autoFocus
+                                    tabIndex={1}
+                                    autoComplete="name"
+                                    name="first_name"
+                                    placeholder="First Name"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    message={errors.name}
+                                    className="mt-2"
+                                />
                             </div>
+
+                            
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Password</Label>
@@ -89,10 +95,70 @@ export default function Register() {
                                 />
                             </div>
 
+                            <div className="grid gap-2">
+                                <Label htmlFor="contact_number">Contact Number</Label>
+                                <Input
+                                    id="contact_number"
+                                    type="tel"
+                                    required
+                                    tabIndex={5}
+                                    autoComplete="tel"
+                                    name="contact_number"
+                                    placeholder="09152872043"
+                                />
+                                <InputError message={errors.contact_number} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="birthdate">Birthdate</Label>
+                                <Input
+                                    id="birthdate"
+                                    type="date"
+                                    required
+                                    tabIndex={6}
+                                    name="birthdate"
+                                />
+                                <InputError message={errors.birthdate} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="marital_status">Marital Status</Label>
+                                <select
+                                    id="marital_status"
+                                    name="marital_status"
+                                    required
+                                    tabIndex={7}
+                                    className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">Select marital status</option>
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="separated">Separated</option>
+                                    <option value="widowed">Widowed</option>
+                                </select>
+                                <InputError message={errors.marital_status} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="is_dg_leader">Are you a DG Leader?</Label>
+                                <select
+                                    id="is_dg_leader"
+                                    name="is_dg_leader"
+                                    required
+                                    tabIndex={8}
+                                    className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">Select an option</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                                <InputError message={errors.is_dg_leader} />
+                            </div>
+
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={9}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -102,7 +168,7 @@ export default function Register() {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login()} tabIndex={10}>
                                 Log in
                             </TextLink>
                         </div>
