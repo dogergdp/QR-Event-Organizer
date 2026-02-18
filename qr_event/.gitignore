@@ -19,6 +19,7 @@
 .env.production
 .env.local
 .env.*.local
+.DS_Store
 
 # IDE / Editor
 .phpactor.json
