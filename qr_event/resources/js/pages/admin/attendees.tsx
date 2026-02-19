@@ -2,6 +2,32 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
+function calculateAge(birthdate: string | null): string {
+    if (!birthdate) return 'N/A';
+
+    const match = birthdate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return 'N/A';
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (!year || month < 1 || month > 12 || day < 1 || day > 31) return 'N/A';
+
+    const today = new Date();
+    let age = today.getFullYear() - year;
+
+    const hasHadBirthdayThisYear =
+        today.getMonth() + 1 > month ||
+        (today.getMonth() + 1 === month && today.getDate() >= day);
+
+    if (!hasHadBirthdayThisYear) {
+        age -= 1;
+    }
+
+    return age >= 0 && age <= 130 ? age.toString() : 'N/A';
+}
+
 export default function AdminAttendees() {
     const { attendees } = usePage<any>().props as {
         attendees: Array<{
@@ -15,6 +41,7 @@ export default function AdminAttendees() {
                 first_name: string;
                 last_name: string;
                 contact_number: string;
+                birthdate: string | null;
             };
             event: {
                 id: number;
@@ -58,16 +85,16 @@ export default function AdminAttendees() {
                                             Contact Number
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            Event
+                                            Age
                                         </th>
-                                        <th className="px-4 py-3 text-center font-semibold text-foreground">
-                                            Attended
+                                        <th className="px-4 py-3 text-left font-semibold text-foreground">
+                                            Event
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Attended Time
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            Registered
+                                            Registration Date
                                         </th>
                                     </tr>
                                 </thead>
@@ -84,6 +111,9 @@ export default function AdminAttendees() {
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.user.contact_number}
                                             </td>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {calculateAge(attendee.user.birthdate)}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <Link
                                                     href={`/events/${attendee.event.id}`}
@@ -91,17 +121,6 @@ export default function AdminAttendees() {
                                                 >
                                                     {attendee.event.name}
                                                 </Link>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                {attendee.is_attended ? (
-                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                                        ✓ Yes
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                                                        No
-                                                    </span>
-                                                )}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.attended_time

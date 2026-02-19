@@ -288,9 +288,6 @@ export default function ShowEvent() {
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
                                             Contact
                                         </th>
-                                        <th className="px-4 py-2 text-center font-semibold text-foreground">
-                                            Attended
-                                        </th>
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
                                             Time
                                         </th>
@@ -309,17 +306,7 @@ export default function ShowEvent() {
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.user.contact_number}
                                             </td>
-                                            <td className="px-4 py-3 text-center">
-                                                {attendee.is_attended ? (
-                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                                        ✓ Yes
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                                                        No
-                                                    </span>
-                                                )}
-                                            </td>
+
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.attended_time
                                                     ? formatDateTime12Hour(

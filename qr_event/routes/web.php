@@ -66,7 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('users', function () {
         $users = User::query()
             ->orderBy('created_at', 'desc')
-            ->get(['id', 'first_name', 'last_name', 'contact_number', 'created_at', 'dg_leader_name']);
+            ->get(['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name']);
 
         return Inertia::render('admin/users', [
             'users' => $users,
@@ -75,7 +75,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('attendees', function () {
         $attendees = Attendee::query()
-            ->with(['user:id,first_name,last_name,contact_number', 'event:id,name'])
+            ->with(['user:id,first_name,last_name,contact_number,birthdate', 'event:id,name'])
             ->orderBy('created_at', 'desc')
             ->get(['id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'created_at']);
 
