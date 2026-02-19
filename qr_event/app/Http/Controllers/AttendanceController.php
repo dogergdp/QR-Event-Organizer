@@ -104,8 +104,8 @@ class AttendanceController extends Controller
         }
         
         return [
-            'url' => QRCodeService::generateQRUrl($event->id),
-            'eventId' => $event->id,
+            'url' => QRCodeService::generateQRUrl($event->getKey()),
+            'eventId' => $event->getKey(),
         ];
     }
 }

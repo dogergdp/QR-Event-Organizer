@@ -10,70 +10,121 @@ interface QRScannerProps {
 export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
     const scannerRef = useRef<any>(null);
     const [hasScanned, setHasScanned] = useState(false);
+    const hasScannedRef = useRef(false);
     const [error, setError] = useState<string | null>(null);
 
+    console.log('QRScanner component rendered, isOpen:', isOpen);
+
     useEffect(() => {
-        if (!isOpen) {
-            // Clean up scanner when modal closes
-            if (scannerRef.current) {
-                scannerRef.current
-                    .stop()
-                    .catch((err: any) => console.error('Error stopping scanner:', err));
-                scannerRef.current = null;
+        console.log('QRScanner useEffect triggered, isOpen:', isOpen);
+
+        const cleanupScanner = (reason: string) => {
+            if (!scannerRef.current) return;
+            console.log('Cleaning up scanner:', reason);
+            const scanner = scannerRef.current;
+            scannerRef.current = null;
+            if (typeof scanner.clear === 'function') {
+                scanner.clear().catch((err: any) =>
+                    console.error('Error clearing scanner:', err)
+                );
             }
+            if (typeof scanner.stop === 'function') {
+                scanner.stop().catch((err: any) =>
+                    console.error('Error stopping scanner:', err)
+                );
+            }
+        };
+
+        if (!isOpen) {
+            console.log('isOpen is false, cleaning up...');
+            // Clean up scanner when modal closes
+            cleanupScanner('modal closed');
             setHasScanned(false);
+            hasScannedRef.current = false;
             setError(null);
             return;
         }
 
-        // Initialize scanner
-        const scanner = new Html5QrcodeScanner(
-            'qr-scanner-container',
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                rememberLastUsedCamera: true,
-                aspectRatio: 1.0,
-            },
-            false
-        );
+        console.log('Starting scanner initialization...');
 
-        const onScanSuccess = (decodedText: string) => {
-            setHasScanned(true);
-            (scanner as any)
-                .stop()
-                .then(() => {
+        const initializeScanner = async () => {
+            console.log('initializeScanner function called');
+            try {
+                // Request camera permission explicitly
+                console.log('Requesting camera permission...');
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                });
+                
+                // Stop the stream - we just wanted to request permission
+                stream.getTracks().forEach(track => track.stop());
+                console.log('Camera permission granted');
+
+                // Initialize scanner
+                const scanner = new Html5QrcodeScanner(
+                    'qr-scanner-container',
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        rememberLastUsedCamera: true,
+                        aspectRatio: 1.0,
+                        videoConstraints: { facingMode: { ideal: 'environment' } },
+                    },
+                    false
+                );
+
+                const onScanSuccess = (decodedText: string) => {
+                    if (hasScannedRef.current) {
+                        return;
+                    }
+                    hasScannedRef.current = true;
+                    const cleanedText = decodedText.trim();
+                    console.log('QR code scanned successfully:', cleanedText);
+                    setHasScanned(true);
                     setError(null);
-                    onScan(decodedText);
-                })
-                .catch((err: any) => console.error('Error stopping scanner:', err));
-        };
+                    console.log('Invoking onScan callback');
+                    queueMicrotask(() => onScan(cleanedText));
+                    (scanner as any)
+                        .stop()
+                        .catch((err: any) => console.error('Error stopping scanner:', err));
+                };
 
-        const onScanError = (error: any) => {
-            // Ignore QR code decode errors, they're normal during scanning
-            const errorStr = String(error);
-            if (!errorStr.includes('QR code parse error')) {
-                console.warn('QR Scanner error:', error);
+                const onScanError = (error: any) => {
+                    // Ignore QR code decode errors, they're normal during scanning
+                    const errorStr = String(error);
+                    if (!errorStr.includes('QR code parse error')) {
+                        console.warn('QR Scanner error:', error);
+                    }
+                };
+
+                console.log('Rendering scanner...');
+                scanner.render(onScanSuccess, onScanError);
+                scannerRef.current = scanner;
+                console.log('Scanner initialized successfully');
+                setError(null);
+            } catch (err: any) {
+                console.error('Camera access error:', err);
+                const errorMsg = err?.message || String(err);
+                
+                let userMessage = 'Unable to access camera.';
+                if (errorMsg.includes('Permission denied')) {
+                    userMessage = 'Camera permission denied. Please allow camera access in System Preferences > Security & Privacy.';
+                } else if (errorMsg.includes('NotFoundError')) {
+                    userMessage = 'No camera found on this device.';
+                } else {
+                    userMessage = `Camera error: ${errorMsg}`;
+                }
+                
+                console.log('Setting error:', userMessage);
+                setError(userMessage);
             }
         };
 
-        try {
-            scanner.render(onScanSuccess, onScanError);
-            scannerRef.current = scanner;
-        } catch (err: any) {
-            console.error('Scanner error:', err);
-            setError(
-                'Unable to access camera. Please check permissions and try again.'
-            );
-        }
+        console.log('Calling initializeScanner...');
+        initializeScanner();
 
         return () => {
-            if (scannerRef.current) {
-                scannerRef.current
-                    .stop()
-                    .catch((err: any) => console.error('Error cleaning up scanner:', err));
-                scannerRef.current = null;
-            }
+            cleanupScanner('effect cleanup');
         };
     }, [isOpen, onScan]);
 

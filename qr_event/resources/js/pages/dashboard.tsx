@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
@@ -48,9 +48,50 @@ export default function Dashboard() {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
 
     const handleScan = (decodedText: string) => {
+        console.log('QR Code scanned:', decodedText);
         setIsScannerOpen(false);
-        // Navigate to the scanned URL (should be the attendance/scan page with token)
-        window.location.href = decodedText;
+        
+        // The decodedText should be a URL like /attendance/scan?token=xxx
+        // Extract path and query from the URL
+        let url = decodedText;
+        
+        // If it's a full URL, extract just the path and query
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            try {
+                const urlObj = new URL(url);
+                url = urlObj.pathname + urlObj.search;
+            } catch (e) {
+                console.error('Invalid URL:', url, e);
+                return;
+            }
+        }
+        
+        if (!url.startsWith('/')) {
+            url = `/${url}`;
+        }
+
+        const currentPath = window.location.pathname + window.location.search;
+        const absoluteUrl = `${window.location.origin}${url}`;
+
+        console.log('Navigating to:', url);
+        try {
+            router.visit(url, {
+                preserveState: false,
+                preserveScroll: false,
+            });
+        } catch (error) {
+            console.error('Navigation error:', error);
+            console.log('Falling back to window.location.href');
+            window.location.href = absoluteUrl;
+        }
+
+        window.setTimeout(() => {
+            const nextPath = window.location.pathname + window.location.search;
+            if (nextPath === currentPath) {
+                console.log('Inertia navigation did not change location, forcing full redirect');
+                window.location.href = absoluteUrl;
+            }
+        }, 600);
     };
     const displayName = auth?.user
         ? [auth.user.first_name, auth.user.last_name]
