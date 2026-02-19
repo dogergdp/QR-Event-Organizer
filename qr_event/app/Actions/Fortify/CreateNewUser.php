@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -22,12 +23,18 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'dg_leader_name' => Rule::requiredIf($input['has_dg_leader'] === 'yes'),
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
+            'first_name' => $input['first_name'],
+            'last_name' => $input['last_name'],
             'password' => $input['password'],
+            'contact_number' => $input['contact_number'],
+            'birthdate' => $input['birthdate'],
+            'marital_status' => $input['marital_status'],
+            'has_dg_leader' => $input['has_dg_leader'],
+            'dg_leader_name' => $input['dg_leader_name'] ?? null,
         ]);
     }
 }

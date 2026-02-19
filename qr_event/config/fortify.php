@@ -45,9 +45,9 @@ return [
     |
     */
 
-    'username' => 'email',
+    'username' => 'contact_number',
 
-    'email' => 'email',
+    'email' => 'contact_number',
 
     /*
     |--------------------------------------------------------------------------
@@ -145,8 +145,6 @@ return [
 
     'features' => [
         Features::registration(),
-        Features::resetPasswords(),
-        Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

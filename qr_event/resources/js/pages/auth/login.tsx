@@ -9,7 +9,6 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
@@ -25,7 +24,7 @@ export default function Login({
     return (
         <AuthLayout
             title="Log in to your account"
-            description="Enter your email and password below to log in"
+            description="Enter your contact number and password below to log in"
         >
             <Head title="Log in" />
 
@@ -38,32 +37,23 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="contact_number">Contact Number</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
+                                    id="contact_number"
+                                    type="tel"
+                                    name="contact_number"
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
+                                    autoComplete="tel"
+                                    placeholder="09123456789"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError message={errors.contact_number} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
                                 </div>
                                 <Input
                                     id="password"

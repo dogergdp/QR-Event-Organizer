@@ -15,36 +15,83 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
-            'email' => $this->emailRules($userId),
+            'first_name' => $this->firstNameRules(),
+            'last_name' => $this->lastNameRules(),
+            'contact_number' => $this->contactNumberRules(),
+            'birthdate' => $this->birthdateRules(),
+            'marital_status' => $this->maritalStatusRules(),
+            'has_dg_leader' => $this->hasDgLeaderRules(),
+            'dg_leader_name' => $this->dgLeaderNameRules(),
         ];
     }
 
     /**
-     * Get the validation rules used to validate user names.
+     * Get the validation rules used to validate user first names.
      *
      * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
      */
-    protected function nameRules(): array
+    protected function firstNameRules(): array
     {
         return ['required', 'string', 'max:255'];
     }
 
     /**
-     * Get the validation rules used to validate user emails.
+     * Get the validation rules used to validate user last names.
      *
      * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
      */
-    protected function emailRules(?int $userId = null): array
+    protected function lastNameRules(): array
     {
-        return [
-            'required',
-            'string',
-            'email',
-            'max:255',
-            $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
-        ];
+        return ['required', 'string', 'max:255'];
+    }
+
+    /**
+     * Get the validation rules used to validate contact numbers.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function contactNumberRules(): array
+    {
+        return ['required', 'string', 'max:20'];
+    }
+
+    /**
+     * Get the validation rules used to validate birthdates.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function birthdateRules(): array
+    {
+        return ['required', 'date'];
+    }
+
+    /**
+     * Get the validation rules used to validate marital status.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function maritalStatusRules(): array
+    {
+        return ['required', Rule::in(['single', 'married', 'divorced', 'widowed'])];
+    }
+
+    /**
+     * Get the validation rules used to validate if user has a DG Leader.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function hasDgLeaderRules(): array
+    {
+        return ['required', Rule::in(['yes', 'no'])];
+    }
+
+    /**
+     * Get the validation rules used to validate DG Leader name.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function dgLeaderNameRules(): array
+    {
+        return ['nullable', 'string', 'max:255'];
     }
 }
