@@ -1,0 +1,257 @@
+import { Head, Link, usePage } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
+
+interface Attendee {
+    id: number;
+    user_id: number;
+    is_attended: boolean;
+    attended_time: string | null;
+    user: {
+        first_name: string;
+        last_name: string;
+        contact_number: string;
+    };
+}
+
+interface EventShowProps {
+    event: {
+        id: number;
+        name: string;
+        date: string;
+        start_time: string | null;
+        end_time: string | null;
+        description: string;
+        location: string;
+        banner_image?: string | null;
+        is_finished?: boolean;
+        created_at: string;
+        updated_at: string;
+    };
+    isAdmin: boolean;
+    userAttendance?: {
+        id: number;
+        user_id: number;
+        event_id: number;
+        is_attended: boolean;
+        attended_time: string | null;
+    } | null;
+    attendees?: Attendee[];
+}
+
+export default function ShowEvent() {
+    const { event, isAdmin, userAttendance, attendees } =
+        usePage<any>().props as EventShowProps;
+
+    const defaultBanner = '/images/default-event.png';
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: event.name,
+            href: `/events/${event.id}`,
+        },
+    ];
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title={event.name} />
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+                {/* Event Banner */}
+                <div className="aspect-video overflow-hidden rounded-xl border border-sidebar-border/70">
+                    <img
+                        src={event.banner_image || defaultBanner}
+                        alt={event.name}
+                        className="h-full w-full object-cover"
+                    />
+                </div>
+
+                {/* Event Details Section */}
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                            <h1 className="text-3xl font-bold text-foreground">
+                                {event.name}
+                            </h1>
+                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <p className="text-sm font-semibold text-muted-foreground">
+                                        DATE
+                                    </p>
+                                    <p className="mt-1 text-lg text-foreground">
+                                        {new Date(
+                                            event.date
+                                        ).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-muted-foreground">
+                                        TIME
+                                    </p>
+                                    <p className="mt-1 text-lg text-foreground">
+                                        {event.start_time}
+                                        {event.end_time && (
+                                            <> - {event.end_time}</>
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <p className="text-sm font-semibold text-muted-foreground">
+                                        LOCATION
+                                    </p>
+                                    <p className="mt-1 text-lg text-foreground">
+                                        {event.location}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {isAdmin && (
+                            <Link
+                                href={`/events/${event.id}/edit`}
+                                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                            >
+                                Edit Event
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                {/* Description Section */}
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                    <h2 className="text-xl font-semibold text-foreground">
+                        About This Event
+                    </h2>
+                    <p className="mt-4 text-foreground">
+                        {event.description}
+                    </p>
+                </div>
+
+                {/* Attendance Section */}
+                {!event.is_finished && userAttendance && (
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-semibold text-foreground">
+                                    Your Attendance
+                                </h2>
+                                {userAttendance.is_attended ? (
+                                    <p className="mt-2 text-sm text-green-600">
+                                        ✓ You have attended this event
+                                        {userAttendance.attended_time && (
+                                            <>
+                                                {' '}
+                                                (
+                                                {new Date(
+                                                    userAttendance.attended_time
+                                                ).toLocaleTimeString()}
+                                                )
+                                            </>
+                                        )}
+                                    </p>
+                                ) : (
+                                    <p className="mt-2 text-sm text-muted-foreground">
+                                        You are registered for this event
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Attendees List Section (Admin Only) */}
+                {isAdmin && (
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                        <h2 className="text-xl font-semibold text-foreground">
+                            Event Attendees
+                        </h2>
+                        {!event.is_finished && (
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Track attendance for this upcoming event
+                            </p>
+                        )}
+
+                        <div className="mt-4 overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-sidebar-border/70">
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Name
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Contact
+                                        </th>
+                                        <th className="px-4 py-2 text-center font-semibold text-foreground">
+                                            Attended
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Time
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {attendees?.map((attendee) => (
+                                        <tr
+                                            key={attendee.id}
+                                            className="border-b border-sidebar-border/70"
+                                        >
+                                            <td className="px-4 py-3 text-foreground">
+                                                {attendee.user.first_name}{' '}
+                                                {attendee.user.last_name}
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {attendee.user.contact_number}
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                {attendee.is_attended ? (
+                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                                        ✓ Yes
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                                        No
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {attendee.attended_time
+                                                    ? new Date(
+                                                          attendee.attended_time
+                                                      ).toLocaleTimeString()
+                                                    : '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                        {!usePage().props.attendees ||
+                            usePage<any>().props.attendees.length === 0 ? (
+                                <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
+                                    No attendees yet
+                                </div>
+                            ) : null}
+                        </div>
+                    </div>
+                )}
+
+                {/* Back Button */}
+                <div>
+                    <Link
+                        href="/dashboard"
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        ← Back to Dashboard
+                    </Link>
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

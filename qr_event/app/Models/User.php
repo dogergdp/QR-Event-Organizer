@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
@@ -53,5 +55,53 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Events the user has joined.
+     */
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class)->withTimestamps();
+    }
+
+    /**
+     * Attendance records for events.
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendee::class);
+    }
+
+    /**
+     * Roles assigned to the user.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class)->withTimestamps();
+    }
+
+    /**
+     * Check if the user has a role.
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    /**
+     * Shortcut for admin checks.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Future: event organizer role.
+     */
+    public function canHostEvents(): bool
+    {
+        return $this->hasRole('admin') || $this->hasRole('event-organizer');
     }
 }
