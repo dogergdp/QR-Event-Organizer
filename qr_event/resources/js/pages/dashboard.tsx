@@ -106,28 +106,6 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            {/* Floating Scanner Button for Users */}
-            {!isAdmin && (
-                <button
-                    onClick={() => setIsScannerOpen(true)}
-                    className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-all hover:scale-110"
-                    title="Scan QR Code"
-                >
-                    <svg
-                        className="h-8 w-8"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                        />
-                    </svg>
-                </button>
-            )}
 
             {/* QR Scanner Modal */}
             <QRScanner
@@ -136,7 +114,7 @@ export default function Dashboard() {
                 onScan={handleScan}
             />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                <div>
                     <h1 className="text-xl font-semibold text-foreground">
                         Welcome{displayName ? `, ${displayName}` : ''}!
                     </h1>
@@ -146,6 +124,16 @@ export default function Dashboard() {
                             : 'Check your upcoming events and track your attendance.'}
                     </p>
                 </div>
+
+                {/* Scanner Button for Users */}
+                {!isAdmin && (
+                    <button
+                        onClick={() => setIsScannerOpen(true)}
+                        className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                        Scan for Attendance
+                    </button>
+                )}
 
                            {isAdmin && (
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
@@ -195,7 +183,7 @@ export default function Dashboard() {
  
                 
                 {/* Upcoming Events Section */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                <div className="mt-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h2 className="text-lg font-semibold text-foreground">
@@ -283,7 +271,7 @@ export default function Dashboard() {
 
                 {/* Finished Events Section (Admin Only) */}
                 {isAdmin && (
-                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    <div>
                         <h2 className="text-lg font-semibold text-foreground">
                             Finished Events
                         </h2>
