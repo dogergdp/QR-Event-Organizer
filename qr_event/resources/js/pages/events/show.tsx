@@ -1,6 +1,27 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import QRScanner from '@/components/QRScanner';
+import { useState } from 'react';
+
+function formatTime12Hour(time: string | null): string {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+}
+
+function formatDateTime12Hour(dateTimeString: string | null): string {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+}
 
 interface Attendee {
     id: number;
@@ -43,7 +64,15 @@ export default function ShowEvent() {
     const { event, isAdmin, userAttendance, attendees } =
         usePage<any>().props as EventShowProps;
 
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+
     const defaultBanner = '/images/default-event.png';
+
+    const handleScan = (decodedText: string) => {
+        setIsScannerOpen(false);
+        // Navigate to the scanned URL (should be the attendance/scan page with token)
+        window.location.href = decodedText;
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -94,13 +123,22 @@ export default function ShowEvent() {
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-muted-foreground">
-                                        TIME
+                                        START TIME
                                     </p>
                                     <p className="mt-1 text-lg text-foreground">
-                                        {event.start_time}
-                                        {event.end_time && (
-                                            <> - {event.end_time}</>
-                                        )}
+                                        {event.start_time
+                                            ? formatTime12Hour(event.start_time)
+                                            : 'N/A'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-muted-foreground">
+                                        END TIME
+                                    </p>
+                                    <p className="mt-1 text-lg text-foreground">
+                                        {event.end_time
+                                            ? formatTime12Hour(event.end_time)
+                                            : 'N/A'}
                                     </p>
                                 </div>
                                 <div className="md:col-span-2">
@@ -134,11 +172,29 @@ export default function ShowEvent() {
                     </p>
                 </div>
 
+                {/* QR Code Display (Admin Only) */}
+                {isAdmin && !event.is_finished && (
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                        <h2 className="mb-4 text-xl font-semibold text-foreground">
+                            Attendance QR Code
+                        </h2>
+                        <p className="mb-4 text-sm text-muted-foreground">
+                            Display the QR code on a monitor for attendees to scan
+                        </p>
+                        <Link
+                            href={`/events/${event.id}/qr-display`}
+                            className="inline-flex rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 transition-colors"
+                        >
+                            Open QR Display
+                        </Link>
+                    </div>
+                )}
+
                 {/* Attendance Section */}
                 {!event.is_finished && userAttendance && (
                     <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
                         <div className="flex items-center justify-between">
-                            <div>
+                            <div className="flex-1">
                                 <h2 className="text-xl font-semibold text-foreground">
                                     Your Attendance
                                 </h2>
@@ -147,11 +203,10 @@ export default function ShowEvent() {
                                         ✓ You have attended this event
                                         {userAttendance.attended_time && (
                                             <>
-                                                {' '}
-                                                (
-                                                {new Date(
+                                                {' '}(
+                                                {formatDateTime12Hour(
                                                     userAttendance.attended_time
-                                                ).toLocaleTimeString()}
+                                                )}
                                                 )
                                             </>
                                         )}
@@ -162,6 +217,14 @@ export default function ShowEvent() {
                                     </p>
                                 )}
                             </div>
+                            {!userAttendance.is_attended && (
+                                <button
+                                    onClick={() => setIsScannerOpen(true)}
+                                    className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                >
+                                    Mark Attendance
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -222,9 +285,9 @@ export default function ShowEvent() {
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.attended_time
-                                                    ? new Date(
+                                                    ? formatDateTime12Hour(
                                                           attendee.attended_time
-                                                      ).toLocaleTimeString()
+                                                      )
                                                     : '—'}
                                             </td>
                                         </tr>
@@ -251,6 +314,13 @@ export default function ShowEvent() {
                         ← Back to Dashboard
                     </Link>
                 </div>
+
+                {/* QR Scanner Modal */}
+                <QRScanner
+                    isOpen={isScannerOpen}
+                    onClose={() => setIsScannerOpen(false)}
+                    onScan={handleScan}
+                />
             </div>
         </AppLayout>
     );

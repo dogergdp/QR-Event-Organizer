@@ -6,6 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $date
+ * @property string|null $start_time
+ * @property string|null $end_time
+ * @property string $description
+ * @property string $location
+ * @property string|null $banner_image
+ * @property bool $is_finished
+ */
 class Event extends Model
 {
     /**

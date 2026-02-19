@@ -2,6 +2,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
+import QRScanner from '@/components/QRScanner';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,6 +44,14 @@ export default function Dashboard() {
         }>;
         isAdmin?: boolean;
     };
+
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+    const handleScan = (decodedText: string) => {
+        setIsScannerOpen(false);
+        // Navigate to the scanned URL (should be the attendance/scan page with token)
+        window.location.href = decodedText;
+    };
     const displayName = auth?.user
         ? [auth.user.first_name, auth.user.last_name]
               .filter(Boolean)
@@ -55,6 +65,35 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
+            {/* Floating Scanner Button for Users */}
+            {!isAdmin && (
+                <button
+                    onClick={() => setIsScannerOpen(true)}
+                    className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-all hover:scale-110"
+                    title="Scan QR Code"
+                >
+                    <svg
+                        className="h-8 w-8"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                        />
+                    </svg>
+                </button>
+            )}
+
+            {/* QR Scanner Modal */}
+            <QRScanner
+                isOpen={isScannerOpen}
+                onClose={() => setIsScannerOpen(false)}
+                onScan={handleScan}
+            />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
                     <h1 className="text-xl font-semibold text-foreground">
@@ -67,6 +106,53 @@ export default function Dashboard() {
                     </p>
                 </div>
 
+                           {isAdmin && (
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    <h2 className="text-lg font-semibold text-foreground">
+                        Admin Tools
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Manage users and track attendance
+                    </p>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <Link
+                            href="/admin/users"
+                            className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                        >
+                            <h3 className="font-semibold text-foreground group-hover:text-primary">
+                                Registered Users
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                View all registered users in the system
+                            </p>
+                            <p className="mt-3 text-xs font-medium text-primary">
+                                View All →
+                            </p>
+                        </Link>
+
+                        <Link
+                            href="/admin/attendees"
+                            className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                        >
+                            <h3 className="font-semibold text-foreground group-hover:text-primary">
+                                Event Attendees
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Track all event attendance registrations
+                            </p>
+                            <p className="mt-3 text-xs font-medium text-primary">
+                                View All →
+                            </p>
+                        </Link>
+                    </div>
+                </div>
+            )}
+                
+
+
+ 
+                
                 {/* Upcoming Events Section */}
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -114,37 +200,40 @@ export default function Dashboard() {
                                             loading="lazy"
                                         />
                                     </div>
-                                    <div className="mt-2">
-                                        <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
-                                            {event.name}
-                                        </h3>
-                                        <p className="truncate text-xs text-muted-foreground">
-                                            {event.date}
-                                            {event.start_time && (
-                                                <>
-                                                    {' • '}
-                                                    {formatTime12Hour(event.start_time)}
-                                                    {event.end_time && (
-                                                        <> - {formatTime12Hour(event.end_time)}</>
-                                                    )}
-                                                </>
-                                            )}
-                                        </p>
-                                        <p className="truncate text-xs text-muted-foreground">
-                                            {event.location}
-                                        </p>
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                                                {event.name}
+                                            </h3>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {event.date}
+                                                {event.start_time && (
+                                                    <>
+                                                        {' • '}
+                                                        {formatTime12Hour(event.start_time)}
+                                                        {event.end_time && (
+                                                            <> - {formatTime12Hour(event.end_time)}</>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </p>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {event.location}
+                                            </p>
+                                        </div>
+                                        {isAdmin && (
+                                            <a
+                                                href={`/events/${event.id}/edit`}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    window.location.href = `/events/${event.id}/edit`;
+                                                }}
+                                                className="ml-2 text-xs font-medium text-primary hover:underline"
+                                            >
+                                                Edit
+                                            </a>
+                                        )}
                                     </div>
-                                    {isAdmin && (
-                                        <Link
-                                            href={`/events/${event.id}/edit`}
-                                            onClick={(e) =>
-                                                e.stopPropagation()
-                                            }
-                                            className="mt-2 inline-flex text-xs font-medium text-primary hover:underline"
-                                        >
-                                            Edit
-                                        </Link>
-                                    )}
                                 </Link>
                             ))}
                         </div>
@@ -184,35 +273,38 @@ export default function Dashboard() {
                                                 loading="lazy"
                                             />
                                         </div>
-                                        <div className="mt-2">
-                                            <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
-                                                {event.name}
-                                            </h3>
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {event.date}
-                                                {event.start_time && (
-                                                    <>
-                                                        {' • '}
-                                                        {formatTime12Hour(event.start_time)}
-                                                        {event.end_time && (
-                                                            <> - {formatTime12Hour(event.end_time)}</>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </p>
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {event.location}
-                                            </p>
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                                                    {event.name}
+                                                </h3>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {event.date}
+                                                    {event.start_time && (
+                                                        <>
+                                                            {' • '}
+                                                            {formatTime12Hour(event.start_time)}
+                                                            {event.end_time && (
+                                                                <> - {formatTime12Hour(event.end_time)}</>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {event.location}
+                                                </p>
+                                            </div>
+                                            <a
+                                                href={`/events/${event.id}/edit`}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    window.location.href = `/events/${event.id}/edit`;
+                                                }}
+                                                className="ml-2 text-xs font-medium text-primary hover:underline"
+                                            >
+                                                Edit
+                                            </a>
                                         </div>
-                                        <Link
-                                            href={`/events/${event.id}/edit`}
-                                            onClick={(e) =>
-                                                e.stopPropagation()
-                                            }
-                                            className="mt-2 inline-flex text-xs font-medium text-primary hover:underline"
-                                        >
-                                            Edit
-                                        </Link>
                                     </Link>
                                 ))}
                             </div>
@@ -221,49 +313,7 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* Admin Dashboard: Links to Management Pages */}
-            {isAdmin && (
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    <h2 className="text-lg font-semibold text-foreground">
-                        Admin Tools
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Manage users and track attendance
-                    </p>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        <Link
-                            href="/admin/users"
-                            className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
-                        >
-                            <h3 className="font-semibold text-foreground group-hover:text-primary">
-                                Registered Users
-                            </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                View all registered users in the system
-                            </p>
-                            <p className="mt-3 text-xs font-medium text-primary">
-                                View All →
-                            </p>
-                        </Link>
-
-                        <Link
-                            href="/admin/attendees"
-                            className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
-                        >
-                            <h3 className="font-semibold text-foreground group-hover:text-primary">
-                                Event Attendees
-                            </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Track all event attendance registrations
-                            </p>
-                            <p className="mt-3 text-xs font-medium text-primary">
-                                View All →
-                            </p>
-                        </Link>
-                    </div>
-                </div>
-            )}
         </AppLayout>
     );
 }

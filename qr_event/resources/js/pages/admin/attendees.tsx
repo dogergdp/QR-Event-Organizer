@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 export default function AdminAttendees() {
-    const { attendees } = usePage().props as {
+    const { attendees } = usePage<any>().props as {
         attendees: Array<{
             id: number;
             user_id: number;

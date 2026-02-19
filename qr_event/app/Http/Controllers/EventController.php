@@ -39,6 +39,16 @@ class EventController extends Controller
     }
 
     /**
+     * Show QR display page (fullscreen for monitors).
+     */
+    public function qrDisplay(Event $event): Response
+    {
+        return Inertia::render('qr-display', [
+            'event' => $event,
+        ]);
+    }
+
+    /**
      * Show the admin create event page.
      */
     public function create(): Response

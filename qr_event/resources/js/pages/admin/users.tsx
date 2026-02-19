@@ -3,11 +3,12 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 export default function AdminUsers() {
-    const { users } = usePage().props as {
+    const { users } = usePage<any>().props as {
         users: Array<{
             id: number;
             first_name: string;
             last_name: string;
+            dg_leader_name: string;
             contact_number: string;
             created_at: string;
         }>;
@@ -42,11 +43,18 @@ export default function AdminUsers() {
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
+                                            ID
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Name
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-semibold text-foreground">
+                                            DG Leader
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Contact Number
                                         </th>
+
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Registered Date
                                         </th>
@@ -59,7 +67,13 @@ export default function AdminUsers() {
                                             className="border-b border-sidebar-border/70 hover:bg-sidebar/50"
                                         >
                                             <td className="px-4 py-3 font-medium text-foreground">
+                                                {user.id}
+                                            </td>
+                                            <td className="px-4 py-3 font-medium text-foreground">
                                                 {user.first_name} {user.last_name}
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {user.dg_leader_name || 'N/A'}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {user.contact_number}

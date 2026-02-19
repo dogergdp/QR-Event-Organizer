@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EventController;
 use App\Models\Attendee;
 use App\Models\Event;
@@ -65,7 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('users', function () {
         $users = User::query()
             ->orderBy('created_at', 'desc')
-            ->get(['id', 'first_name', 'last_name', 'contact_number', 'created_at']);
+            ->get(['id', 'first_name', 'last_name', 'contact_number', 'created_at', 'dg_leader_name']);
 
         return Inertia::render('admin/users', [
             'users' => $users,
@@ -88,9 +89,14 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('create', [EventController::class, 'create'])->name('create');
     Route::post('/', [EventController::class, 'store'])->name('store');
     Route::get('{event}/edit', [EventController::class, 'edit'])->name('edit');
+    Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');
 });
-
+// Attendance/Check-in routes
+Route::middleware(['auth'])->prefix('attendance')->name('attendance.')->group(function () {
+    Route::get('scan', [AttendanceController::class, 'scan'])->name('scan');
+    Route::post('confirm', [AttendanceController::class, 'confirm'])->name('confirm');
+});
 Route::middleware(['auth'])->prefix('events')->name('events.')->group(function () {
     Route::get('{event}', [EventController::class, 'show'])->name('show');
 });
