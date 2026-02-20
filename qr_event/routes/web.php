@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ReportController;
 use App\Models\Attendee;
 use App\Models\Event;
@@ -91,7 +92,16 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');
     Route::delete('{event}', [EventController::class, 'destroy'])->name('destroy');
+    // QR Code management routes
+    Route::get('{event}/qr', [QrCodeController::class, 'index'])->name('qr.index');
+    Route::post('{event}/qr', [QrCodeController::class, 'store'])->name('qr.store');
+    Route::put('qr/{qrCode}/toggle', [QrCodeController::class, 'toggle'])->name('qr.toggle');
+    Route::delete('qr/{qrCode}', [QrCodeController::class, 'destroy'])->name('qr.destroy');
 });
+
+// Public QR code view route (when users scan QR code)
+Route::get('qr/{token}', [QrCodeController::class, 'view'])->name('qr.view');
+
 // Attendance/Check-in routes
 Route::middleware(['auth'])->prefix('attendance')->name('attendance.')->group(function () {
     Route::get('scan', [AttendanceController::class, 'scan'])->name('scan');

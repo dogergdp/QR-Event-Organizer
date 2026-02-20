@@ -52,4 +52,12 @@ class Event extends Model
     {
         return $this->hasMany(Attendee::class);
     }
+
+    /**
+     * QR codes for this event.
+     */
+    public function qrCodes(): HasMany
+    {
+        return $this->hasMany(QrCode::class);
+    }
 }
