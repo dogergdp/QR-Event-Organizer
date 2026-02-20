@@ -67,7 +67,7 @@ export default function CheckIn({
                 {/* Event Banner */}
                 <div className="aspect-video overflow-hidden rounded-xl border border-sidebar-border/70">
                     <img
-                        src={event.banner_image || defaultBanner}
+                        src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
                         alt={event.name}
                         className="h-full w-full object-cover"
                     />

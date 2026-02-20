@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class UserController extends Controller
+{
+    public function index(Request $request): Response
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        $users = User::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10, ['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name'])
+            ->withQueryString();
+
+        return Inertia::render('admin/users', [
+            'users' => $users,
+            'filters' => [
+                'search' => $search,
+            ],
+        ]);
+    }
+
+    public function edit(User $user): Response
+    {
+        return Inertia::render('admin/users/edit', [
+            'user' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'contact_number' => $user->contact_number,
+                'birthdate' => optional($user->birthdate)->format('Y-m-d'),
+                'marital_status' => $user->marital_status,
+                'has_dg_leader' => $user->has_dg_leader,
+                'dg_leader_name' => $user->dg_leader_name,
+            ],
+        ]);
+    }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($user->id)],
+            'birthdate' => ['required', 'date'],
+            'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
+            'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
+            'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+        ]);
+
+        $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
+            ? $validated['dg_leader_name']
+            : null;
+
+        $user->update($validated);
+
+        return redirect()->route('admin.users')->with('success', 'User updated successfully.');
+    }
+
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        if ($request->user()?->id === $user->id) {
+            return redirect()->route('admin.users')->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
+    }
+}

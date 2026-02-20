@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -29,25 +29,49 @@ function calculateAge(birthdate: string | null): string {
 }
 
 export default function AdminAttendees() {
-    const { attendees } = usePage<any>().props as {
-        attendees: Array<{
-            id: number;
-            user_id: number;
-            event_id: number;
-            is_attended: boolean;
-            attended_time: string | null;
-            created_at: string;
-            user: {
-                first_name: string;
-                last_name: string;
-                contact_number: string;
-                birthdate: string | null;
-            };
-            event: {
+    const { attendees, users, events, filters } = usePage<any>().props as {
+        attendees: {
+            data: Array<{
                 id: number;
-                name: string;
-            };
+                user_id: number;
+                event_id: number;
+                is_attended: boolean;
+                attended_time: string | null;
+                created_at: string;
+                user: {
+                    first_name: string;
+                    last_name: string;
+                    contact_number: string;
+                    birthdate: string | null;
+                };
+                event: {
+                    id: number;
+                    name: string;
+                };
+            }>;
+            links: Array<{
+                url: string | null;
+                label: string;
+                active: boolean;
+            }>;
+            total: number;
+            from: number | null;
+            to: number | null;
+        };
+        users: Array<{
+            id: number;
+            first_name: string;
+            last_name: string;
+            contact_number: string;
         }>;
+        events: Array<{
+            id: number;
+            name: string;
+            date: string;
+        }>;
+        filters: {
+            search?: string;
+        };
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -69,7 +93,83 @@ export default function AdminAttendees() {
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    {!attendees || attendees.length === 0 ? (
+                    <div className="mb-4 rounded-lg border border-sidebar-border/70 p-4">
+                        <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
+                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3 md:grid-cols-4">
+                            {({ processing, errors }) => (
+                                <>
+                                    <div className="md:col-span-2">
+                                        <select
+                                            name="user_id"
+                                            required
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                        >
+                                            <option value="">Select user</option>
+                                            {users.map((user) => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.first_name} {user.last_name} ({user.contact_number})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.user_id && (
+                                            <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <select
+                                            name="event_id"
+                                            required
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                        >
+                                            <option value="">Select event</option>
+                                            {events.map((event) => (
+                                                <option key={event.id} value={event.id}>
+                                                    {event.name} ({event.date})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.event_id && (
+                                            <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
+                                        )}
+                                    </div>
+
+                                    <label className="flex items-center gap-2 text-sm text-foreground">
+                                        <input type="checkbox" name="is_attended" value="1" />
+                                        Mark attended
+                                    </label>
+
+                                    <div className="md:col-span-4">
+                                        <button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                                        >
+                                            Add Attendee
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </Form>
+                    </div>
+
+                    <form method="get" action="/admin/attendees" className="mb-4 flex gap-2">
+                        <input
+                            type="text"
+                            name="search"
+                            defaultValue={filters?.search ?? ''}
+                            placeholder="Search name or contact number"
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        />
+                        <button
+                            type="submit"
+                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                        >
+                            Search
+                        </button>
+                    </form>
+
+                    {!attendees || attendees.data.length === 0 ? (
                         <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
                             No attendees registered yet.
                         </div>
@@ -96,10 +196,13 @@ export default function AdminAttendees() {
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Registration Date
                                         </th>
+                                        <th className="px-4 py-3 text-left font-semibold text-foreground">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {attendees.map((attendee) => (
+                                    {attendees.data.map((attendee) => (
                                         <tr
                                             key={attendee.id}
                                             className="border-b border-sidebar-border/70 hover:bg-sidebar/50"
@@ -144,16 +247,43 @@ export default function AdminAttendees() {
                                                     day: 'numeric',
                                                 })}
                                             </td>
+                                            <td className="px-4 py-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (confirm('Delete this attendee record?')) {
+                                                            router.delete(`/admin/attendees/${attendee.id}`, {
+                                                                preserveScroll: true,
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="text-red-600 hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            <div className="mt-4 text-sm text-muted-foreground">
-                                Total registrations:{' '}
-                                <span className="font-semibold text-foreground">
-                                    {attendees.length}
-                                </span>
+                            <div className="mt-4 flex items-center justify-between gap-3">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {attendees.from ?? 0} to {attendees.to ?? 0} of{' '}
+                                    <span className="font-semibold text-foreground">{attendees.total}</span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {attendees.links.map((link, index) => (
+                                        <Link
+                                            key={`${link.label}-${index}`}
+                                            href={link.url ?? '#'}
+                                            preserveScroll
+                                            className={`rounded-md px-3 py-1 text-sm ${link.active ? 'bg-primary text-primary-foreground' : 'border border-sidebar-border/70 text-foreground'} ${!link.url ? 'pointer-events-none opacity-50' : ''}`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}

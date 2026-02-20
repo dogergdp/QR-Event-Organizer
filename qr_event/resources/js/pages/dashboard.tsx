@@ -222,7 +222,7 @@ export default function Dashboard() {
                                     <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
                                         <img
                                             src={
-                                                event.banner_image || defaultBanner
+                                                event.banner_image ? `/storage/${event.banner_image}` : defaultBanner
                                             }
                                             alt={event.name}
                                             className="h-full w-full object-cover transition-transform group-hover:scale-105"
@@ -251,16 +251,32 @@ export default function Dashboard() {
                                             </p>
                                         </div>
                                         {isAdmin && (
-                                            <a
-                                                href={`/events/${event.id}/edit`}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.location.href = `/events/${event.id}/edit`;
-                                                }}
-                                                className="ml-2 text-xs font-medium text-primary hover:underline"
-                                            >
-                                                Edit
-                                            </a>
+                                            <div className="ml-2 flex items-center gap-2">
+                                                <a
+                                                    href={`/events/${event.id}/edit`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        window.location.href = `/events/${event.id}/edit`;
+                                                    }}
+                                                    className="text-xs font-medium text-primary hover:underline"
+                                                >
+                                                    Edit
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        if (confirm(`Delete event \"${event.name}\"?`)) {
+                                                            router.delete(`/events/${event.id}`);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-medium text-red-600 hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </Link>
@@ -323,16 +339,32 @@ export default function Dashboard() {
                                                     {event.location}
                                                 </p>
                                             </div>
-                                            <a
-                                                href={`/events/${event.id}/edit`}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.location.href = `/events/${event.id}/edit`;
-                                                }}
-                                                className="ml-2 text-xs font-medium text-primary hover:underline"
-                                            >
-                                                Edit
-                                            </a>
+                                            <div className="ml-2 flex items-center gap-2">
+                                                <a
+                                                    href={`/events/${event.id}/edit`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        window.location.href = `/events/${event.id}/edit`;
+                                                    }}
+                                                    className="text-xs font-medium text-primary hover:underline"
+                                                >
+                                                    Edit
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        if (confirm(`Delete event \"${event.name}\"?`)) {
+                                                            router.delete(`/events/${event.id}`);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-medium text-red-600 hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     </Link>
                                 ))}

@@ -125,11 +125,11 @@ export default function ShowEvent() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.name} />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 m-8">
                 {/* Event Banner */}
                 <div className="aspect-video overflow-hidden rounded-xl border border-sidebar-border/70">
                     <img
-                        src={event.banner_image || defaultBanner}
+                        src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
                         alt={event.name}
                         className="h-full w-full object-cover"
                     />
@@ -200,7 +200,7 @@ export default function ShowEvent() {
                 </div>
 
                 {/* Description Section */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                <div className="">
                     <h2 className="text-xl font-semibold text-foreground">
                         About This Event
                     </h2>

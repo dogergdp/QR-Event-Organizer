@@ -1,4 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -19,21 +20,73 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateEvent() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const [data, setData] = useState({
         name: '',
         date: '',
         start_time: '',
         end_time: '',
         description: '',
         location: '',
-        banner_image: '',
         is_finished: false,
     });
+    const [bannerImage, setBannerImage] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string>('');
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState<any>({});
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setBannerImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setData(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        post('/events', {
-            onSuccess: () => reset(),
+        setProcessing(true);
+        setErrors({});
+
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('date', data.date);
+        formData.append('start_time', data.start_time);
+        formData.append('end_time', data.end_time);
+        formData.append('description', data.description);
+        formData.append('location', data.location);
+        if (bannerImage) {
+            formData.append('banner_image', bannerImage);
+        }
+        if (data.is_finished) {
+            formData.append('is_finished', '1');
+        }
+
+        router.post('/events', formData, {
+            onSuccess: () => {
+                setData({
+                    name: '',
+                    date: '',
+                    start_time: '',
+                    end_time: '',
+                    description: '',
+                    location: '',
+                    is_finished: false,
+                });
+                setBannerImage(null);
+                setPreview('');
+                setProcessing(false);
+            },
+            onError: (errors: any) => {
+                setErrors(errors);
+                setProcessing(false);
+            },
         });
     };
 
@@ -60,7 +113,7 @@ export default function CreateEvent() {
                                 id="name"
                                 name="name"
                                 value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
+                                onChange={handleInputChange}
                                 required
                                 placeholder="Sunday Service"
                             />
@@ -73,7 +126,7 @@ export default function CreateEvent() {
                                 id="location"
                                 name="location"
                                 value={data.location}
-                                onChange={(e) => setData('location', e.target.value)}
+                                onChange={handleInputChange}
                                 required
                                 placeholder="Main Hall"
                             />
@@ -87,7 +140,7 @@ export default function CreateEvent() {
                                 type="date"
                                 name="date"
                                 value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
+                                onChange={handleInputChange}
                                 required
                             />
                             <InputError message={errors.date} />
@@ -100,9 +153,7 @@ export default function CreateEvent() {
                                 type="time"
                                 name="start_time"
                                 value={data.start_time}
-                                onChange={(e) =>
-                                    setData('start_time', e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 required
                             />
                             <InputError message={errors.start_time} />
@@ -115,9 +166,7 @@ export default function CreateEvent() {
                                 type="time"
                                 name="end_time"
                                 value={data.end_time}
-                                onChange={(e) =>
-                                    setData('end_time', e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 required
                             />
                             <InputError message={errors.end_time} />
@@ -129,7 +178,7 @@ export default function CreateEvent() {
                                 id="description"
                                 name="description"
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={handleInputChange}
                                 required
                                 placeholder="Event description"
                                 className="flex min-h-[96px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -138,18 +187,24 @@ export default function CreateEvent() {
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label htmlFor="banner_image">Banner Image URL</Label>
-                            <Input
+                            <Label htmlFor="banner_image">Banner Image</Label>
+                            <input
                                 id="banner_image"
+                                type="file"
                                 name="banner_image"
-                                value={data.banner_image}
-                                onChange={(e) => setData('banner_image', e.target.value)}
-                                placeholder="https://... or /images/banner.jpg"
+                                onChange={handleFileChange}
+                                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                className="flex rounded-md border border-input bg-transparent px-3 py-2 text-sm file:border-0 file:bg-blue-600 file:px-3 file:py-1 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700"
                             />
                             <InputError message={errors.banner_image} />
                             <p className="text-xs text-muted-foreground">
-                                Optional. If empty, a default banner will be used.
+                                JPG or PNG only, max 2MB. Optional - default banner will be used if empty.
                             </p>
+                            {preview && (
+                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70">
+                                    <img src={preview} alt="Preview" className="h-32 w-full object-cover" />
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-2 md:col-span-2">
@@ -157,7 +212,7 @@ export default function CreateEvent() {
                                 id="is_finished"
                                 checked={data.is_finished}
                                 onCheckedChange={(checked) =>
-                                    setData('is_finished', checked === true)
+                                    setData(prev => ({ ...prev, is_finished: checked === true }))
                                 }
                             />
                             <Label htmlFor="is_finished">Mark as finished</Label>

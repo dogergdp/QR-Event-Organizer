@@ -1,0 +1,131 @@
+import { Form, Head, Link, usePage } from '@inertiajs/react';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
+
+export default function EditUser() {
+    const { user } = usePage<any>().props as {
+        user: {
+            id: number;
+            first_name: string;
+            last_name: string;
+            contact_number: string;
+            birthdate: string | null;
+            marital_status: string;
+            has_dg_leader: string;
+            dg_leader_name: string | null;
+        };
+    };
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Registered Users', href: '/admin/users' },
+        { title: 'Edit User', href: `/admin/users/${user.id}/edit` },
+    ];
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Edit User" />
+
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    <h1 className="text-2xl font-bold text-foreground">Edit User</h1>
+                    <p className="mt-1 text-muted-foreground">Update user details</p>
+                </div>
+
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    <Form
+                        method="put"
+                        action={`/admin/users/${user.id}`}
+                        className="grid gap-4"
+                    >
+                        {({ processing, errors }) => (
+                            <>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="first_name">First Name</Label>
+                                        <Input id="first_name" name="first_name" defaultValue={user.first_name} required />
+                                        <InputError message={errors.first_name} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="last_name">Last Name</Label>
+                                        <Input id="last_name" name="last_name" defaultValue={user.last_name} required />
+                                        <InputError message={errors.last_name} />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="contact_number">Contact Number</Label>
+                                    <Input id="contact_number" name="contact_number" defaultValue={user.contact_number} required />
+                                    <InputError message={errors.contact_number} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="birthdate">Birthdate</Label>
+                                    <Input id="birthdate" type="date" name="birthdate" defaultValue={user.birthdate ?? ''} required />
+                                    <InputError message={errors.birthdate} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="marital_status">Marital Status</Label>
+                                    <select
+                                        id="marital_status"
+                                        name="marital_status"
+                                        defaultValue={user.marital_status}
+                                        required
+                                        className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                    >
+                                        <option value="single">Single</option>
+                                        <option value="married">Married</option>
+                                        <option value="separated">Separated</option>
+                                        <option value="widowed">Widowed</option>
+                                    </select>
+                                    <InputError message={errors.marital_status} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="has_dg_leader">Are you in a DG Group?</Label>
+                                    <select
+                                        id="has_dg_leader"
+                                        name="has_dg_leader"
+                                        defaultValue={user.has_dg_leader}
+                                        required
+                                        className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                    >
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                    <InputError message={errors.has_dg_leader} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="dg_leader_name">DG Leader Name</Label>
+                                    <Input
+                                        id="dg_leader_name"
+                                        name="dg_leader_name"
+                                        defaultValue={user.dg_leader_name ?? ''}
+                                        placeholder="Optional if no DG group"
+                                    />
+                                    <InputError message={errors.dg_leader_name} />
+                                </div>
+
+                                <div className="mt-2 flex items-center gap-3">
+                                    <Button type="submit" disabled={processing}>
+                                        Save Changes
+                                    </Button>
+                                    <Link href="/admin/users" className="text-sm text-muted-foreground hover:underline">
+                                        Cancel
+                                    </Link>
+                                </div>
+                            </>
+                        )}
+                    </Form>
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

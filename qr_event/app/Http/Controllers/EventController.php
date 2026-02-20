@@ -68,11 +68,13 @@ class EventController extends Controller
             'end_time' => ['required', 'date_format:H:i'],
             'description' => ['required', 'string'],
             'location' => ['required', 'string', 'max:255'],
-            'banner_image' => ['nullable', 'string', 'max:255'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['banner_image'] = $validated['banner_image'] ?: null;
+        if ($request->hasFile('banner_image')) {
+            $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
+        }
         $validated['is_finished'] = $validated['is_finished'] ?? false;
 
         Event::create($validated);
@@ -102,14 +104,30 @@ class EventController extends Controller
             'end_time' => ['required', 'date_format:H:i'],
             'description' => ['required', 'string'],
             'location' => ['required', 'string', 'max:255'],
-            'banner_image' => ['nullable', 'string', 'max:255'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['banner_image'] = $validated['banner_image'] ?: null;
+        if ($request->hasFile('banner_image')) {
+            // Delete old image if exists
+            if ($event->banner_image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($event->banner_image);
+            }
+            $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
+        }
         $validated['is_finished'] = $validated['is_finished'] ?? false;
 
         $event->update($validated);
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * Delete an event.
+     */
+    public function destroy(Event $event): RedirectResponse
+    {
+        $event->delete();
 
         return redirect()->route('dashboard');
     }

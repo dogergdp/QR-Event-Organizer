@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\EventController;
 use App\Models\Attendee;
 use App\Models\Event;
@@ -63,26 +65,14 @@ Route::get('dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('users', function () {
-        $users = User::query()
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name']);
+    Route::get('users', [AdminUserController::class, 'index'])->name('users');
+    Route::get('users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
-        return Inertia::render('admin/users', [
-            'users' => $users,
-        ]);
-    })->name('users');
-
-    Route::get('attendees', function () {
-        $attendees = Attendee::query()
-            ->with(['user:id,first_name,last_name,contact_number,birthdate', 'event:id,name'])
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'created_at']);
-
-        return Inertia::render('admin/attendees', [
-            'attendees' => $attendees,
-        ]);
-    })->name('attendees');
+    Route::get('attendees', [AdminAttendeeController::class, 'index'])->name('attendees');
+    Route::post('attendees', [AdminAttendeeController::class, 'store'])->name('attendees.store');
+    Route::delete('attendees/{attendee}', [AdminAttendeeController::class, 'destroy'])->name('attendees.destroy');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(function () {
@@ -91,6 +81,7 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');
+    Route::delete('{event}', [EventController::class, 'destroy'])->name('destroy');
 });
 // Attendance/Check-in routes
 Route::middleware(['auth'])->prefix('attendance')->name('attendance.')->group(function () {

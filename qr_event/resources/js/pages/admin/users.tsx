@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -29,16 +29,29 @@ function calculateAge(birthdate: string | null): string {
 }
 
 export default function AdminUsers() {
-    const { users } = usePage<any>().props as {
-        users: Array<{
-            id: number;
-            first_name: string;
-            last_name: string;
-            dg_leader_name: string;
-            contact_number: string;
-            birthdate: string | null;
-            created_at: string;
-        }>;
+    const { users, filters } = usePage<any>().props as {
+        users: {
+            data: Array<{
+                id: number;
+                first_name: string;
+                last_name: string;
+                dg_leader_name: string;
+                contact_number: string;
+                birthdate: string | null;
+                created_at: string;
+            }>;
+            links: Array<{
+                url: string | null;
+                label: string;
+                active: boolean;
+            }>;
+            total: number;
+            from: number | null;
+            to: number | null;
+        };
+        filters: {
+            search?: string;
+        };
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -60,7 +73,23 @@ export default function AdminUsers() {
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    {!users || users.length === 0 ? (
+                    <form method="get" action="/admin/users" className="mb-4 flex gap-2">
+                        <input
+                            type="text"
+                            name="search"
+                            defaultValue={filters?.search ?? ''}
+                            placeholder="Search name or contact number"
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        />
+                        <button
+                            type="submit"
+                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                        >
+                            Search
+                        </button>
+                    </form>
+
+                    {!users || users.data.length === 0 ? (
                         <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
                             No users registered yet.
                         </div>
@@ -89,10 +118,13 @@ export default function AdminUsers() {
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Registration Date
                                         </th>
+                                        <th className="px-4 py-3 text-left font-semibold text-foreground">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {users.map((user) => (
+                                    {users.data.map((user) => (
                                         <tr
                                             key={user.id}
                                             className="border-b border-sidebar-border/70 hover:bg-sidebar/50"
@@ -123,13 +155,51 @@ export default function AdminUsers() {
                                                     minute: '2-digit',
                                                 })}
                                             </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Link
+                                                        href={`/admin/users/${user.id}/edit`}
+                                                        className="text-primary hover:underline"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (confirm(`Delete ${user.first_name} ${user.last_name}?`)) {
+                                                                router.delete(`/admin/users/${user.id}`, {
+                                                                    preserveScroll: true,
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="text-red-600 hover:underline"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            <div className="mt-4 text-sm text-muted-foreground">
-                                Total users: <span className="font-semibold text-foreground">{users.length}</span>
+                            <div className="mt-4 flex items-center justify-between gap-3">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {users.from ?? 0} to {users.to ?? 0} of{' '}
+                                    <span className="font-semibold text-foreground">{users.total}</span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {users.links.map((link, index) => (
+                                        <Link
+                                            key={`${link.label}-${index}`}
+                                            href={link.url ?? '#'}
+                                            preserveScroll
+                                            className={`rounded-md px-3 py-1 text-sm ${link.active ? 'bg-primary text-primary-foreground' : 'border border-sidebar-border/70 text-foreground'} ${!link.url ? 'pointer-events-none opacity-50' : ''}`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
