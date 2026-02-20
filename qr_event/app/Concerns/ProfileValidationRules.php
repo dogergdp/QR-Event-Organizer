@@ -72,7 +72,7 @@ trait ProfileValidationRules
      */
     protected function maritalStatusRules(): array
     {
-        return ['required', Rule::in(['single', 'married', 'divorced', 'widowed'])];
+        return ['required', Rule::in(['single', 'married', 'separated', 'widowed'])];
     }
 
     /**

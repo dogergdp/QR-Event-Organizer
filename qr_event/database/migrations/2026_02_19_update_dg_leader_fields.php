@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->renameColumn('is_dg_leader', 'has_dg_leader');
-            $table->string('dg_leader_name')->nullable()->after('has_dg_leader');
+            if (Schema::hasColumn('users', 'is_dg_leader') && ! Schema::hasColumn('users', 'has_dg_leader')) {
+                $table->renameColumn('is_dg_leader', 'has_dg_leader');
+            }
+
+            if (! Schema::hasColumn('users', 'dg_leader_name')) {
+                $table->string('dg_leader_name')->nullable()->after('has_dg_leader');
+            }
         });
     }
 
@@ -23,8 +28,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('dg_leader_name');
-            $table->renameColumn('has_dg_leader', 'is_dg_leader');
+            if (Schema::hasColumn('users', 'dg_leader_name')) {
+                $table->dropColumn('dg_leader_name');
+            }
+
+            if (Schema::hasColumn('users', 'has_dg_leader') && ! Schema::hasColumn('users', 'is_dg_leader')) {
+                $table->renameColumn('has_dg_leader', 'is_dg_leader');
+            }
         });
     }
 };

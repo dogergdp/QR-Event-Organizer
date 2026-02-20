@@ -30,6 +30,22 @@ export default function Register() {
                             <div>Enter Your Details</div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="grid gap-2">
+                                    <Label htmlFor="first_name">First Name</Label>
+                                    <Input
+                                        id="first_name"
+                                        type="text"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="given-name"
+                                        name="first_name"
+                                        placeholder="e.g. Juan"
+                                    />
+                                    <InputError
+                                        message={errors.first_name}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="last_name">Last Name</Label>
                                     <Input
                                         id="last_name"
@@ -39,27 +55,10 @@ export default function Register() {
                                         tabIndex={1}
                                         autoComplete="family-name"
                                         name="last_name"
-                                        placeholder="Last Name"
+                                        placeholder="e.g. Dela Cruz"
                                     />
                                     <InputError
                                         message={errors.last_name}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="first_name">First Name</Label>
-                                    <Input
-                                        id="first_name"
-                                        type="text"
-                                        required
-                                        tabIndex={2}
-                                        autoComplete="given-name"
-                                        name="first_name"
-                                        placeholder="First Name"
-                                    />
-                                    <InputError
-                                        message={errors.first_name}
                                         className="mt-2"
                                     />
                                 </div>
@@ -74,7 +73,7 @@ export default function Register() {
                                     tabIndex={5}
                                     autoComplete="tel"
                                     name="contact_number"
-                                    placeholder="ex. 09152872043"
+                                    placeholder="e.g. 09152872043"
                                 />
                                 <InputError message={errors.contact_number} />
                             </div>
@@ -83,10 +82,15 @@ export default function Register() {
                                 <Label htmlFor="birthdate">Birthdate</Label>
                                 <Input
                                     id="birthdate"
-                                    type="date"
+                                    type="text"
                                     required
                                     tabIndex={6}
                                     name="birthdate"
+                                    inputMode="numeric"
+                                    autoComplete="bday"
+                                    placeholder="YYYY-MM-DD"
+                                    pattern="\d{4}-\d{2}-\d{2}"
+                                    title="Use format YYYY-MM-DD"
                                 />
                                 <InputError message={errors.birthdate} />
                             </div>
