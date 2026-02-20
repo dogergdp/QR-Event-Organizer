@@ -29,6 +29,8 @@ class User extends Authenticatable
         'marital_status',
         'has_dg_leader',
         'dg_leader_name',
+        'remarks',
+        'is_first_time',
     ];
 
     /**
@@ -54,6 +56,7 @@ class User extends Authenticatable
             'birthdate' => 'date',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'is_first_time' => 'boolean',
         ];
     }
 

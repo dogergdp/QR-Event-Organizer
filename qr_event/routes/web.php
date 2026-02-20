@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\ReportController;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\User;
@@ -34,6 +35,7 @@ Route::get('dashboard', function () {
                 'location',
                 'banner_image',
                 'is_finished',
+                'is_ongoing',
             ]);
 
         return Inertia::render('dashboard', [
@@ -55,6 +57,7 @@ Route::get('dashboard', function () {
                 'location',
                 'banner_image',
                 'is_finished',
+                'is_ongoing',
             ]);
 
         return Inertia::render('dashboard', [
@@ -73,6 +76,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('attendees', [AdminAttendeeController::class, 'index'])->name('attendees');
     Route::post('attendees', [AdminAttendeeController::class, 'store'])->name('attendees.store');
     Route::delete('attendees/{attendee}', [AdminAttendeeController::class, 'destroy'])->name('attendees.destroy');
+
+    Route::get('reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('reports/export/events', [ReportController::class, 'exportEvents'])->name('reports.export.events');
+    Route::get('reports/export/attendees', [ReportController::class, 'exportAttendees'])->name('reports.export.attendees');
+    Route::get('reports/export/attendance-details', [ReportController::class, 'exportAttendanceDetails'])->name('reports.export.attendance-details');
+    Route::get('reports/export/event/{event}/attendees', [ReportController::class, 'exportEventAttendees'])->name('reports.export.event.attendees');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(function () {

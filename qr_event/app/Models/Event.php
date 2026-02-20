@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $location
  * @property string|null $banner_image
  * @property bool $is_finished
+ * @property bool $is_ongoing
  */
 class Event extends Model
 {
@@ -33,6 +34,7 @@ class Event extends Model
         'location',
         'banner_image',
         'is_finished',
+        'is_ongoing',
     ];
 
     /**

@@ -32,6 +32,7 @@ interface Attendee {
         first_name: string;
         last_name: string;
         contact_number: string;
+        is_first_time: boolean;
     };
 }
 
@@ -269,14 +270,25 @@ export default function ShowEvent() {
                 {/* Attendees List Section (Admin Only) */}
                 {isAdmin && (
                     <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
-                        <h2 className="text-xl font-semibold text-foreground">
-                            Event Attendees
-                        </h2>
-                        {!event.is_finished && (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Track attendance for this upcoming event
-                            </p>
-                        )}
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <h2 className="text-xl font-semibold text-foreground">
+                                    Event Attendees
+                                </h2>
+                                {!event.is_finished && (
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        Track attendance for this upcoming event
+                                    </p>
+                                )}
+                            </div>
+                            <a
+                                href={`/admin/reports/export/event/${event.id}/attendees`}
+                                className="inline-flex items-center rounded-lg bg-black px-4 py-2 text-sm font-medium text-white  transition-colors gap-2"
+                            >
+                                <span>↓</span>
+                                Download CSV
+                            </a>
+                        </div>
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-sm">
@@ -287,6 +299,9 @@ export default function ShowEvent() {
                                         </th>
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
                                             Contact
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            First Time
                                         </th>
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
                                             Time
@@ -306,7 +321,17 @@ export default function ShowEvent() {
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.user.contact_number}
                                             </td>
-
+                                            <td className="px-4 py-3">
+                                                {attendee.user.is_first_time ? (
+                                                    <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                                        New
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        —
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.attended_time
                                                     ? formatDateTime12Hour(

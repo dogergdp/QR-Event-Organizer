@@ -17,6 +17,7 @@ export default function EditUser() {
             marital_status: string;
             has_dg_leader: string;
             dg_leader_name: string | null;
+            remarks: string | null;
         };
     };
 
@@ -111,6 +112,18 @@ export default function EditUser() {
                                         placeholder="Optional if no DG group"
                                     />
                                     <InputError message={errors.dg_leader_name} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="remarks">Admin Remarks</Label>
+                                    <textarea
+                                        id="remarks"
+                                        name="remarks"
+                                        defaultValue={user.remarks ?? ''}
+                                        placeholder="Optional notes about this user (admin only)"
+                                        className="flex min-h-[96px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    />
+                                    <InputError message={errors.remarks} />
                                 </div>
 
                                 <div className="mt-2 flex items-center gap-3">

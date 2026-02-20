@@ -18,6 +18,7 @@ type EventData = {
     location: string;
     banner_image?: string | null;
     is_finished?: boolean;
+    is_ongoing?: boolean;
 };
 
 export default function EditEvent({ event }: { event: EventData }) {
@@ -29,6 +30,7 @@ export default function EditEvent({ event }: { event: EventData }) {
         description: event.description,
         location: event.location,
         is_finished: event.is_finished ?? false,
+        is_ongoing: event.is_ongoing ?? false,
     });
     const [bannerImage, setBannerImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string>('');
@@ -63,6 +65,7 @@ export default function EditEvent({ event }: { event: EventData }) {
         formData.append('description', data.description);
         formData.append('location', data.location);
         formData.append('is_finished', data.is_finished ? '1' : '0');
+        formData.append('is_ongoing', data.is_ongoing ? '1' : '0');
         if (bannerImage) {
             formData.append('banner_image', bannerImage);
         }
@@ -217,7 +220,18 @@ export default function EditEvent({ event }: { event: EventData }) {
                                     setData(prev => ({ ...prev, is_finished: checked === true }))
                                 }
                             />
-                            <Label htmlFor="is_finished">Mark as finished</Label>
+                            <Label htmlFor="is_finished">Mark as Finished</Label>
+                        </div>
+
+                        <div className="flex items-center gap-2 md:col-span-2">
+                            <Checkbox
+                                id="is_ongoing"
+                                checked={data.is_ongoing}
+                                onCheckedChange={(checked) =>
+                                    setData(prev => ({ ...prev, is_ongoing: checked === true }))
+                                }
+                            />
+                            <Label htmlFor="is_ongoing">Mark as Ongoing</Label>
                         </div>
                     </div>
 

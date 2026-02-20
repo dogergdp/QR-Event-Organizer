@@ -41,11 +41,16 @@ export default function Dashboard() {
             location: string;
             banner_image?: string | null;
             is_finished?: boolean;
+            is_ongoing?: boolean;
         }>;
         isAdmin?: boolean;
     };
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+    const isEventOngoing = (event: any) => {
+        return event?.is_ongoing ?? false;
+    };
 
     const handleScan = (decodedText: string) => {
         console.log('QR Code scanned:', decodedText);
@@ -99,8 +104,9 @@ export default function Dashboard() {
               .join(' ') || auth.user.name || auth.user.contact_number
         : null;
     const eventList = events ?? [];
-    const upcomingEvents = eventList.filter((event) => !event.is_finished);
+    const upcomingEvents = eventList.filter((event) => !event.is_finished && !event.is_ongoing);
     const finishedEvents = eventList.filter((event) => event.is_finished);
+    const ongoingEvents = eventList.filter((event) => !event.is_finished && isEventOngoing(event));
     const defaultBanner = '/images/default-event.png';
 
     return (
@@ -144,7 +150,7 @@ export default function Dashboard() {
                         Manage users and track attendance
                     </p>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
                         <Link
                             href="/admin/users"
                             className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
@@ -174,6 +180,21 @@ export default function Dashboard() {
                                 View All →
                             </p>
                         </Link>
+
+                        <Link
+                            href="/admin/reports"
+                            className="rounded-lg border border-sidebar-border/70 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                        >
+                            <h3 className="font-semibold text-foreground group-hover:text-primary">
+                                Reports & Analytics
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                View reports and export data to Excel
+                            </p>
+                            <p className="mt-3 text-xs font-medium text-primary">
+                                View Reports →
+                            </p>
+                        </Link>
                     </div>
                 </div>
             )}
@@ -182,6 +203,96 @@ export default function Dashboard() {
 
  
                 
+                {/* Ongoing Events Section */}
+                {ongoingEvents.length > 0 && (
+                    <div className="mt-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h2 className="text-lg font-semibold text-foreground">
+                                    Ongoing Events
+                                </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Events happening now
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-4">
+                            {ongoingEvents.map((event) => (
+                                <Link
+                                    key={event.id}
+                                    href={`/events/${event.id}`}
+                                    className="group rounded-lg border-2 bg-background p-3 transition-all  hover:shadow-md"
+                                >
+                                    <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
+                                        <img
+                                            src={
+                                                event.banner_image ? `/storage/${event.banner_image}` : defaultBanner
+                                            }
+                                            alt={event.name}
+                                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                    <div className="mt-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                                ● Ongoing
+                                            </span>
+                                        </div>
+                                        <h3 className="mt-2 truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                                            {event.name}
+                                        </h3>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {event.date}
+                                            {event.start_time && (
+                                                <>
+                                                    {' • '}
+                                                    {formatTime12Hour(event.start_time)}
+                                                    {event.end_time && (
+                                                        <> - {formatTime12Hour(event.end_time)}</>
+                                                    )}
+                                                </>
+                                            )}
+                                        </p>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {event.location}
+                                        </p>
+                                        {isAdmin && (
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <a
+                                                    href={`/events/${event.id}/edit`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        window.location.href = `/events/${event.id}/edit`;
+                                                    }}
+                                                    className="text-xs font-medium text-primary hover:underline"
+                                                >
+                                                    Edit
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        if (confirm(`Delete event \"${event.name}\"?`)) {
+                                                            router.delete(`/events/${event.id}`);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-medium text-red-600 hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Upcoming Events Section */}
                 <div className="mt-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -310,8 +421,7 @@ export default function Dashboard() {
                                         <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
                                             <img
                                                 src={
-                                                    event.banner_image ||
-                                                    defaultBanner
+                                                    event.banner_image ? `/storage/${event.banner_image}` : defaultBanner
                                                 }
                                                 alt={event.name}
                                                 className="h-full w-full object-cover transition-transform group-hover:scale-105"

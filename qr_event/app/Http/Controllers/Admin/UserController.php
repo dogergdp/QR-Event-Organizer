@@ -49,6 +49,7 @@ class UserController extends Controller
                 'marital_status' => $user->marital_status,
                 'has_dg_leader' => $user->has_dg_leader,
                 'dg_leader_name' => $user->dg_leader_name,
+                'remarks' => $user->remarks,
             ],
         ]);
     }
@@ -63,6 +64,7 @@ class UserController extends Controller
             'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
             'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
             'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'remarks' => ['nullable', 'string'],
         ]);
 
         $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'

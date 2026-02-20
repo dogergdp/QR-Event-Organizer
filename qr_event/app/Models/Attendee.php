@@ -19,6 +19,16 @@ class Attendee extends Model
         'attended_time' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::updated(function (Attendee $attendee) {
+            // If user is marked as attended and it's their first time, update is_first_time to false
+            if ($attendee->is_attended && $attendee->user && $attendee->user->is_first_time) {
+                $attendee->user->update(['is_first_time' => false]);
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

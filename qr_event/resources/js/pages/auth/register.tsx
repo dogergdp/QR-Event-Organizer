@@ -12,6 +12,25 @@ import { useState } from 'react';
 
 export default function Register() {
     const [hasDgLeader, setHasDgLeader] = useState('');
+
+    const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Get only digits from the input
+        const value = e.target.value.replace(/\D/g, '');
+        
+        // Format as YYYY-MM-DD
+        let formatted = value;
+        if (value.length >= 4) {
+            formatted = value.slice(0, 4);
+        }
+        if (value.length > 4) {
+            formatted = value.slice(0, 4) + '-' + value.slice(4, 6);
+        }
+        if (value.length > 6) {
+            formatted = value.slice(0, 4) + '-' + value.slice(4, 6) + '-' + value.slice(6, 8);
+        }
+        
+        e.target.value = formatted;
+    };
     return (
         <AuthLayout
             title="Create an account"
@@ -91,6 +110,7 @@ export default function Register() {
                                     placeholder="YYYY-MM-DD"
                                     pattern="\d{4}-\d{2}-\d{2}"
                                     title="Use format YYYY-MM-DD"
+                                    onChange={handleBirthdateChange}
                                 />
                                 <InputError message={errors.birthdate} />
                             </div>

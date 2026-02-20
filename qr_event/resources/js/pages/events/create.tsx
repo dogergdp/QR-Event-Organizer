@@ -28,6 +28,7 @@ export default function CreateEvent() {
         description: '',
         location: '',
         is_finished: false,
+        is_ongoing: false,
     });
     const [bannerImage, setBannerImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string>('');
@@ -67,6 +68,9 @@ export default function CreateEvent() {
         if (data.is_finished) {
             formData.append('is_finished', '1');
         }
+        if (data.is_ongoing) {
+            formData.append('is_ongoing', '1');
+        }
 
         router.post('/events', formData, {
             onSuccess: () => {
@@ -78,6 +82,7 @@ export default function CreateEvent() {
                     description: '',
                     location: '',
                     is_finished: false,
+                    is_ongoing: false,
                 });
                 setBannerImage(null);
                 setPreview('');
@@ -216,6 +221,17 @@ export default function CreateEvent() {
                                 }
                             />
                             <Label htmlFor="is_finished">Mark as finished</Label>
+                        </div>
+
+                        <div className="flex items-center gap-2 md:col-span-2">
+                            <Checkbox
+                                id="is_ongoing"
+                                checked={data.is_ongoing}
+                                onCheckedChange={(checked) =>
+                                    setData(prev => ({ ...prev, is_ongoing: checked === true }))
+                                }
+                            />
+                            <Label htmlFor="is_ongoing">Mark as ongoing</Label>
                         </div>
                     </div>
 

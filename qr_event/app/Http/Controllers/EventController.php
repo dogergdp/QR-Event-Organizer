@@ -33,6 +33,7 @@ class EventController extends Controller
                         'first_name' => $attendee->user->first_name,
                         'last_name' => $attendee->user->last_name,
                         'contact_number' => $attendee->user->contact_number,
+                        'is_first_time' => $attendee->user->is_first_time,
                     ],
                 ]),
         ]);
@@ -70,12 +71,14 @@ class EventController extends Controller
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
+            'is_ongoing' => ['sometimes', 'boolean'],
         ]);
 
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
         }
         $validated['is_finished'] = $validated['is_finished'] ?? false;
+        $validated['is_ongoing'] = $validated['is_ongoing'] ?? false;
 
         Event::create($validated);
 
@@ -106,6 +109,7 @@ class EventController extends Controller
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
+            'is_ongoing' => ['sometimes', 'boolean'],
         ]);
 
         if ($request->hasFile('banner_image')) {
@@ -116,6 +120,7 @@ class EventController extends Controller
             $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
         }
         $validated['is_finished'] = $validated['is_finished'] ?? false;
+        $validated['is_ongoing'] = $validated['is_ongoing'] ?? false;
 
         $event->update($validated);
 
