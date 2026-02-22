@@ -94,6 +94,29 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Mark attendance for an event
+     */
+    public function markAttendance(Event $event): RedirectResponse
+    {
+        $user = request()->user();
+
+        // Create or update attendance record
+        Attendee::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+            ],
+            [
+                'is_attended' => true,
+                'attended_time' => now(),
+            ]
+        );
+
+        return redirect()->route('events.show', $event->id)
+            ->with('success', 'Attendance confirmed! Thank you for attending.');
+    }
+
+    /**
      * Get QR code URL for an event (admin only)
      */
     public function getQRUrl(Event $event): array

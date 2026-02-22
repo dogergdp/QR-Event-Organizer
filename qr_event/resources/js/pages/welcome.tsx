@@ -17,13 +17,13 @@ export default function Welcome({
                     rel="stylesheet"
                 />
             </Head>
-            <div className="flex min-h-screen flex-col bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#0a0a0a] dark:text-[#EDEDEC]">
+            <div className="flex min-h-screen flex-col bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#313638] dark:text-[#EDEDEC]">
                 {/* Main Content */}
                 <div className="flex flex-1 flex-col items-center justify-center p-6 lg:p-8">
                     <main className="w-full max-w-[335px] lg:max-w-5xl">
                         <div className="flex flex-col-reverse gap-0 rounded-lg overflow-hidden shadow-lg lg:flex-row lg:gap-0">
                             {/* Content Section */}
-                            <div className="flex flex-1 flex-col justify-between rounded-bl-lg rounded-br-lg bg-white p-8 lg:rounded-bl-none lg:rounded-tr-none lg:rounded-tl-lg lg:p-12 dark:bg-[#161615]">
+                            <div className="flex flex-1 flex-col justify-between rounded-bl-lg rounded-br-lg bg-white p-8 lg:rounded-bl-none lg:rounded-tr-none lg:rounded-tl-lg lg:p-12 dark:bg-[#444a4e]">
                                 <img></img>
                                 <div>
                                     <h1 className="mb-2 text-3xl font-semibold tracking-tight lg:text-4xl">

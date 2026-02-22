@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { CalendarPlus, LayoutGrid, QrCode } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -21,6 +21,16 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Events',
+        href: '/events',
+        icon: CalendarPlus,
+    },
+    {
+        title: 'QR Codes',
+        href: '/admin/qr-codes',
+        icon: QrCode,
     },
 ];
 

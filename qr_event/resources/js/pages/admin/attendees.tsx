@@ -1,6 +1,8 @@
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 function calculateAge(birthdate: string | null): string {
     if (!birthdate) return 'N/A';
@@ -29,6 +31,8 @@ function calculateAge(birthdate: string | null): string {
 }
 
 export default function AdminAttendees() {
+    const [userSearch, setUserSearch] = useState('');
+    
     const { attendees, users, events, filters } = usePage<any>().props as {
         attendees: {
             data: Array<{
@@ -95,61 +99,75 @@ export default function AdminAttendees() {
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
                     <div className="mb-4 rounded-lg border border-sidebar-border/70 p-4">
                         <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
-                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3 md:grid-cols-4">
-                            {({ processing, errors }) => (
-                                <>
-                                    <div className="md:col-span-2">
-                                        <select
-                                            name="user_id"
-                                            required
-                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                                        >
-                                            <option value="">Select user</option>
-                                            {users.map((user) => (
-                                                <option key={user.id} value={user.id}>
-                                                    {user.first_name} {user.last_name} ({user.contact_number})
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.user_id && (
-                                            <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
-                                        )}
-                                    </div>
+                        <p className="text-xs text-muted-foreground mt-1 mb-3">Automatically marks user as registered and attended</p>
+                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3 md:grid-cols-3">
+                            {({ processing, errors }) => {
+                                const filteredUsers = users.filter((user: any) => {
+                                    const searchLower = userSearch.toLowerCase();
+                                    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+                                    const contact = user.contact_number.toLowerCase();
+                                    return fullName.includes(searchLower) || contact.includes(searchLower);
+                                });
 
-                                    <div>
-                                        <select
-                                            name="event_id"
-                                            required
-                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                                        >
-                                            <option value="">Select event</option>
-                                            {events.map((event) => (
-                                                <option key={event.id} value={event.id}>
-                                                    {event.name} ({event.date})
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.event_id && (
-                                            <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
-                                        )}
-                                    </div>
+                                return (
+                                    <>
+                                        <div className="md:col-span-2">
+                                            <input
+                                                type="text"
+                                                value={userSearch}
+                                                onChange={(e) => setUserSearch(e.target.value)}
+                                                placeholder="Search by name or contact number"
+                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm mb-2"
+                                            />
+                                            <select
+                                                name="user_id"
+                                                required
+                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                            >
+                                                <option value="">Select user</option>
+                                                {filteredUsers.map((user: any) => (
+                                                    <option key={user.id} value={user.id}>
+                                                        {user.first_name} {user.last_name} - {user.contact_number}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {errors.user_id && (
+                                                <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
+                                            )}
+                                        </div>
 
-                                    <label className="flex items-center gap-2 text-sm text-foreground">
-                                        <input type="checkbox" name="is_attended" value="1" />
-                                        Mark attended
-                                    </label>
+                                        <div>
+                                            <select
+                                                name="event_id"
+                                                required
+                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                            >
+                                                <option value="">Select event</option>
+                                                {events.map((event: any) => (
+                                                    <option key={event.id} value={event.id}>
+                                                        {event.name} ({event.date})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {errors.event_id && (
+                                                <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
+                                            )}
+                                        </div>
 
-                                    <div className="md:col-span-4">
-                                        <button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                                        >
-                                            Add Attendee
-                                        </button>
-                                    </div>
-                                </>
-                            )}
+                                        <input type="hidden" name="is_attended" value="1" />
+
+                                        <div className="md:col-span-3">
+                                            <button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                                            >
+                                                Add Attendee
+                                            </button>
+                                        </div>
+                                    </>
+                                );
+                            }}
                         </Form>
                     </div>
 
@@ -257,9 +275,10 @@ export default function AdminAttendees() {
                                                             });
                                                         }
                                                     }}
-                                                    className="text-red-600 hover:underline"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                                    title="Delete attendee"
                                                 >
-                                                    Delete
+                                                    <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </td>
                                         </tr>

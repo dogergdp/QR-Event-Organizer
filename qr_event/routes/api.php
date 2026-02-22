@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\QrCodeController;
 use App\Models\Event;
 use App\Services\QRCodeService;
 use Illuminate\Support\Facades\Route;
@@ -17,3 +18,5 @@ Route::get('/events/{event}/qr-code', function (Event $event) {
         'eventId' => $event->id,
     ]);
 })->middleware(['web', 'auth']);
+
+Route::get('/attendee-lookup', [QrCodeController::class, 'lookupAttendee']);

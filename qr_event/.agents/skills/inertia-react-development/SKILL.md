@@ -8,7 +8,10 @@ metadata:
 
 # Inertia React Development
 
+
+
 ## When to Apply
+
 
 Activate this skill when:
 
@@ -18,17 +21,25 @@ Activate this skill when:
 - Using v2 features: deferred props, prefetching, or polling
 - Building React-specific features with the Inertia protocol
 
+
 ## Documentation
+
 
 Use `search-docs` for detailed Inertia v2 React patterns and documentation.
 
+
 ## Basic Usage
+
+
 
 ### Page Components Location
 
+
 React page components should be placed in the `resources/js/pages` directory.
 
+
 ### Page Component Structure
+
 
 <!-- Basic React Page Component -->
 ```react
@@ -44,9 +55,15 @@ export default function UsersIndex({ users }) {
 }
 ```
 
+
+
+
 ## Client-Side Navigation
 
+
+
 ### Basic Link Component
+
 
 Use `<Link>` for client-side navigation instead of traditional `<a>` tags:
 
@@ -59,7 +76,11 @@ import { Link, router } from '@inertiajs/react'
 <Link href={`/users/${user.id}`}>View User</Link>
 ```
 
+
+
+
 ### Link with Method
+
 
 <!-- Link with POST Method -->
 ```react
@@ -70,7 +91,11 @@ import { Link } from '@inertiajs/react'
 </Link>
 ```
 
+
+
+
 ### Prefetching
+
 
 Prefetch pages to improve perceived performance:
 
@@ -83,7 +108,11 @@ import { Link } from '@inertiajs/react'
 </Link>
 ```
 
+
+
+
 ### Programmatic Navigation
+
 
 <!-- Router Visit -->
 ```react
@@ -101,9 +130,15 @@ router.visit('/users', {
 })
 ```
 
+
+
+
 ## Form Handling
 
+
+
 ### Form Component (Recommended)
+
 
 The recommended way to build forms is with the `<Form>` component:
 
@@ -134,7 +169,11 @@ export default function CreateUser() {
 }
 ```
 
+
+
+
 ### Form Component With All Props
+
 
 <!-- Form Component Full Example -->
 ```react
@@ -175,7 +214,11 @@ import { Form } from '@inertiajs/react'
 </Form>
 ```
 
+
+
+
 ### Form Component Reset Props
+
 
 The `<Form>` component supports automatic resetting:
 
@@ -208,9 +251,14 @@ import { Form } from '@inertiajs/react'
 </Form>
 ```
 
+
+
 Forms can also be built using the `useForm` helper for more programmatic control. Use the `search-docs` tool with a query of `useForm helper` for guidance.
 
+
+
 ### `useForm` Hook
+
 
 For more programmatic control or to follow existing conventions, use the `useForm` hook:
 
@@ -263,9 +311,15 @@ export default function CreateUser() {
 }
 ```
 
+
+
+
 ## Inertia v2 Features
 
+
+
 ### Deferred Props
+
 
 Use deferred props to load data after initial page render:
 
@@ -293,7 +347,11 @@ export default function UsersIndex({ users }) {
 }
 ```
 
+
+
+
 ### Polling
+
 
 Use the `usePoll` hook to automatically refresh data at intervals. It handles cleanup on unmount and throttles polling when the tab is inactive.
 
@@ -312,6 +370,8 @@ export default function Dashboard({ stats }) {
     )
 }
 ```
+
+
 
 <!-- Polling With Request Options and Manual Control -->
 ```react
@@ -342,10 +402,14 @@ export default function Dashboard({ stats }) {
 }
 ```
 
+
+
 - `autoStart` (default `true`) — set to `false` to start polling manually via the returned `start()` function
 - `keepAlive` (default `false`) — set to `true` to prevent throttling when the browser tab is inactive
 
+
 ### WhenVisible (Infinite Scroll)
+
 
 Load more data when user scrolls to a specific element:
 
@@ -372,7 +436,11 @@ export default function UsersList({ users }) {
 }
 ```
 
+
+
+
 ## Common Pitfalls
+
 
 - Using traditional `<a>` links instead of Inertia's `<Link>` component (breaks SPA behavior)
 - Forgetting to add loading states (skeleton screens) when using deferred props

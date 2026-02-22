@@ -51,3 +51,13 @@ Homestead.json
 Homestead.yaml
 .vagrant/
 
+# AI Assistant Files
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+boost.json
+.mcp.json
+.agents/
+.claude/
+.gemini/
+

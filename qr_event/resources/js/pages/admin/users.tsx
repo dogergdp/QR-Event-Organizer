@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import { Pencil, Trash2, UserPlus } from 'lucide-react';
 
 function calculateAge(birthdate: string | null): string {
     if (!birthdate) return 'N/A';
@@ -64,12 +65,23 @@ export default function AdminUsers() {
             <Head title="Registered Users" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    <h1 className="text-2xl font-bold text-foreground">
-                        Registered Users
-                    </h1>
-                    <p className="mt-1 text-muted-foreground">
-                        View all registered users in the system
-                    </p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-foreground">
+                                Registered Users
+                            </h1>
+                            <p className="mt-1 text-muted-foreground">
+                                View all registered users in the system
+                            </p>
+                        </div>
+                        <Link
+                            href="/admin/users/create"
+                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                        >
+                            <UserPlus className="h-4 w-4" />
+                            Add User
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
@@ -156,12 +168,13 @@ export default function AdminUsers() {
                                                 })}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2">
                                                     <Link
                                                         href={`/admin/users/${user.id}/edit`}
-                                                        className="text-primary hover:underline"
+                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                                        title="Edit user"
                                                     >
-                                                        Edit
+                                                        <Pencil className="h-4 w-4" />
                                                     </Link>
                                                     <button
                                                         type="button"
@@ -172,9 +185,10 @@ export default function AdminUsers() {
                                                                 });
                                                             }
                                                         }}
-                                                        className="text-red-600 hover:underline"
+                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                                        title="Delete user"
                                                     >
-                                                        Delete
+                                                        <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
                                             </td>

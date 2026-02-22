@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
 import { useState } from 'react';
+import { Pencil } from 'lucide-react';
 
 function formatTime12Hour(time: string | null): string {
     if (!time) return '';
@@ -192,8 +193,9 @@ export default function ShowEvent() {
                         {isAdmin && (
                             <Link
                                 href={`/events/${event.id}/edit`}
-                                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                             >
+                                <Pencil className="h-4 w-4" />
                                 Edit Event
                             </Link>
                         )}
@@ -209,6 +211,36 @@ export default function ShowEvent() {
                         {event.description}
                     </p>
                 </div>
+
+                {/* RSVP Section (for non-registered users) */}
+                {!isAdmin && !event.is_finished && !userAttendance && (
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                                <h2 className="text-xl font-semibold text-foreground">
+                                    Register for This Event
+                                </h2>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    RSVP now to confirm your attendance
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsScannerOpen(true)}
+                                    className="rounded-lg border-2 border-primary bg-transparent px-6 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                                >
+                                    Scan QR to RSVP
+                                </button>
+                                <Link
+                                    href={`/events/${event.id}/rsvp`}
+                                    className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                                >
+                                    RSVP Now
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* QR Code Display (Admin Only) */}
                 {isAdmin && !event.is_finished && (
@@ -251,7 +283,7 @@ export default function ShowEvent() {
                                     </p>
                                 ) : (
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        You are registered for this event
+                                        You are registered for this event. Scan the attendance QR code at the venue to mark your attendance.
                                     </p>
                                 )}
                             </div>
@@ -260,7 +292,7 @@ export default function ShowEvent() {
                                     onClick={() => setIsScannerOpen(true)}
                                     className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                                 >
-                                    Mark Attendance
+                                    Scan QR to Mark Attendance
                                 </button>
                             )}
                         </div>

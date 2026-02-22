@@ -12,6 +12,33 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
+    public function create(): Response
+    {
+        return Inertia::render('admin/users/create');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')],
+            'birthdate' => ['required', 'date'],
+            'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
+            'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
+            'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
+            ? $validated['dg_leader_name']
+            : null;
+
+        User::create($validated);
+
+        return redirect()->route('admin.users')->with('success', 'User created successfully.');
+    }
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));

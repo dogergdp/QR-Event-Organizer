@@ -11,6 +11,33 @@ use Inertia\Response;
 class EventController extends Controller
 {
     /**
+     * Show admin events list page.
+     */
+    public function index(): Response
+    {
+        $events = Event::query()
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get([
+                'id',
+                'name',
+                'date',
+                'start_time',
+                'end_time',
+                'description',
+                'location',
+                'banner_image',
+                'is_finished',
+                'is_ongoing',
+            ]);
+
+        return Inertia::render('events/index', [
+            'events' => $events,
+            'isAdmin' => true,
+        ]);
+    }
+
+    /**
      * Show event details page.
      */
     public function show(Event $event): Response
@@ -135,5 +162,49 @@ class EventController extends Controller
         $event->delete();
 
         return redirect()->route('dashboard');
+    }
+
+    /**
+     * Show RSVP confirmation page
+     */
+    public function showRsvp(Event $event): Response
+    {
+        return Inertia::render('events/pre-register', [
+            'event' => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date,
+                'start_time' => $event->start_time,
+                'end_time' => $event->end_time,
+                'location' => $event->location,
+                'description' => $event->description,
+            ],
+            'fromQr' => false,
+        ]);
+    }
+
+    /**
+     * Confirm RSVP for an event
+     */
+    public function confirmRsvp(Event $event): RedirectResponse
+    {
+        $user = request()->user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Get or create attendee record
+        $attendee = $event->attendees()
+            ->where('user_id', $user->id)
+            ->firstOrCreate([
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+            ]);
+
+        // Mark as attended (RSVP confirmed - could add a separate field if needed)
+        // For now we're marking as a registration confirmation
+
+        return redirect()->route('events.show', $event->id);
     }
 }
