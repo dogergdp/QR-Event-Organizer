@@ -14,6 +14,7 @@ interface Event {
 
 type PreRegisterConfirmProps = {
     event: Event;
+    qrToken?: string | null;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,9 +24,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function PreRegisterConfirm({ event }: PreRegisterConfirmProps) {
+export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfirmProps) {
     const { data, setData, post, processing } = useForm({
         confirm_rsvp: false,
+        qr_token: qrToken ?? '',
     });
 
     const handleConfirmRsvp = (e: React.FormEvent) => {
@@ -90,7 +92,9 @@ export default function PreRegisterConfirm({ event }: PreRegisterConfirmProps) {
                     </div>
 
                     <p className="mt-6 text-sm text-muted-foreground text-center">
-                        You'll be able to mark your attendance at the event.
+                        {qrToken
+                            ? "After confirming your RSVP, you'll confirm your attendance."
+                            : "You'll be able to mark your attendance at the event."}
                     </p>
                 </div>
             </div>

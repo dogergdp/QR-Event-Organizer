@@ -77,11 +77,11 @@ export default function EventsIndex() {
                     ) : (
                         <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-4">
                             {allEvents.map((event) => (
-                                <Link
+                                <div
                                     key={event.id}
-                                    href={`/events/${event.id}`}
                                     className="group rounded-lg border border-sidebar-border/70 bg-background p-3 transition-all hover:border-primary/50 hover:shadow-md"
                                 >
+                                    <Link href={`/events/${event.id}`} className="block">
                                     <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
                                         <img
                                             src={
@@ -118,36 +118,30 @@ export default function EventsIndex() {
                                         <p className="truncate text-xs text-muted-foreground">
                                             {event.location}
                                         </p>
-                                        <div className="mt-2 flex items-center gap-2">
-                                            <a
-                                                href={`/events/${event.id}/edit`}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.location.href = `/events/${event.id}/edit`;
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
-                                                title="Edit event"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-
-                                                    if (confirm(`Delete event "${event.name}"?`)) {
-                                                        router.delete(`/events/${event.id}`);
-                                                    }
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
-                                                title="Delete event"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
                                     </div>
-                                </Link>
+                                    </Link>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <Link
+                                            href={`/events/${event.id}/edit`}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                            title="Edit event"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirm(`Delete event "${event.name}"?`)) {
+                                                    router.delete(`/events/${event.id}`);
+                                                }
+                                            }}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                            title="Delete event"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     )}
@@ -168,11 +162,11 @@ export default function EventsIndex() {
                     ) : (
                         <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-4">
                             {finishedEvents.map((event) => (
-                                <Link
+                                <div
                                     key={event.id}
-                                    href={`/events/${event.id}`}
                                     className="group rounded-lg border border-sidebar-border/70 bg-background p-3 transition-all hover:border-primary/50 hover:shadow-md"
                                 >
+                                    <Link href={`/events/${event.id}`} className="block">
                                     <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
                                         <img
                                             src={
@@ -204,36 +198,30 @@ export default function EventsIndex() {
                                         <p className="truncate text-xs text-muted-foreground">
                                             {event.location}
                                         </p>
-                                        <div className="mt-2 flex items-center gap-2">
-                                            <a
-                                                href={`/events/${event.id}/edit`}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.location.href = `/events/${event.id}/edit`;
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
-                                                title="Edit event"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-
-                                                    if (confirm(`Delete event "${event.name}"?`)) {
-                                                        router.delete(`/events/${event.id}`);
-                                                    }
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
-                                                title="Delete event"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
                                     </div>
-                                </Link>
+                                    </Link>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <Link
+                                            href={`/events/${event.id}/edit`}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                            title="Edit event"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirm(`Delete event "${event.name}"?`)) {
+                                                    router.delete(`/events/${event.id}`);
+                                                }
+                                            }}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                            title="Delete event"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     )}

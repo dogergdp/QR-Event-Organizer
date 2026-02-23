@@ -165,229 +165,149 @@ export default function Dashboard() {
                     </button>
                 )}
 
-                           {isAdmin && (
-                <div className="rounded-xl border-2 border-sidebar-border/100 bg-background p-4">
-                    <h2 className="text-lg font-semibold text-foreground">
-                        Admin Tools
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Manage users and track attendance
-                    </p>
+                {isAdmin && stats && (
+                    <>
+                        <div className="mt-2">
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Analytics Overview</h2>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                    <p className="text-sm font-medium text-muted-foreground">Total Events</p>
+                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_events}</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">{stats.finished_events} finished</p>
+                                </div>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                        <Link
-                            href="/admin/users"
-                            className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
-                        >
-                            <h3 className="font-semibold text-foreground group-hover:text-primary">
-                                Registered Users
-                            </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                View all registered users in the system
-                            </p>
-                            <p className="mt-3 text-xs font-medium text-primary">
-                                View All →
-                            </p>
-                        </Link>
+                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                    <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
+                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendees}</p>
+                                </div>
 
-                        <Link
-                            href="/admin/attendees"
-                            className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4 transition-all hover:border-primary/50 hover:shadow-md"
-                        >
-                            <h3 className="font-semibold text-foreground group-hover:text-primary">
-                                Event Attendees
-                            </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Track all event attendance registrations
-                            </p>
-                            <p className="mt-3 text-xs font-medium text-primary">
-                                View All →
-                            </p>
-                        </Link>
-                    </div>
-                </div>
-            )}
+                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                    <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
+                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendances}</p>
+                                </div>
 
-            {isAdmin && stats && (
-                <>
-                    {/* Statistics Cards */}
-                    <div className="mt-6">
-                        <h2 className="mb-4 text-lg font-semibold text-foreground">Analytics Overview</h2>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                <p className="text-sm font-medium text-muted-foreground">Total Events</p>
-                                <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_events}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">{stats.finished_events} finished</p>
-                            </div>
-
-                            <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
-                                <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendees}</p>
-                            </div>
-
-                            <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
-                                <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendances}</p>
-                            </div>
-
-                            <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                <p className="text-sm font-medium text-muted-foreground">Avg. Events per Attendee</p>
-                                <p className="mt-2 text-3xl font-bold text-foreground">{stats.average_attendance_rate}</p>
+                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                    <p className="text-sm font-medium text-muted-foreground">Avg. Events per Attendee</p>
+                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.average_attendance_rate}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Export Buttons */}
-                    <div className="mt-6 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
-                        <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                            <Download className="h-5 w-5" />
-                            Export Reports to CSV
-                        </h2>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                            <a
-                                href="/admin/reports/export/events"
-                                className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium  transition-colors"
-                                download
-                            >
-                                <Download className="h-4 w-4" />
-                                Download Events CSV
-                            </a>
-                            <a
-                                href="/admin/reports/export/attendees"
-                                className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium  transition-colors"
-                                download
-                            >
-                                <Download className="h-4 w-4" />
-                                Download Registered Users CSV
-                            </a>
-                            <a
-                                href="/admin/reports/export/attendance-details"
-                                className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                                download
-                            >
-                                <Download className="h-4 w-4" />
-                                Download Attendance Details CSV
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Event Reports */}
-                    {reportEvents && reportEvents.length > 0 && (
-                        <div className="mt-6 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
+                        <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
                             <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                                <BarChart3 className="h-5 w-5" />
-                                Recent Event Performance
+                                <Download className="h-5 w-5" />
+                                Export Reports to CSV
                             </h2>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b-2 border-sidebar-border/100">
-                                            <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                                Event Name
-                                            </th>
-                                            <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                                Date
-                                            </th>
-                                            <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                                Location
-                                            </th>
-                                            <th className="px-4 py-2 text-center font-semibold text-foreground">
-                                                Registered
-                                            </th>
-                                            <th className="px-4 py-2 text-center font-semibold text-foreground">
-                                                Attended
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportEvents.map((event) => (
-                                            <tr key={event.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
-                                                <td className="px-4 py-3 font-medium text-foreground">
-                                                    <Link
-                                                        href={`/events/${event.id}`}
-                                                        className="hover:underline text-primary"
-                                                    >
-                                                        {event.name}
-                                                    </Link>
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {new Date(event.date).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                    })}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {event.location}
-                                                </td>
-                                                <td className="px-4 py-3 text-center text-foreground">
-                                                    {event.total_registered}
-                                                </td>
-                                                <td className="px-4 py-3 text-center text-foreground">
-                                                    {event.total_attended}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                <a
+                                    href="/admin/reports/export/events"
+                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                                    download
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Download Events CSV
+                                </a>
+                                <a
+                                    href="/admin/reports/export/attendees"
+                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                                    download
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Download Registered Users CSV
+                                </a>
+                                <a
+                                    href="/admin/reports/export/attendance-details"
+                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                                    download
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Download Attendance Details CSV
+                                </a>
                             </div>
                         </div>
-                    )}
 
-                    {/* Top Attendees */}
-                    {topAttendees && topAttendees.length > 0 && (
-                        <div className="mt-6 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
-                            <h2 className="mb-4 text-lg font-semibold text-foreground">Top Attendees</h2>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b-2 border-sidebar-border/100">
-                                            <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                                Name
-                                            </th>
-                                            <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                                Contact
-                                            </th>
-                                            <th className="px-4 py-2 text-center font-semibold text-foreground">
-                                                Events Attended
-                                            </th>
-                                            <th className="px-4 py-2 text-center font-semibold text-foreground">
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {topAttendees.map((attendee) => (
-                                            <tr key={attendee.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
-                                                <td className="px-4 py-3 font-medium text-foreground">
-                                                    {attendee.name}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {attendee.contact_number}
-                                                </td>
-                                                <td className="px-4 py-3 text-center text-foreground">
-                                                    {attendee.events_attended}
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    {attendee.is_first_time ? (
-                                                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                                            New
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                                            Regular
-                                                        </span>
-                                                    )}
-                                                </td>
+                        {reportEvents && reportEvents.length > 0 && (
+                            <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
+                                <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5" />
+                                    Recent Event Performance
+                                </h2>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b-2 border-sidebar-border/100">
+                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Event Name</th>
+                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Date</th>
+                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Location</th>
+                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Registered</th>
+                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Attended</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {reportEvents.map((event) => (
+                                                <tr key={event.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
+                                                    <td className="px-4 py-3 font-medium text-foreground">
+                                                        <Link href={`/events/${event.id}`} className="hover:underline text-primary">
+                                                            {event.name}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        {new Date(event.date).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                        })}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted-foreground">{event.location}</td>
+                                                    <td className="px-4 py-3 text-center text-foreground">{event.total_registered}</td>
+                                                    <td className="px-4 py-3 text-center text-foreground">{event.total_attended}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </>
-            )}
+                        )}
+
+                        {topAttendees && topAttendees.length > 0 && (
+                            <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
+                                <h2 className="mb-4 text-lg font-semibold text-foreground">Top Attendees</h2>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b-2 border-sidebar-border/100">
+                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
+                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
+                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Events Attended</th>
+                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {topAttendees.map((attendee) => (
+                                                <tr key={attendee.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
+                                                    <td className="px-4 py-3 font-medium text-foreground">{attendee.name}</td>
+                                                    <td className="px-4 py-3 text-muted-foreground">{attendee.contact_number}</td>
+                                                    <td className="px-4 py-3 text-center text-foreground">{attendee.events_attended}</td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {attendee.is_first_time ? (
+                                                            <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                                                New
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                                                Regular
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
                 
 
 

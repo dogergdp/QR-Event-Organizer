@@ -1,9 +1,8 @@
 import { Head, usePage } from '@inertiajs/react';
-import { useState, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Download, Copy, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react';
 
 interface QRCode {
     id: number;
@@ -25,40 +24,172 @@ export default function QRViewer() {
     const { qrCode } = usePage().props as any as QRViewerProps;
     const [showId, setShowId] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const qrContainerRef = useRef<HTMLDivElement>(null);
+    const [bannerLoadFailed, setBannerLoadFailed] = useState(false);
+    const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+    const defaultBannerUrl = '/images/default-event.png';
+
+    const qrValue = `${window.location.origin}/qr/${qrCode.token}`;
+
+    const bannerUrl = useMemo(() => {
+        const image = qrCode.event.banner_image;
+        if (!image) return defaultBannerUrl;
+
+        if (
+            image.startsWith('http://') ||
+            image.startsWith('https://') ||
+            image.startsWith('data:') ||
+            image.startsWith('blob:') ||
+            image.startsWith('/')
+        ) {
+            return image;
+        }
+
+        return `/storage/${image}`;
+    }, [qrCode.event.banner_image, defaultBannerUrl]);
+
+    const canUseBanner = Boolean(bannerUrl && !bannerLoadFailed);
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('Copied to clipboard');
     };
 
+    const createFilename = () => {
+        const safeEvent = qrCode.event.name.replace(/[^a-zA-Z0-9-_]+/g, '_');
+        const safeName = qrCode.name.replace(/[^a-zA-Z0-9-_]+/g, '_');
+        return `${safeEvent}_${safeName}.png`;
+    };
+
+    const downloadCanvas = (canvas: HTMLCanvasElement, filename: string) => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = filename;
+        link.click();
+    };
+
+    const loadImage = (src: string) =>
+        new Promise<HTMLImageElement>((resolve, reject) => {
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+            image.onload = () => resolve(image);
+            image.onerror = reject;
+            image.src = src;
+        });
+
+    const drawImageCover = (
+        context: CanvasRenderingContext2D,
+        image: HTMLImageElement,
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    ) => {
+        const imageRatio = image.width / image.height;
+        const targetRatio = width / height;
+
+        let sourceWidth = image.width;
+        let sourceHeight = image.height;
+        let sourceX = 0;
+        let sourceY = 0;
+
+        if (imageRatio > targetRatio) {
+            sourceWidth = image.height * targetRatio;
+            sourceX = (image.width - sourceWidth) / 2;
+        } else {
+            sourceHeight = image.width / targetRatio;
+            sourceY = (image.height - sourceHeight) / 2;
+        }
+
+        context.drawImage(
+            image,
+            sourceX,
+            sourceY,
+            sourceWidth,
+            sourceHeight,
+            x,
+            y,
+            width,
+            height
+        );
+    };
+
     const downloadQRImage = async (withBanner: boolean) => {
         setIsDownloading(true);
         try {
-            if (withBanner && qrContainerRef.current) {
-                // Download with banner background
-                const canvas = await html2canvas(qrContainerRef.current, {
-                    backgroundColor: '#ffffff',
-                    scale: 2,
-                });
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = `${qrCode.event.name.replace(/\s+/g, '_')}_${qrCode.name.replace(/\s+/g, '_')}.png`;
-                link.click();
-            } else {
-                // Download just QR code as SVG
-                const svg = document.querySelector('svg') as SVGSVGElement;
-                if (svg) {
-                    const canvas = await html2canvas(svg.parentElement!, {
-                        backgroundColor: '#ffffff',
-                        scale: 2,
-                    });
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = `qr_${qrCode.id}.png`;
-                    link.click();
-                }
+            if (!qrCanvasRef.current) {
+                throw new Error('QR canvas not ready');
             }
+
+            const sourceCanvas = qrCanvasRef.current;
+
+            if (withBanner) {
+                const outputSize = 1200;
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = outputSize;
+                exportCanvas.height = outputSize;
+
+                const context = exportCanvas.getContext('2d');
+                if (!context) {
+                    throw new Error('Unable to create image context');
+                }
+
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, outputSize, outputSize);
+
+                if (canUseBanner && bannerUrl) {
+                    try {
+                        const banner = await loadImage(bannerUrl);
+                        context.globalAlpha = 0.3;
+                        drawImageCover(context, banner, 0, 0, outputSize, outputSize);
+                        context.globalAlpha = 1;
+                    } catch {
+                        setBannerLoadFailed(true);
+                    }
+                }
+
+                const qrSize = 640;
+                const qrX = (outputSize - qrSize) / 2;
+                const qrY = 180;
+
+                context.fillStyle = '#ffffff';
+                context.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+                context.drawImage(sourceCanvas, qrX, qrY, qrSize, qrSize);
+
+                context.fillStyle = '#111827';
+                context.font = 'bold 46px sans-serif';
+                context.textAlign = 'center';
+                context.fillText(qrCode.name, outputSize / 2, 92);
+
+                context.fillStyle = '#4b5563';
+                context.font = '34px sans-serif';
+                context.fillText(qrCode.event.name, outputSize / 2, 142);
+
+                context.fillStyle = '#6b7280';
+                context.font = '22px monospace';
+                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, 920);
+
+                downloadCanvas(exportCanvas, createFilename());
+            } else {
+                const qrOnlyCanvas = document.createElement('canvas');
+                const outputSize = 900;
+                qrOnlyCanvas.width = outputSize;
+                qrOnlyCanvas.height = outputSize;
+
+                const context = qrOnlyCanvas.getContext('2d');
+                if (!context) {
+                    throw new Error('Unable to create image context');
+                }
+
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, outputSize, outputSize);
+
+                const qrSize = 760;
+                const offset = (outputSize - qrSize) / 2;
+                context.drawImage(sourceCanvas, offset, offset, qrSize, qrSize);
+
+                downloadCanvas(qrOnlyCanvas, `qr_${qrCode.id}.png`);
+            }
+
             toast.success('QR code downloaded');
         } catch (error) {
             toast.error('Failed to download QR code');
@@ -81,18 +212,18 @@ export default function QRViewer() {
 
                 {/* QR Code Display with Optional Banner */}
                 <div
-                    ref={qrContainerRef}
                     className={`bg-white rounded-lg overflow-hidden border-2 border-[#555c63] mb-6 ${
-                        qrCode.event.banner_image ? 'relative' : ''
+                        canUseBanner ? 'relative' : ''
                     }`}
                 >
                     {/* Banner Background */}
-                    {qrCode.event.banner_image && (
+                    {canUseBanner && bannerUrl && (
                         <div className="absolute inset-0 opacity-30">
                             <img
-                                src={qrCode.event.banner_image}
+                                src={bannerUrl}
                                 alt={qrCode.event.name}
                                 className="w-full h-full object-cover"
+                                onError={() => setBannerLoadFailed(true)}
                             />
                         </div>
                     )}
@@ -102,10 +233,18 @@ export default function QRViewer() {
                         {/* QR Code using qrcode.react */}
                         <div className="rounded-lg bg-white p-4 border-4 border-white shadow-lg">
                             <QRCodeSVG
-                                value={`${window.location.origin}/qr/${qrCode.token}`}
+                                value={qrValue}
                                 size={256}
                                 level="H"
                                 includeMargin={true}
+                            />
+                            <QRCodeCanvas
+                                value={qrValue}
+                                size={256}
+                                level="H"
+                                includeMargin={true}
+                                className="hidden"
+                                ref={qrCanvasRef}
                             />
                         </div>
 
@@ -129,7 +268,7 @@ export default function QRViewer() {
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600 mb-3">Scan this code to register or check-in</p>
                             <button
-                                onClick={() => copyToClipboard(`${window.location.origin}/qr/${qrCode.token}`)}
+                                onClick={() => copyToClipboard(qrValue)}
                                 className="inline-flex items-center gap-2 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
                             >
                                 <Copy className="w-3 h-3" />
@@ -153,7 +292,7 @@ export default function QRViewer() {
                             Download QR Code Only
                         </button>
 
-                        {qrCode.event.banner_image && (
+                        {canUseBanner && (
                             <button
                                 onClick={() => downloadQRImage(true)}
                                 disabled={isDownloading}

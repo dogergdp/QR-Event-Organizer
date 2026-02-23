@@ -53,7 +53,7 @@ export default function Manage({ event, qrCodes }: ManageProps) {
 
     const handleToggle = (qrCode: QrCode) => {
         const action = qrCode.is_active ? 'deactivate' : 'activate';
-        router.put(`/events/${event.id}/qr/${qrCode.id}/toggle`, {}, {
+        router.put(`/events/qr/${qrCode.id}/toggle`, {}, {
             preserveScroll: true,
             onSuccess: () => toast.success(`QR Code ${action}d successfully`),
             onError: () => toast.error('Failed to update QR Code'),
@@ -74,17 +74,9 @@ export default function Manage({ event, qrCodes }: ManageProps) {
         toast.success('Copied to clipboard');
     };
 
-    const isExpired = (qrCode: QrCode) => {
-        if (!qrCode.expires_at) return false;
-        return new Date(qrCode.expires_at) < new Date();
-    };
-
     const getStatusBadge = (qrCode: QrCode) => {
         if (!qrCode.is_active) {
             return <span className="px-2 py-1 text-xs bg-gray-200 dark:bg-[#555c63] text-gray-800 dark:text-gray-200 rounded">Inactive</span>;
-        }
-        if (isExpired(qrCode)) {
-            return <span className="px-2 py-1 text-xs bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">Expired</span>;
         }
         return <span className="px-2 py-1 text-xs bg-green-200 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">Active</span>;
     };

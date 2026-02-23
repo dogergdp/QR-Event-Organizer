@@ -28,10 +28,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
-    const { post, processing } = useForm({});
+    const { data, setData, post, processing } = useForm({
+        confirm_attendance: false,
+    });
 
     const handleMarkAttendance = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!data.confirm_attendance) {
+            return;
+        }
         post(`/events/${event.id}/mark-attendance`);
     };
 
@@ -58,12 +63,24 @@ export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
                     <form onSubmit={handleMarkAttendance} className="space-y-4">
                         <div className="bg-background border-2 border-sidebar-border/100 rounded-lg p-6">
                             <p className="text-foreground mb-4">
-                                Click below to confirm your attendance at this event.
+                                Confirm your attendance at this event.
                             </p>
+
+                            <label className="flex items-start gap-3 cursor-pointer mb-6">
+                                <input
+                                    type="checkbox"
+                                    checked={data.confirm_attendance}
+                                    onChange={(e) => setData('confirm_attendance', e.target.checked)}
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <span className="text-sm text-foreground">
+                                    I confirm my attendance for this event.
+                                </span>
+                            </label>
 
                             <button
                                 type="submit"
-                                disabled={processing}
+                                disabled={processing || !data.confirm_attendance}
                                 className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:bg-gray-400 transition font-medium"
                             >
                                 {processing ? 'Marking...' : 'Confirm Attendance'}

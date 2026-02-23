@@ -1,6 +1,6 @@
 import { Head, Link, usePage, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Copy, Eye, X } from 'lucide-react';
+import { Copy, Eye, Power, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import type { BreadcrumbItem } from '@/types';
@@ -82,22 +82,27 @@ export default function QRIndex() {
         reset();
     };
 
+    const handleToggle = (qr: QRCode) => {
+        const action = qr.is_active ? 'deactivated' : 'activated';
+        router.put(`/events/qr/${qr.id}/toggle`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(`QR code ${action}`);
+            },
+            onError: () => {
+                toast.error('Failed to update QR code status');
+            },
+        });
+    };
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('Copied to clipboard');
     };
 
-    const isExpired = (qr: QRCode) => {
-        if (!qr.expires_at) return false;
-        return new Date(qr.expires_at) < new Date();
-    };
-
     const getStatusBadge = (qr: QRCode) => {
         if (!qr.is_active) {
                             return <span className="px-2 py-1 text-xs bg-gray-200 dark:bg-[#555c63] text-gray-800 dark:text-gray-200 rounded">Inactive</span>;
-        }
-        if (isExpired(qr)) {
-            return <span className="px-2 py-1 text-xs bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">Expired</span>;
         }
         return <span className="px-2 py-1 text-xs bg-green-200 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">Active</span>;
     };
@@ -228,6 +233,17 @@ export default function QRIndex() {
                                                     title="Copy URL"
                                                 >
                                                     <Copy className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleToggle(qr)}
+                                                    className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition ${
+                                                        qr.is_active
+                                                            ? 'text-yellow-600 dark:text-yellow-400'
+                                                            : 'text-green-600 dark:text-green-400'
+                                                    }`}
+                                                    title={qr.is_active ? 'Deactivate QR code' : 'Activate QR code'}
+                                                >
+                                                    <Power className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         </td>

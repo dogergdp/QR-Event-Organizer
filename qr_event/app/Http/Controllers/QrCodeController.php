@@ -106,7 +106,24 @@ class QrCodeController extends Controller
         }
 
         if (!$qrCode->isValid()) {
-            abort(403, 'This QR code is no longer valid.');
+            return Inertia::render('qr/display', [
+                'qrCode' => [
+                    'id' => $qrCode->id,
+                    'name' => $qrCode->name,
+                    'type' => $qrCode->expires_at ? 'timed' : 'static',
+                    'is_active' => $qrCode->is_active,
+                    'expires_at' => $qrCode->expires_at?->toIso8601String(),
+                    'valid' => false,
+                    'event' => [
+                        'id' => $qrCode->event->id,
+                        'name' => $qrCode->event->name,
+                        'description' => $qrCode->event->description,
+                        'date' => $qrCode->event->date,
+                        'location' => $qrCode->event->location,
+                    ],
+                ],
+                'token' => $token,
+            ]);
         }
 
         // Route to appropriate handler based on purpose
@@ -140,20 +157,35 @@ class QrCodeController extends Controller
     /**
      * Handle pre-registration QR code scanning
      */
-    private function handlePreRegistration(QrCode $qrCode, string $token): Response
+    private function handlePreRegistration(QrCode $qrCode, string $token): Response|RedirectResponse
     {
         $user = auth()->user();
         $event = $qrCode->event;
 
-        // If logged in, go directly to event with RSVP prompt
+        // If logged in, check if already RSVP'd
         if ($user) {
+            $alreadyRsvpd = $event->attendees()
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($alreadyRsvpd) {
+                // Already RSVP'd - show confirmation message
+                return Inertia::render('events/pre-register', [
+                    'event' => $event,
+                    'fromQr' => true,
+                    'alreadyRsvpd' => true,
+                ]);
+            }
+
+            // Not yet RSVP'd - show RSVP form
             return Inertia::render('events/pre-register', [
                 'event' => $event,
                 'fromQr' => true,
+                'alreadyRsvpd' => false,
             ]);
         }
 
-        // Not logged in - show registration form
+        // Not logged in - show registration form (prompts to login first)
         return Inertia::render('auth/register-from-qr', [
             'event' => $event,
             'qrToken' => $token,
@@ -182,8 +214,11 @@ class QrCodeController extends Controller
                 ]);
             }
 
-            // Logged in but not RSVP'd - redirect to RSVP confirmation
-            return redirect()->route('qr.register-confirm', $event->id);
+            // Logged in but not RSVP'd - redirect to RSVP confirmation, then back to QR for attendance
+            return redirect()->route('qr.register-confirm', [
+                'event' => $event->id,
+                'qr_token' => $token,
+            ]);
         }
 
         // Not logged in - show registration form (same as pre-registration)

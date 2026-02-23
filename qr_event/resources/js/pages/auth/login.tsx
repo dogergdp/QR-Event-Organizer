@@ -1,5 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Form, Head, router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,21 @@ export default function Login({
     canRegister,
 }: Props) {
     const [showPassword, setShowPassword] = useState(false);
+    const redirectUrl = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('redirect_url');
+
+    useEffect(() => {
+        if (redirectUrl) {
+            const handleSuccess = () => {
+                window.location.href = redirectUrl;
+            };
+            
+            router.on('success', handleSuccess);
+            
+            return () => {
+                router.off('success', handleSuccess);
+            };
+        }
+    }, [redirectUrl]);
 
     return (
         <AuthLayout

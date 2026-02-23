@@ -50,14 +50,19 @@ class AuthController extends Controller
         // Fire registered event
         event(new Registered($user));
 
+        $isAttendanceQr = $qrCode->purpose === 'attendance';
+
         // Redirect to the confirmation page
-        return redirect()->route('qr.register-confirm', ['event' => $event->id]);
+        return redirect()->route('qr.register-confirm', [
+            'event' => $event->id,
+            'qr_token' => $isAttendanceQr ? $qrCode->token : null,
+        ]);
     }
 
     /**
      * Show pre-registration confirmation page
      */
-    public function showConfirmation(Event $event): Response
+    public function showConfirmation(Request $request, Event $event): Response|RedirectResponse
     {
         $user = request()->user();
 
@@ -73,6 +78,7 @@ class AuthController extends Controller
                 'date' => $event->date,
                 'start_time' => $event->start_time,
             ],
+            'qrToken' => $request->query('qr_token'),
         ]);
     }
 }

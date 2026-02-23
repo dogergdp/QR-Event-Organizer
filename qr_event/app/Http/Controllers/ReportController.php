@@ -223,9 +223,8 @@ class ReportController extends Controller
     {
         return response()->streamDownload(function () use ($event) {
             $handle = fopen('php://output', 'w');
-            
-            // Write headers
-            fputcsv($handle, [
+
+            $headers = [
                 'First Name',
                 'Last Name',
                 'Contact Number',
@@ -237,28 +236,37 @@ class ReportController extends Controller
                 'Attendance Time',
                 'First Time',
                 'Remarks',
-            ]);
+            ];
 
-            // Get attendees for this event
             $attendees = Attendee::with('user')
                 ->where('event_id', $event->id)
                 ->get();
 
-            foreach ($attendees as $attendee) {
-                fputcsv($handle, [
-                    $attendee->user->first_name,
-                    $attendee->user->last_name,
-                    $attendee->user->contact_number,
-                    $attendee->user->birthdate,
-                    $attendee->user->marital_status,
-                    $attendee->user->has_dg_leader ? 'Yes' : 'No',
-                    $attendee->user->dg_leader_name ?? 'N/A',
-                    $attendee->is_attended ? 'Yes' : 'No',
-                    $attendee->attended_time,
-                    $attendee->user->is_first_time ? 'Yes' : 'No',
-                    $attendee->user->remarks ?? 'N/A',
-                ]);
-            }
+            $writeRows = function ($title, $rows) use ($handle, $headers) {
+                fputcsv($handle, [$title]);
+                fputcsv($handle, $headers);
+
+                foreach ($rows as $attendee) {
+                    fputcsv($handle, [
+                        $attendee->user->first_name,
+                        $attendee->user->last_name,
+                        $attendee->user->contact_number,
+                        $attendee->user->birthdate,
+                        $attendee->user->marital_status,
+                        $attendee->user->has_dg_leader ? 'Yes' : 'No',
+                        $attendee->user->dg_leader_name ?? 'N/A',
+                        $attendee->is_attended ? 'Yes' : 'No',
+                        $attendee->attended_time,
+                        $attendee->user->is_first_time ? 'Yes' : 'No',
+                        $attendee->user->remarks ?? 'N/A',
+                    ]);
+                }
+
+                fputcsv($handle, []);
+            };
+
+            $writeRows('RSVP', $attendees->where('is_attended', false));
+            $writeRows('Attended', $attendees->where('is_attended', true));
 
             // Add blank row and timestamp
             fputcsv($handle, []);

@@ -215,7 +215,7 @@ class EventController extends Controller
     /**
      * Confirm RSVP for an event
      */
-    public function confirmRsvp(Event $event): RedirectResponse
+    public function confirmRsvp(Request $request, Event $event): RedirectResponse
     {
         $user = request()->user();
 
@@ -233,6 +233,12 @@ class EventController extends Controller
 
         // Mark as attended (RSVP confirmed - could add a separate field if needed)
         // For now we're marking as a registration confirmation
+
+        $qrToken = $request->input('qr_token');
+
+        if ($qrToken) {
+            return redirect()->route('qr.view', ['token' => $qrToken]);
+        }
 
         return redirect()->route('events.show', $event->id);
     }

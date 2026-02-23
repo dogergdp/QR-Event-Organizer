@@ -31,19 +31,14 @@ class QrCode extends Model
     }
 
     /**
-     * Check if QR code is active and not expired
+     * Check if QR code is active.
+     *
+     * Manual activation/deactivation controls validity,
+     * regardless of the expires_at timestamp.
      */
     public function isValid(): bool
     {
-        if (!$this->is_active) {
-            return false;
-        }
-
-        if ($this->expires_at && $this->expires_at->isPast()) {
-            return false;
-        }
-
-        return true;
+        return (bool) $this->is_active;
     }
 
     /**

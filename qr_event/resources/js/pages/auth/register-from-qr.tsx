@@ -26,9 +26,10 @@ interface AttendeeMatch {
 type RegisterFromQRProps = {
     event: Event;
     qrToken: string;
+    isAttendanceQr?: boolean;
 };
 
-export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) {
+export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false }: RegisterFromQRProps) {
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
     const [matchedAttendee, setMatchedAttendee] = useState<AttendeeMatch | null>(null);
@@ -121,8 +122,8 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
 
     const handleConfirmIdentity = (isConfirmed: boolean) => {
         if (isConfirmed && matchedAttendee?.user_id) {
-            // Redirect to login - works for both already-registered and existing-user
-            window.location.href = `/login?redirect_url=${encodeURIComponent(`/events/${event.id}`)}`;
+            // Redirect to login, then back to QR scan so RSVP form shows automatically
+            window.location.href = `/login?redirect_url=${encodeURIComponent(`/qr/${qrToken}`)}`;
         } else {
             // User chose not to login, proceed to create new account
             setMatchedAttendee(null);

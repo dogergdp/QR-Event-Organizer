@@ -67,6 +67,11 @@ export default function ShowEvent() {
         usePage<any>().props as EventShowProps;
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>('rsvp');
+
+    const allAttendees = attendees ?? [];
+    const rsvpAttendees = allAttendees.filter((attendee) => !attendee.is_attended);
+    const attendanceAttendees = allAttendees.filter((attendee) => attendee.is_attended);
 
     const defaultBanner = '/images/default-event.png';
 
@@ -191,13 +196,27 @@ export default function ShowEvent() {
                             </div>
                         </div>
                         {isAdmin && (
-                            <Link
-                                href={`/events/${event.id}/edit`}
-                                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                            >
-                                <Pencil className="h-4 w-4" />
-                                Edit Event
-                            </Link>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Link
+                                    href={`/events/${event.id}/qr`}
+                                    className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+                                >
+                                    Manage QR Codes
+                                </Link>
+                                <Link
+                                    href={`/events/${event.id}/qr-display`}
+                                    className="inline-flex items-center gap-2 rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+                                >
+                                    Show QR Display
+                                </Link>
+                                <Link
+                                    href={`/events/${event.id}/edit`}
+                                    className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                    Edit Event
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -304,6 +323,33 @@ export default function ShowEvent() {
                             </a>
                         </div>
 
+                        <div className="mt-4 border-b border-sidebar-border/70">
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveAdminTab('rsvp')}
+                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                        activeAdminTab === 'rsvp'
+                                            ? 'bg-muted text-foreground'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    RSVP ({rsvpAttendees.length})
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveAdminTab('attendance')}
+                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                        activeAdminTab === 'attendance'
+                                            ? 'bg-muted text-foreground'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Attendance ({attendanceAttendees.length})
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
@@ -318,12 +364,15 @@ export default function ShowEvent() {
                                             First Time
                                         </th>
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Time
+                                            {activeAdminTab === 'attendance' ? 'Attended Time' : 'Status'}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {attendees?.map((attendee) => (
+                                    {(activeAdminTab === 'rsvp'
+                                        ? rsvpAttendees
+                                        : attendanceAttendees
+                                    ).map((attendee) => (
                                         <tr
                                             key={attendee.id}
                                             className="border-b border-sidebar-border/70"
@@ -347,23 +396,36 @@ export default function ShowEvent() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
-                                                {attendee.attended_time
-                                                    ? formatDateTime12Hour(
-                                                          attendee.attended_time
-                                                      )
-                                                    : '—'}
+                                                {activeAdminTab === 'attendance' ? (
+                                                    attendee.attended_time
+                                                        ? formatDateTime12Hour(
+                                                              attendee.attended_time
+                                                          )
+                                                        : '—'
+                                                ) : attendee.is_attended ? (
+                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                                        Attended
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                                                        RSVP Only
+                                                    </span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                        {!usePage().props.attendees ||
-                            usePage<any>().props.attendees.length === 0 ? (
-                                <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
-                                    No attendees yet
-                                </div>
-                            ) : null}
+                        {(activeAdminTab === 'rsvp'
+                            ? rsvpAttendees.length === 0
+                            : attendanceAttendees.length === 0) ? (
+                            <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
+                                {activeAdminTab === 'rsvp'
+                                    ? 'No RSVPs yet'
+                                    : 'No attendance records yet'}
+                            </div>
+                        ) : null}
                         </div>
                     </div>
                 )}
