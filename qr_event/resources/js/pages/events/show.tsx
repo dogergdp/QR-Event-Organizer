@@ -241,13 +241,13 @@ export default function ShowEvent() {
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setIsScannerOpen(true)}
-                                    className="rounded-lg border-2 border-primary bg-transparent px-6 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors dark:border-blue-500 dark:text-blue-200 dark:hover:bg-blue-500/10"
+                                    className="rounded-lg border-2 border-black bg-transparent px-6 py-2 text-sm font-medium text-black transition-colors hover:bg-black/5 dark:border-white dark:text-white dark:hover:bg-white/10"
                                 >
                                     Scan QR to RSVP
                                 </button>
                                 <Link
                                     href={`/events/${event.id}/rsvp`}
-                                    className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500"
+                                    className="rounded-lg bg-black px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                                 >
                                     RSVP Now
                                 </Link>
@@ -286,7 +286,7 @@ export default function ShowEvent() {
                             {!userAttendance.is_attended && (
                                 <button
                                     onClick={() => setIsScannerOpen(true)}
-                                    className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                                    className="rounded-lg bg-black px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                                 >
                                     Scan QR to Mark Attendance
                                 </button>

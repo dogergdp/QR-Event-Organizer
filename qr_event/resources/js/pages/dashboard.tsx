@@ -520,9 +520,9 @@ export default function Dashboard() {
                                         <Link
                                             key={event.id}
                                             href={`/events/${event.id}`}
-                                            className="group rounded-lg border-2 bg-white dark:bg-slate-900 p-3 shadow-sm transition-all  hover:shadow-md"
+                                            className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
                                         >
-                                            <div className="aspect-video overflow-hidden rounded-md border-2 border-sidebar-border/100">
+                                            <div className="aspect-video overflow-hidden">
                                                 <img
                                                     src={
                                                         event.banner_image ? `/storage/${event.banner_image}` : defaultBanner
@@ -532,13 +532,13 @@ export default function Dashboard() {
                                                     loading="lazy"
                                                 />
                                             </div>
-                                            <div className="mt-2">
+                                            <div className="p-3">
                                                 <div className="flex items-center gap-2">
                                                     <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
                                                         ● Ongoing
                                                     </span>
                                                     {event.has_rsvp && (
-                                                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                                                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground dark:bg-white/10 dark:text-white">
                                                             RSVP'd
                                                         </span>
                                                     )}
@@ -590,10 +590,10 @@ export default function Dashboard() {
                                     {upcomingEvents.map((event) => (
                                         <div
                                             key={event.id}
-                                            className="group rounded-lg border-2 border-sidebar-border/100 bg-white dark:bg-slate-900 p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
+                                            className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
                                         >
                                             <Link href={`/events/${event.id}`}>
-                                                <div className="aspect-video overflow-hidden rounded-md border-2 border-sidebar-border/100">
+                                                <div className="aspect-video overflow-hidden">
                                                     <img
                                                         src={
                                                             event.banner_image ? `/storage/${event.banner_image}` : defaultBanner
@@ -603,10 +603,10 @@ export default function Dashboard() {
                                                         loading="lazy"
                                                     />
                                                 </div>
-                                                <div className="mt-2">
+                                                <div className="p-3">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         {event.has_rsvp && (
-                                                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                                                            <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground dark:bg-white/10 dark:text-white">
                                                                 RSVP'd
                                                             </span>
                                                         )}
@@ -635,7 +635,7 @@ export default function Dashboard() {
                                             {!event.has_rsvp && (
                                                 <Link
                                                     href={`/events/${event.id}/rsvp`}
-                                                    className="mt-3 block w-full rounded-lg bg-primary px-3 py-2 text-center text-xs font-medium text-primary-foreground hover:bg-primary/90 transition"
+                                                    className="mx-3 mb-3 block w-[calc(100%-1.5rem)] rounded-lg bg-black px-3 py-2 text-center text-xs font-medium text-white transition hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
                                                     RSVP Now

@@ -198,7 +198,7 @@ export default function QRIndex() {
                                             <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Link
                                                     href={`/admin/qr/${qr.id}/view`}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-white"
+                                                    className="p-2 hover:bg-muted/60 rounded transition text-black dark:text-white"
                                                     title="View QR Code"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -209,7 +209,7 @@ export default function QRIndex() {
                                                             `${window.location.origin}/qr/${qr.token}`
                                                         )
                                                     }
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-white"
+                                                    className="p-2 hover:bg-muted/60 rounded transition text-black dark:text-white"
                                                     title="Copy URL"
                                                 >
                                                     <Copy className="h-4 w-4" />
