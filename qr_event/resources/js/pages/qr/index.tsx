@@ -149,7 +149,7 @@ export default function QRIndex() {
                                 {filteredQRCodes.map((qr) => (
                                     <tr
                                         key={qr.id}
-                                        className="border-b border-gray-200 dark:border-[#555c63] hover:bg-gray-50 dark:hover:bg-[#444a4e] text-gray-900 dark:text-gray-100"
+                                        className="group border-b border-gray-200 dark:border-[#555c63] hover:bg-gray-50 dark:hover:bg-[#444a4e] text-gray-900 dark:text-gray-100"
                                     >
                                         <td className="py-3 px-4">
                                             <Link
@@ -195,7 +195,7 @@ export default function QRIndex() {
                                             )}
                                         </td>
                                         <td className="py-3 px-4 text-right">
-                                            <div className="flex gap-2 justify-end">
+                                            <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Link
                                                     href={`/admin/qr/${qr.id}/view`}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-white"

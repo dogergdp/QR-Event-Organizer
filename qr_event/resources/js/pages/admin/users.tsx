@@ -198,7 +198,7 @@ export default function AdminUsers() {
                                     {users.data.map((user) => (
                                         <tr
                                             key={user.id}
-                                            className="border-b border-gray-200 hover:bg-gray-50 dark:border-[#555c63] dark:hover:bg-[#444a4e]"
+                                            className="group border-b border-gray-200 hover:bg-gray-50 dark:border-[#555c63] dark:hover:bg-[#444a4e]"
                                         >
                                             <td className="px-4 py-3 font-medium text-foreground">
                                                 {user.id}
@@ -232,18 +232,18 @@ export default function AdminUsers() {
                                                     minute: '2-digit',
                                                 })}
                                             </td>
-                                            <td className="px-4 py-3 opacity-0 hover:opacity-100 transition-opacity flex items-center gap-0">
+                                            <td className="px-4 py-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0">
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedUser(user)}
-                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-green-400"
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-black dark:text-muted-foreground dark:group-hover:text-black"
                                                     title="View user details"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <Link
                                                     href={`/admin/users/${user.id}/edit`}
-                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-blue-400"
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-black dark:text-muted-foreground dark:group-hover:text-black"
                                                     title="Edit user"
                                                 >
                                                     <Pencil className="h-4 w-4" />
