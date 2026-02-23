@@ -60,4 +60,5 @@ boost.json
 .agents/
 .claude/
 .gemini/
+.idea/
 
