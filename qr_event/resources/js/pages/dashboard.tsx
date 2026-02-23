@@ -199,7 +199,7 @@ export default function Dashboard() {
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium text-white/70">Total Events</p>
-                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_events}</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-yellow-300">{stats.total_events}</p>
                                                     <p className="mt-2 text-xs text-white/70">{stats.finished_events} finished</p>
                                                 </div>
                                                 <div className="pointer-events-none absolute -bottom-2 -right-2">
@@ -253,10 +253,10 @@ export default function Dashboard() {
                                         Export Reports to CSV
                                     </h3>
                                     <div className="space-y-3">
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/events"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
@@ -265,10 +265,10 @@ export default function Dashboard() {
                                             <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
                                         </div>
 
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/attendees"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
@@ -277,16 +277,28 @@ export default function Dashboard() {
                                             <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
                                         </div>
 
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/attendance-details"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
                                                 Download Attendance Details CSV
                                             </a>
                                             <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
+                                        </div>
+
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
+                                            <a
+                                                href="/admin/reports/export/logs"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
+                                                download
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Download Activity Logs CSV
+                                            </a>
+                                            <p className="text-xs text-muted-foreground">Full activity log with user, action, target, and timestamp.</p>
                                         </div>
                                     </div>
 
@@ -313,7 +325,7 @@ export default function Dashboard() {
                                                     const value = e.target.value;
                                                     setSelectedPerformanceId(value === 'all' ? 'all' : Number(value));
                                                 }}
-                                                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                                                className="h-9 rounded-md border border-input bg-white px-3 text-sm text-foreground dark:border-[#555c63] dark:bg-[#444a4e]"
                                             >
                                                 <option value="all">All events</option>
                                                 {performanceEvents.map((event) => (

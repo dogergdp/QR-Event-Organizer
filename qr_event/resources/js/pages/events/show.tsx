@@ -135,18 +135,20 @@ export default function ShowEvent() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.name} />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 m-8">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 {/* Event Banner */}
-                <div className="aspect-video overflow-hidden rounded-xl border border-sidebar-border/70">
-                    <img
-                        src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
-                        alt={event.name}
-                        className="h-full w-full object-cover"
-                    />
+                <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                    <div className="aspect-video overflow-hidden rounded-xl">
+                        <img
+                            src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
+                            alt={event.name}
+                            className="h-full w-full object-cover"
+                        />
+                    </div>
                 </div>
 
                 {/* Event Details Section */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                             <h1 className="text-3xl font-bold text-foreground">
@@ -214,7 +216,7 @@ export default function ShowEvent() {
 
                 {/* Description Section */}
                 {hasDescription && (
-                    <div className="">
+                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                         <h2 className="text-xl font-semibold text-foreground">
                             About This Event
                         </h2>

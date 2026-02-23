@@ -139,16 +139,16 @@ export default function CheckIn({
 
                 {/* Status Messages */}
                 {isAlreadyAttended && (
-                    <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-                        <p className="text-sm font-semibold text-green-800">
+                    <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+                        <p className="text-sm font-semibold text-green-800 dark:text-green-200">
                             ✓ You have already checked in to this event
                         </p>
                     </div>
                 )}
 
                 {isAlreadyRegistered && !isAlreadyAttended && (
-                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                        <p className="text-sm font-semibold text-blue-800">
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/40">
+                        <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                             You are already registered for this event. Please
                             confirm your attendance below.
                         </p>

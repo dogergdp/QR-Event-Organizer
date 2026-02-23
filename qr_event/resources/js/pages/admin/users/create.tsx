@@ -70,7 +70,7 @@ export default function CreateUser() {
                                         name="marital_status"
                                         defaultValue="single"
                                         required
-                                        className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                     >
                                         <option value="single">Single</option>
                                         <option value="married">Married</option>
@@ -87,7 +87,7 @@ export default function CreateUser() {
                                         name="has_dg_leader"
                                         defaultValue="no"
                                         required
-                                        className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                     >
                                         <option value="yes">Yes</option>
                                         <option value="no">No</option>

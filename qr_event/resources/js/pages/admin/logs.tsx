@@ -32,26 +32,35 @@ type LogsPageProps = {
 };
 
 export default function LogsPage() {
-    const { logs } = usePage().props as LogsPageProps;
+    const { logs } = usePage().props as unknown as LogsPageProps;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Logs" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h1 className="text-2xl font-bold text-foreground">Logs</h1>
                             <p className="mt-1 text-muted-foreground">
                                 Activity history for admin actions and user events.
                             </p>
                         </div>
-                        <Link
-                            href="/dashboard"
-                            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                            Back to Dashboard
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <a
+                                href="/admin/reports/export/logs"
+                                className="inline-flex items-center rounded-lg border border-sidebar-border/70 bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                download
+                            >
+                                Export CSV
+                            </a>
+                            <Link
+                                href="/dashboard"
+                                className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                            >
+                                Back to Dashboard
+                            </Link>
+                        </div>
                     </div>
                 </div>
 

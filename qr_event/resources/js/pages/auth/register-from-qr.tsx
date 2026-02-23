@@ -323,7 +323,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
                                             name="marital_status"
                                             value={data.marital_status}
                                             onChange={(e) => setData('marital_status', e.target.value)}
-                                            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                             required
                                         >
                                             <option value="">Select marital status</option>
@@ -342,7 +342,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
                                             name="has_dg_leader"
                                             value={hasDgLeader}
                                             onChange={(e) => handleHasDgLeaderChange(e.target.value)}
-                                            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                             required
                                         >
                                             <option value="">Select an option</option>

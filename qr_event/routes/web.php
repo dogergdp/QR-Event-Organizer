@@ -205,6 +205,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('reports/export/events', [ReportController::class, 'exportEvents'])->name('reports.export.events');
     Route::get('reports/export/attendees', [ReportController::class, 'exportAttendees'])->name('reports.export.attendees');
     Route::get('reports/export/attendance-details', [ReportController::class, 'exportAttendanceDetails'])->name('reports.export.attendance-details');
+    Route::get('reports/export/logs', [ReportController::class, 'exportLogs'])->name('reports.export.logs');
     Route::get('reports/export/event/{event}/attendees', [ReportController::class, 'exportEventAttendees'])->name('reports.export.event.attendees');
 });
 

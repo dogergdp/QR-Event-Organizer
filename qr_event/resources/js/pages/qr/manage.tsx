@@ -264,7 +264,7 @@ export default function Manage({ event, qrCodes }: ManageProps) {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(qrCode)}
-                                                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition text-red-600"
+                                                        className="p-2 rounded bg-red-600 text-white transition hover:bg-red-700"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="h-4 w-4" />

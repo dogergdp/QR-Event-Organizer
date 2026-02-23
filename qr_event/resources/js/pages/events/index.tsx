@@ -79,10 +79,10 @@ export default function EventsIndex() {
                             {allEvents.map((event) => (
                                 <div
                                     key={event.id}
-                                    className="group rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-slate-900"
+                                    className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
                                 >
                                     <Link href={`/events/${event.id}`} className="block">
-                                    <div className="aspect-video overflow-hidden rounded-md">
+                                    <div className="aspect-video overflow-hidden">
                                         <img
                                             src={
                                                 event.banner_image
@@ -94,7 +94,7 @@ export default function EventsIndex() {
                                             loading="lazy"
                                         />
                                     </div>
-                                    <div className="mt-2">
+                                    <div className="p-3">
                                         {!!event.is_ongoing && (
                                             <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
                                                 ● Ongoing
@@ -143,10 +143,10 @@ export default function EventsIndex() {
                             {finishedEvents.map((event) => (
                                 <div
                                     key={event.id}
-                                    className="group rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-slate-900"
+                                    className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
                                 >
                                     <Link href={`/events/${event.id}`} className="block">
-                                    <div className="aspect-video overflow-hidden rounded-md">
+                                    <div className="aspect-video overflow-hidden">
                                         <img
                                             src={
                                                 event.banner_image
@@ -158,7 +158,7 @@ export default function EventsIndex() {
                                             loading="lazy"
                                         />
                                     </div>
-                                    <div className="mt-2">
+                                    <div className="p-3">
                                         <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
                                             {event.name}
                                         </h3>

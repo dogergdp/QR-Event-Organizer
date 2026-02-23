@@ -24,6 +24,7 @@ type EventData = {
 
 export default function EditEvent({ event }: { event: EventData }) {
     const today = new Date().toISOString().split('T')[0];
+    const defaultBanner = '/images/default-event.png';
     const [data, setData] = useState({
         name: event.name,
         date: event.date,
@@ -226,16 +227,18 @@ export default function EditEvent({ event }: { event: EventData }) {
                                         className="aspect-video w-full object-cover"
                                     />
                                 </div>
-                            ) : event.banner_image ? (
+                            ) : (
                                 <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted/40">
-                                    <p className="mb-1 text-xs font-medium text-muted-foreground">Current image:</p>
+                                    <p className="mb-1 text-xs font-medium text-muted-foreground">
+                                        {event.banner_image ? 'Current image:' : 'Default image:'}
+                                    </p>
                                     <img
-                                        src={`/storage/${event.banner_image}`}
+                                        src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
                                         alt="Current"
                                         className="aspect-video w-full object-cover"
                                     />
                                 </div>
-                            ) : null}
+                            )}
                         </div>
 
                         <div className="flex items-center gap-2 md:col-span-2">
@@ -280,7 +283,7 @@ export default function EditEvent({ event }: { event: EventData }) {
                                     router.delete(`/events/${event.id}`);
                                 }
                             }}
-                            className="inline-flex items-center gap-2 rounded-md border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                            className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
                         >
                             <Trash2 className="h-4 w-4" />
                             Delete Event

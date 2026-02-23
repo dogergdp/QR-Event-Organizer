@@ -98,10 +98,10 @@ export default function AdminAttendees() {
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    <div className="mb-4 rounded-lg border border-sidebar-border/70 p-4">
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-4 shadow-sm">
                         <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
                         <p className="text-xs text-muted-foreground mt-1 mb-3">Automatically marks user as registered and attended</p>
-                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3 md:grid-cols-3">
+                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3">
                             {({ processing, errors }) => {
                                 const filteredUsers = users.filter((user: any) => {
                                     const searchLower = userSearch.toLowerCase();
@@ -112,52 +112,55 @@ export default function AdminAttendees() {
 
                                 return (
                                     <>
-                                        <div className="md:col-span-2">
-                                            <input
-                                                type="text"
-                                                value={userSearch}
-                                                onChange={(e) => setUserSearch(e.target.value)}
-                                                placeholder="Search by name or contact number"
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm mb-2"
-                                            />
-                                            <select
-                                                name="user_id"
-                                                required
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                                            >
-                                                <option value="">Select user</option>
-                                                {filteredUsers.map((user: any) => (
-                                                    <option key={user.id} value={user.id}>
-                                                        {user.first_name} {user.last_name} - {user.contact_number}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors.user_id && (
-                                                <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
-                                            )}
-                                        </div>
+                                        <input
+                                            type="text"
+                                            value={userSearch}
+                                            onChange={(e) => setUserSearch(e.target.value)}
+                                            placeholder="Search by name or contact number"
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                        />
 
-                                        <div>
-                                            <select
-                                                name="event_id"
-                                                required
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                                            >
-                                                <option value="">Select event</option>
-                                                {events.map((event: any) => (
-                                                    <option key={event.id} value={event.id}>
-                                                        {event.name} ({event.date})
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors.event_id && (
-                                                <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
-                                            )}
+                                        <div className="grid gap-3 md:grid-cols-2">
+                                            <div>
+                                                <select
+                                                    name="user_id"
+                                                    required
+                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                                >
+                                                    <option value="">Select user</option>
+                                                    {filteredUsers.map((user: any) => (
+                                                        <option key={user.id} value={user.id}>
+                                                            {user.first_name} {user.last_name} - {user.contact_number}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {errors.user_id && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <select
+                                                    name="event_id"
+                                                    required
+                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                                >
+                                                    <option value="">Select event</option>
+                                                    {events.map((event: any) => (
+                                                        <option key={event.id} value={event.id}>
+                                                            {event.name} ({event.date})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {errors.event_id && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <input type="hidden" name="is_attended" value="1" />
 
-                                        <div className="md:col-span-3">
+                                        <div>
                                             <button
                                                 type="submit"
                                                 disabled={processing}
@@ -172,13 +175,13 @@ export default function AdminAttendees() {
                         </Form>
                     </div>
 
-                    <form method="get" action="/admin/attendees" className="mb-4 flex gap-2">
+                    <form method="get" action="/admin/attendees" className="mt-4 flex flex-wrap gap-2">
                         <input
                             type="text"
                             name="search"
                             defaultValue={filters?.search ?? ''}
                             placeholder="Search name or contact number"
-                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm md:flex-1"
                         />
                         <button
                             type="submit"
@@ -285,7 +288,7 @@ export default function AdminAttendees() {
                                                             });
                                                         }
                                                     }}
-                                                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                                    className="p-2 opacity-0 group-hover:opacity-100 rounded bg-red-600 text-white transition hover:bg-red-700"
                                                     title="Delete attendee"
                                                 >
                                                     <Trash2 className="h-4 w-4" />

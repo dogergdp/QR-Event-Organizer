@@ -154,7 +154,7 @@ export default function QRIndex() {
                                         <td className="py-3 px-4">
                                             <Link
                                                 href={`/events/${qr.event.id}`}
-                                                className="font-semibold text-black dark:text-white transition-all hover:underline hover:scale-[1.03]"
+                                                className="inline-block font-semibold text-black dark:text-white transition-transform hover:underline hover:scale-[1.03]"
                                             >
                                                 {qr.event.name}
                                             </Link>

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
+use App\Models\ActivityLog;
 use App\Models\Attendee;
+use App\Models\Event;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -214,6 +215,49 @@ class ReportController extends Controller
 
             fclose($handle);
         }, 'attendance-details.csv');
+    }
+
+    /**
+     * Export activity logs to CSV.
+     */
+    public function exportLogs(): StreamedResponse
+    {
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Time',
+                'User',
+                'Action',
+                'Target Type',
+                'Target ID',
+                'Description',
+            ]);
+
+            $logs = ActivityLog::with('user:id,first_name,last_name')
+                ->latest()
+                ->get();
+
+            foreach ($logs as $log) {
+                $userName = $log->user
+                    ? trim($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'System';
+
+                fputcsv($handle, [
+                    $log->created_at->format('Y-m-d H:i:s'),
+                    $userName !== '' ? $userName : 'User',
+                    $log->action,
+                    $log->target_type ?? '—',
+                    $log->target_id ?? '—',
+                    $log->description ?? '',
+                ]);
+            }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['Report Generated:', now()->format('Y-m-d H:i:s')]);
+
+            fclose($handle);
+        }, 'activity-logs.csv');
     }
 
     /**

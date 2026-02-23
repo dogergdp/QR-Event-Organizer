@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Models\User;
@@ -76,9 +77,22 @@ class QrCodeController extends Controller
     /**
      * Toggle QR code active status
      */
-    public function toggle(QrCode $qrCode): RedirectResponse
+    public function toggle(Request $request, QrCode $qrCode): RedirectResponse
     {
+        $qrCode->loadMissing('event');
         $qrCode->update(['is_active' => !$qrCode->is_active]);
+
+        $action = $qrCode->is_active ? 'activate_qr' : 'deactivate_qr';
+        $eventName = $qrCode->event?->name ?? 'Unknown event';
+        $qrName = $qrCode->name ?? 'QR Code';
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => $action,
+            'target_type' => 'QrCode',
+            'target_id' => $qrCode->id,
+            'description' => sprintf('%s %s for event: %s', $qrCode->is_active ? 'Activated' : 'Deactivated', $qrName, $eventName),
+        ]);
 
         return redirect()->back()->with('success', 'QR code status updated.');
     }

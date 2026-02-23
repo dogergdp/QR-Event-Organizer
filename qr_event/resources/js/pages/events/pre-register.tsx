@@ -56,12 +56,12 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                 <div className="max-w-2xl">
                     <h1 className="text-2xl font-bold text-foreground mb-2">Confirm Your RSVP</h1>
 
-                    <div className="rounded-lg border-2 border-primary/50 bg-primary/10 p-6 mb-6">
-                        <h2 className="text-xl font-semibold text-foreground mb-4">{event.name}</h2>
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 mb-6">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">{event.name}</h2>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <div>
-                                <p className="text-sm text-muted-foreground">Date & Time</p>
+                                <p className="text-xs font-semibold text-muted-foreground">DATE & TIME</p>
                                 <p className="text-foreground font-medium">{event.date}</p>
                                 {(event.start_time || event.end_time) && (
                                     <p className="text-sm text-muted-foreground">
@@ -73,13 +73,13 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                             </div>
 
                             <div>
-                                <p className="text-sm text-muted-foreground">Location</p>
+                                <p className="text-xs font-semibold text-muted-foreground">LOCATION</p>
                                 <p className="text-foreground font-medium">{event.location}</p>
                             </div>
 
                             {hasDescription && (
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Description</p>
+                                    <p className="text-xs font-semibold text-muted-foreground">DESCRIPTION</p>
                                     <p className="text-foreground">{event.description}</p>
                                 </div>
                             )}
@@ -87,7 +87,7 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                     </div>
 
                     <form onSubmit={handleRSVP} className="space-y-4">
-                        <div className="bg-background border-2 border-sidebar-border/100 rounded-lg p-6">
+                        <div className="bg-background border border-sidebar-border/70 rounded-xl p-6">
                             {alreadyRsvpd ? (
                                 <>
                                     <p className="text-foreground mb-4 text-lg font-semibold text-green-600">
