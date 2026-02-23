@@ -139,7 +139,7 @@ export default function QRViewer() {
                 if (canUseBanner && bannerUrl) {
                     try {
                         const banner = await loadImage(bannerUrl);
-                        context.globalAlpha = 0.6;
+                        context.globalAlpha = 0.9;
                         drawImageCover(context, banner, 0, 0, outputSize, outputSize);
                         context.globalAlpha = 1;
                     } catch {
@@ -155,18 +155,18 @@ export default function QRViewer() {
                 context.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
                 context.drawImage(sourceCanvas, qrX, qrY, qrSize, qrSize);
 
-                context.fillStyle = '#111827';
+                context.fillStyle = '#FFFF00';
                 context.font = 'bold 46px sans-serif';
                 context.textAlign = 'center';
-                context.fillText(qrCode.name, outputSize / 2, 92);
+                context.fillText(qrCode.name, outputSize / 2, 70);
 
-                context.fillStyle = '#4b5563';
+                context.fillStyle = '#FFFF00';
                 context.font = '34px sans-serif';
-                context.fillText(qrCode.event.name, outputSize / 2, 142);
+                context.fillText(qrCode.event.name, outputSize / 2, 120);
 
-                context.fillStyle = '#6b7280';
+                context.fillStyle = '#FFFF00';
                 context.font = '22px monospace';
-                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, 920);
+                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, 900);
 
                 downloadCanvas(exportCanvas, createFilename());
             } else {
@@ -226,7 +226,7 @@ export default function QRViewer() {
                 >
                     {/* Banner Background */}
                     {canUseBanner && bannerUrl && (
-                        <div className="absolute inset-0 opacity-60">
+                        <div className="absolute inset-0 opacity-90">
                             <img
                                 src={bannerUrl}
                                 alt={qrCode.event.name}
