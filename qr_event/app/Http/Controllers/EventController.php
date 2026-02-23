@@ -63,6 +63,7 @@ class EventController extends Controller
                         'last_name' => $attendee->user->last_name,
                         'contact_number' => $attendee->user->contact_number,
                         'is_first_time' => $attendee->user->is_first_time,
+                        'remarks' => $attendee->user->remarks,
                     ],
                 ]),
         ]);

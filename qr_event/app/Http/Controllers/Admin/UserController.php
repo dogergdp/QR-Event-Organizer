@@ -71,7 +71,7 @@ class UserController extends Controller
         }
 
         $users = $usersQuery
-            ->paginate(10, ['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name'])
+            ->paginate(10, ['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name', 'remarks'])
             ->withQueryString();
 
         return Inertia::render('admin/users', [
