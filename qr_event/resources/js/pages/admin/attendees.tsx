@@ -125,7 +125,7 @@ export default function AdminAttendees() {
                                                 <select
                                                     name="user_id"
                                                     required
-                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                                 >
                                                     <option value="">Select user</option>
                                                     {filteredUsers.map((user: any) => (
@@ -143,7 +143,7 @@ export default function AdminAttendees() {
                                                 <select
                                                     name="event_id"
                                                     required
-                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                                 >
                                                     <option value="">Select event</option>
                                                     {events.map((event: any) => (

@@ -36,7 +36,8 @@ export default function EventsIndex() {
     };
 
     const eventList = events ?? [];
-    const allEvents = eventList.filter((event) => !event.is_finished);
+    const ongoingEvents = eventList.filter((event) => !!event.is_ongoing && !event.is_finished);
+    const upcomingEvents = eventList.filter((event) => !event.is_finished && !event.is_ongoing);
     const finishedEvents = eventList.filter((event) => event.is_finished);
     const defaultBanner = '/images/default-event.png';
 
@@ -64,19 +65,19 @@ export default function EventsIndex() {
 
                 <div className="mt-2">
                     <h2 className="text-lg font-semibold text-foreground">
-                        All Events
+                        Ongoing Events
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Upcoming and ongoing events.
+                        Events happening right now.
                     </p>
 
-                    {allEvents.length === 0 ? (
+                    {ongoingEvents.length === 0 ? (
                         <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-sm text-muted-foreground">
-                            No events yet. Create one to get started.
+                            No ongoing events at the moment.
                         </div>
                     ) : (
                         <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-                            {allEvents.map((event) => (
+                            {ongoingEvents.map((event) => (
                                 <div
                                     key={event.id}
                                     className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
@@ -95,12 +96,69 @@ export default function EventsIndex() {
                                         />
                                     </div>
                                     <div className="p-3">
-                                        {!!event.is_ongoing && (
-                                            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                                ● Ongoing
-                                            </span>
-                                        )}
+                                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                            ● Ongoing
+                                        </span>
                                         <h3 className="mt-2 truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                                            {event.name}
+                                        </h3>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {event.date}
+                                            {event.start_time && (
+                                                <>
+                                                    {' • '}
+                                                    {formatTime12Hour(event.start_time)}
+                                                    {event.end_time && (
+                                                        <> - {formatTime12Hour(event.end_time)}</>
+                                                    )}
+                                                </>
+                                            )}
+                                        </p>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {event.location}
+                                        </p>
+                                    </div>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-2">
+                    <h2 className="text-lg font-semibold text-foreground">
+                        Upcoming Events
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Events that are scheduled but not yet started.
+                    </p>
+
+                    {upcomingEvents.length === 0 ? (
+                        <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-sm text-muted-foreground">
+                            No upcoming events yet.
+                        </div>
+                    ) : (
+                        <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-4">
+                            {upcomingEvents.map((event) => (
+                                <div
+                                    key={event.id}
+                                    className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-[#555c63] dark:bg-[#313638]"
+                                >
+                                    <Link href={`/events/${event.id}`} className="block">
+                                    <div className="aspect-video overflow-hidden">
+                                        <img
+                                            src={
+                                                event.banner_image
+                                                    ? `/storage/${event.banner_image}`
+                                                    : defaultBanner
+                                            }
+                                            alt={event.name}
+                                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                    <div className="p-3">
+                                        <h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
                                             {event.name}
                                         </h3>
                                         <p className="truncate text-xs text-muted-foreground">
