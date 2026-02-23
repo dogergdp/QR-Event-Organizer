@@ -137,7 +137,55 @@
         @apply border-border;
     }
 
+    a,
+    button:not(:disabled),
+    [role='button'] {
+        cursor: pointer;
+    }
+
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer utilities {
+    .border-sidebar-border:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td),
+    .border-sidebar-border\/50:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td),
+    .border-sidebar-border\/60:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td),
+    .border-sidebar-border\/70:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td),
+    .border-sidebar-border\/80:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td),
+    .border-sidebar-border\/100:not(input):not(textarea):not(select):not(table):not(tr):not(th):not(td) {
+        border-color: transparent;
+    }
+
+    .bar-animate {
+        transform-origin: bottom;
+        animation: bar-rise 700ms ease-out both;
+    }
+
+    .donut-animate {
+        animation: donut-pop 700ms ease-out both;
+    }
+}
+
+@keyframes bar-rise {
+    from {
+        transform: scaleY(0.05);
+        opacity: 0.7;
+    }
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+@keyframes donut-pop {
+    from {
+        transform: scale(0.92);
+        opacity: 0.6;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
     }
 }

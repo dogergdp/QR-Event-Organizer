@@ -136,7 +136,6 @@ export default function QRIndex() {
                         <table className="w-full border-collapse">
                             <thead>
                                 <tr className="border-b-2 border-gray-300 dark:border-[#555c63] bg-gray-50 dark:bg-[#444a4e]">
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Name</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Event</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Purpose</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Status</th>
@@ -152,13 +151,10 @@ export default function QRIndex() {
                                         key={qr.id}
                                         className="border-b border-gray-200 dark:border-[#555c63] hover:bg-gray-50 dark:hover:bg-[#444a4e] text-gray-900 dark:text-gray-100"
                                     >
-                                        <td className="py-3 px-4 font-medium">
-                                            {qr.name}
-                                        </td>
                                         <td className="py-3 px-4">
                                             <Link
                                                 href={`/events/${qr.event.id}`}
-                                                className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                className="font-semibold text-black dark:text-white transition-all hover:underline hover:scale-[1.03]"
                                             >
                                                 {qr.event.name}
                                             </Link>
@@ -202,7 +198,7 @@ export default function QRIndex() {
                                             <div className="flex gap-2 justify-end">
                                                 <Link
                                                     href={`/admin/qr/${qr.id}/view`}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-blue-400"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-white"
                                                     title="View QR Code"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -213,7 +209,7 @@ export default function QRIndex() {
                                                             `${window.location.origin}/qr/${qr.token}`
                                                         )
                                                     }
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-blue-400"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-white"
                                                     title="Copy URL"
                                                 >
                                                     <Copy className="h-4 w-4" />

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\QrCode;
 use Illuminate\Http\RedirectResponse;
@@ -93,11 +94,11 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[^0-9]*$/'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
@@ -111,6 +112,11 @@ class EventController extends Controller
             ])->withInput();
         }
 
+        $validated['name'] = Str::ucfirst(trim($validated['name']));
+        $validated['description'] = isset($validated['description'])
+            ? trim($validated['description'])
+            : '';
+
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
         }
@@ -119,8 +125,17 @@ class EventController extends Controller
 
         $event = Event::create($validated);
 
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'create_event',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf('Created event: %s', $event->name),
+        ]);
+
         // Auto-generate QR codes for pre-registration and attendance
-        $expiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['end_time']);
+        $preRegExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
+        $attendanceExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['end_time']);
         
         // Pre-registration QR Code
         $preRegToken = Str::random(32);
@@ -131,7 +146,7 @@ class EventController extends Controller
             'token' => $preRegToken,
             'code' => '/qr/' . $preRegToken,
             'is_active' => true,
-            'expires_at' => $expiresAt,
+            'expires_at' => $preRegExpiresAt,
         ]);
 
         // Attendance Check-in QR Code
@@ -143,7 +158,7 @@ class EventController extends Controller
             'token' => $attendanceToken,
             'code' => '/qr/' . $attendanceToken,
             'is_active' => true,
-            'expires_at' => $expiresAt,
+            'expires_at' => $attendanceExpiresAt,
         ]);
 
         return redirect()->route('dashboard');
@@ -165,11 +180,11 @@ class EventController extends Controller
     public function update(Request $request, Event $event): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[^0-9]*$/'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'is_finished' => ['sometimes', 'boolean'],
@@ -182,6 +197,11 @@ class EventController extends Controller
                 'status' => 'An event cannot be both finished and ongoing at the same time.',
             ])->withInput();
         }
+
+        $validated['name'] = Str::ucfirst(trim($validated['name']));
+        $validated['description'] = isset($validated['description'])
+            ? trim($validated['description'])
+            : '';
 
         if ($request->hasFile('banner_image')) {
             // Delete old image if exists
@@ -203,6 +223,14 @@ class EventController extends Controller
      */
     public function destroy(Event $event): RedirectResponse
     {
+        ActivityLog::create([
+            'user_id' => request()->user()?->id,
+            'action' => 'delete_event',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf('Deleted event: %s', $event->name),
+        ]);
+
         $event->delete();
 
         return redirect()->route('dashboard');

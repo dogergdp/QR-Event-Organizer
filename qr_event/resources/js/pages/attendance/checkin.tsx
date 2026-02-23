@@ -11,7 +11,7 @@ interface CheckInProps {
         start_time: string | null;
         end_time: string | null;
         location: string;
-        description: string;
+        description: string | null;
         banner_image?: string | null;
     };
     token: string;
@@ -59,6 +59,7 @@ export default function CheckIn({
     };
 
     const defaultBanner = '/images/default-event.png';
+    const hasDescription = Boolean(event.description && event.description.trim());
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -127,12 +128,14 @@ export default function CheckIn({
                 </div>
 
                 {/* Description */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
-                    <h2 className="text-xl font-semibold text-foreground">
-                        About This Event
-                    </h2>
-                    <p className="mt-4 text-foreground">{event.description}</p>
-                </div>
+                {hasDescription && (
+                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                        <h2 className="text-xl font-semibold text-foreground">
+                            About This Event
+                        </h2>
+                        <p className="mt-4 text-foreground">{event.description}</p>
+                    </div>
+                )}
 
                 {/* Status Messages */}
                 {isAlreadyAttended && (

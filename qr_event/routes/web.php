@@ -8,6 +8,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ReportController;
 use App\Models\Attendee;
+use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,27 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
+        
+        $activityLogs = ActivityLog::with('user:id,first_name,last_name')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($log) {
+                $userName = $log->user
+                    ? trim($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'System';
+
+                return [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'target_type' => $log->target_type,
+                    'target_id' => $log->target_id,
+                    'description' => $log->description,
+                    'user' => $userName !== '' ? $userName : 'User',
+                    'created_at' => $log->created_at->format('M d, Y h:i A'),
+                ];
+            });
+        
     $user = request()->user();
     
     if ($user->isAdmin()) {
@@ -94,6 +116,7 @@ Route::get('dashboard', function () {
             'stats' => $stats,
             'reportEvents' => $reportEvents,
             'topAttendees' => $topAttendees,
+            'activityLogs' => $activityLogs,
         ]);
     } else {
         $events = Event::query()
@@ -155,6 +178,30 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('qr/{qrCode}/view', [QrCodeController::class, 'adminView'])->name('qr.view');
 
     Route::get('reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('logs', function () {
+        $logs = ActivityLog::with('user:id,first_name,last_name')
+            ->latest()
+            ->paginate(15)
+            ->through(function ($log) {
+                $userName = $log->user
+                    ? trim($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'System';
+
+                return [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'target_type' => $log->target_type,
+                    'target_id' => $log->target_id,
+                    'description' => $log->description,
+                    'user' => $userName !== '' ? $userName : 'User',
+                    'created_at' => $log->created_at->format('M d, Y h:i A'),
+                ];
+            });
+
+        return Inertia::render('admin/logs', [
+            'logs' => $logs,
+        ]);
+    })->name('logs');
     Route::get('reports/export/events', [ReportController::class, 'exportEvents'])->name('reports.export.events');
     Route::get('reports/export/attendees', [ReportController::class, 'exportAttendees'])->name('reports.export.attendees');
     Route::get('reports/export/attendance-details', [ReportController::class, 'exportAttendanceDetails'])->name('reports.export.attendance-details');

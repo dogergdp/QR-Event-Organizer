@@ -25,46 +25,46 @@ class DatabaseSeeder extends Seeder
             ['contact_number' => '09123456789'],
             [
                 'first_name' => 'Admin',
-                'last_name' => 'User',
+                'last_name' => 'Coordinator',
                 'password' => Hash::make('password'),
             ]
         );
 
         $adminUser->roles()->syncWithoutDetaching([$adminRole->id]);
 
-        // Create test events
+        // Create church events
         $events = [
             [
-                'name' => 'Tech Conference 2026',
-                'description' => 'Annual technology conference featuring keynote speakers and workshops',
-                'date' => now()->addDays(15)->toDateString(),
+                'name' => 'Sunday Worship Service',
+                'description' => 'Main worship service with praise, message, and prayer.',
+                'date' => now()->addDays(3)->toDateString(),
                 'start_time' => '09:00',
-                'end_time' => '17:00',
-                'location' => 'Convention Center, Downtown',
+                'end_time' => '11:00',
+                'location' => 'Main Sanctuary',
             ],
             [
-                'name' => 'Summer Networking Event',
-                'description' => 'Casual networking dinner for professionals in the tech industry',
-                'date' => now()->addDays(30)->toDateString(),
-                'start_time' => '18:00',
-                'end_time' => '21:00',
-                'location' => 'Grand Hotel Ballroom',
+                'name' => 'Youth Fellowship Night',
+                'description' => 'Games, worship, and small group sharing for the youth ministry.',
+                'date' => now()->addDays(7)->toDateString(),
+                'start_time' => '18:30',
+                'end_time' => '20:30',
+                'location' => 'Youth Hall',
             ],
             [
-                'name' => 'Product Launch Event',
-                'description' => 'Exclusive launch event for our new product line',
-                'date' => now()->addDays(45)->toDateString(),
-                'start_time' => '10:00',
-                'end_time' => '16:00',
-                'location' => 'Innovation Hub, Tech Park',
+                'name' => 'Prayer and Fasting Gathering',
+                'description' => 'Corporate prayer meeting and encouragement.',
+                'date' => now()->addDays(12)->toDateString(),
+                'start_time' => '19:00',
+                'end_time' => '20:30',
+                'location' => 'Prayer Room',
             ],
             [
-                'name' => 'Business Seminar',
-                'description' => 'Professional development seminar on business growth strategies',
-                'date' => now()->subDays(5)->toDateString(),
-                'start_time' => '14:00',
-                'end_time' => '18:00',
-                'location' => 'Conference Room A, Office Building',
+                'name' => 'Community Outreach Day',
+                'description' => 'Serving the community through outreach and volunteer work.',
+                'date' => now()->addDays(20)->toDateString(),
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'location' => 'Church Courtyard',
             ],
         ];
 
@@ -74,8 +74,9 @@ class DatabaseSeeder extends Seeder
                 $eventData
             );
 
-            // Auto-generate QR codes for each event (expires at event end time)
-            $expiresAt = \Carbon\Carbon::parse($eventData['date'] . ' ' . $eventData['end_time']);
+            // Auto-generate QR codes for each event
+            $preRegExpiresAt = \Carbon\Carbon::parse($eventData['date'] . ' ' . $eventData['start_time']);
+            $attendanceExpiresAt = \Carbon\Carbon::parse($eventData['date'] . ' ' . $eventData['end_time']);
             
             // Pre-registration QR Code
             $preRegToken = Str::random(32);
@@ -89,7 +90,7 @@ class DatabaseSeeder extends Seeder
                     'token' => $preRegToken,
                     'code' => '/qr/' . $preRegToken,
                     'is_active' => true,
-                    'expires_at' => $expiresAt,
+                    'expires_at' => $preRegExpiresAt,
                 ]
             );
 
@@ -105,7 +106,7 @@ class DatabaseSeeder extends Seeder
                     'token' => $attendanceToken,
                     'code' => '/qr/' . $attendanceToken,
                     'is_active' => true,
-                    'expires_at' => $expiresAt,
+                    'expires_at' => $attendanceExpiresAt,
                 ]
             );
         }

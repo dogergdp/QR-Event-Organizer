@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\User;
@@ -65,7 +66,22 @@ class AttendeeController extends Controller
         $validated['is_attended'] = (bool) ($validated['is_attended'] ?? false);
         $validated['attended_time'] = $validated['is_attended'] ? now() : null;
 
-        Attendee::create($validated);
+        $attendee = Attendee::create($validated);
+        $user = User::find($attendee->user_id);
+        $event = Event::find($attendee->event_id);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'create_attendee',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Added attendee %s %s to event %s',
+                $user?->first_name ?? 'Unknown',
+                $user?->last_name ?? 'User',
+                $event?->name ?? 'Unknown event'
+            ),
+        ]);
 
         return redirect()->route('admin.attendees')->with('success', 'Attendee added successfully.');
     }

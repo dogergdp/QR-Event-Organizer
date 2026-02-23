@@ -45,7 +45,7 @@ interface EventShowProps {
         date: string;
         start_time: string | null;
         end_time: string | null;
-        description: string;
+        description: string | null;
         location: string;
         banner_image?: string | null;
         is_finished?: boolean;
@@ -76,6 +76,7 @@ export default function ShowEvent() {
     const attendanceAttendees = allAttendees.filter((attendee) => attendee.is_attended);
 
     const defaultBanner = '/images/default-event.png';
+    const hasDescription = Boolean(event.description && event.description.trim());
 
     const handleScan = (decodedText: string) => {
         console.log('QR Code scanned:', decodedText);
@@ -201,7 +202,7 @@ export default function ShowEvent() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <Link
                                     href={`/events/${event.id}/edit`}
-                                    className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/90 transition-colors"
                                 >
                                     <Pencil className="h-4 w-4" />
                                     Edit Event
@@ -212,14 +213,16 @@ export default function ShowEvent() {
                 </div>
 
                 {/* Description Section */}
-                <div className="">
-                    <h2 className="text-xl font-semibold text-foreground">
-                        About This Event
-                    </h2>
-                    <p className="mt-4 text-foreground">
-                        {event.description}
-                    </p>
-                </div>
+                {hasDescription && (
+                    <div className="">
+                        <h2 className="text-xl font-semibold text-foreground">
+                            About This Event
+                        </h2>
+                        <p className="mt-4 text-foreground">
+                            {event.description}
+                        </p>
+                    </div>
+                )}
 
                 {/* RSVP Section (for non-registered users) */}
                 {!isAdmin && !event.is_finished && !userAttendance && (

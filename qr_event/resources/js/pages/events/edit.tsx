@@ -15,7 +15,7 @@ type EventData = {
     date: string;
     start_time: string | null;
     end_time: string | null;
-    description: string;
+    description: string | null;
     location: string;
     banner_image?: string | null;
     is_finished?: boolean;
@@ -29,7 +29,7 @@ export default function EditEvent({ event }: { event: EventData }) {
         date: event.date,
         start_time: event.start_time ?? '',
         end_time: event.end_time ?? '',
-        description: event.description,
+        description: event.description ?? '',
         location: event.location,
         is_finished: event.is_finished ?? false,
         is_ongoing: event.is_ongoing ?? false,
@@ -39,9 +39,14 @@ export default function EditEvent({ event }: { event: EventData }) {
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<any>({});
 
+    const stripDigits = (value: string) => value.replace(/\d/g, '');
+    const capitalizeFirst = (value: string) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setData(prev => ({ ...prev, [name]: value }));
+        const sanitizedValue = name === 'name' ? stripDigits(value) : value;
+        setData(prev => ({ ...prev, [name]: sanitizedValue }));
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +123,17 @@ export default function EditEvent({ event }: { event: EventData }) {
                                 name="name"
                                 value={data.name}
                                 onChange={handleInputChange}
+                                onKeyDown={(e) => {
+                                    if (/\d/.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onBlur={() =>
+                                    setData((prev) => ({
+                                        ...prev,
+                                        name: capitalizeFirst(prev.name.trim()),
+                                    }))
+                                }
                                 required
                             />
                             <InputError message={errors.name} />
@@ -182,7 +198,6 @@ export default function EditEvent({ event }: { event: EventData }) {
                                 name="description"
                                 value={data.description}
                                 onChange={handleInputChange}
-                                required
                                 className="flex min-h-[96px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
                             <InputError message={errors.description} />

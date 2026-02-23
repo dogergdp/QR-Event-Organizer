@@ -77,6 +77,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Activity logs created by the user.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
      * Roles assigned to the user.
      */
     public function roles(): BelongsToMany

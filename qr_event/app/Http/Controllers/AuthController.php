@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Fortify\CreateNewUser;
+use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\QrCode;
@@ -42,6 +43,14 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'event_id' => $event->id,
             'is_attended' => false,
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'create_user',
+            'target_type' => 'User',
+            'target_id' => $user->id,
+            'description' => sprintf('User registered via QR for event: %s', $event->name),
         ]);
 
         // Log in the user

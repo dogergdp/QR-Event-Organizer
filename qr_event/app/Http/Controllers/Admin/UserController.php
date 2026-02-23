@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,15 @@ class UserController extends Controller
             ? $validated['dg_leader_name']
             : null;
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'create_user',
+            'target_type' => 'User',
+            'target_id' => $user->id,
+            'description' => sprintf('Created user: %s %s', $user->first_name, $user->last_name),
+        ]);
 
         return redirect()->route('admin.users')->with('success', 'User created successfully.');
     }

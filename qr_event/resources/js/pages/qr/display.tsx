@@ -12,7 +12,7 @@ interface QrCodeData {
     event: {
         id: number;
         name: string;
-        description: string;
+        description: string | null;
         date: string;
         location: string;
     };
@@ -61,6 +61,7 @@ export default function Display({ qrCode, token }: DisplayProps) {
     const isExpired = 
         qrCode.expires_at && new Date(qrCode.expires_at) < new Date();
     const isValid = qrCode.valid && qrCode.is_active && !isExpired;
+    const hasDescription = Boolean(qrCode.event.description && qrCode.event.description.trim());
 
     const handleProceedToAttendance = () => {
         window.location.href = `/events/${qrCode.event.id}`;
@@ -151,9 +152,11 @@ export default function Display({ qrCode, token }: DisplayProps) {
                             <p className="text-lg font-bold text-gray-900">
                                 {qrCode.event.name}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                                {qrCode.event.description}
-                            </p>
+                            {hasDescription && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                    {qrCode.event.description}
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 pt-4 border-t">

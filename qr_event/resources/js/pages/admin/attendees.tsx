@@ -32,6 +32,7 @@ function calculateAge(birthdate: string | null): string {
 
 export default function AdminAttendees() {
     const [userSearch, setUserSearch] = useState('');
+    const [selectedUser, setSelectedUser] = useState<any>(null);
     
     const { attendees, users, events, filters } = usePage<any>().props as {
         attendees: {
@@ -192,10 +193,11 @@ export default function AdminAttendees() {
                             No attendees registered yet.
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-sidebar-border/70">
+                        <>
+                            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 dark:bg-[#444a4e]">
+                                        <tr className="border-b border-gray-200 dark:border-[#555c63]">
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Name
                                         </th>
@@ -223,11 +225,17 @@ export default function AdminAttendees() {
                                     {attendees.data.map((attendee) => (
                                         <tr
                                             key={attendee.id}
-                                            className="border-b border-sidebar-border/70 hover:bg-sidebar/50"
+                                            className="group border-b border-gray-200 hover:bg-gray-50 dark:border-[#555c63] dark:hover:bg-[#444a4e]"
                                         >
                                             <td className="px-4 py-3 font-medium text-foreground">
-                                                {attendee.user.first_name}{' '}
-                                                {attendee.user.last_name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedUser(attendee.user)}
+                                                    className="cursor-pointer font-semibold transition-all hover:underline hover:scale-[1.03]"
+                                                >
+                                                    {attendee.user.first_name}{' '}
+                                                    {attendee.user.last_name}
+                                                </button>
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.user.contact_number}
@@ -254,7 +262,9 @@ export default function AdminAttendees() {
                                                               minute: '2-digit',
                                                           }
                                                       )
-                                                    : '—'}
+                                                    : attendee.is_attended
+                                                    ? '—'
+                                                    : 'RSVP'}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {new Date(
@@ -275,7 +285,7 @@ export default function AdminAttendees() {
                                                             });
                                                         }
                                                     }}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
+                                                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
                                                     title="Delete attendee"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -284,7 +294,8 @@ export default function AdminAttendees() {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
 
                             <div className="mt-4 flex items-center justify-between gap-3">
                                 <div className="text-sm text-muted-foreground">
@@ -298,7 +309,7 @@ export default function AdminAttendees() {
                                         const label = link.label.replace(/&laquo;|&raquo;/g, (match) => {
                                             return match === '&laquo;' ? '«' : '»';
                                         });
-                                        
+
                                         if (isDisabled) {
                                             return (
                                                 <span
@@ -309,7 +320,7 @@ export default function AdminAttendees() {
                                                 </span>
                                             );
                                         }
-                                        
+
                                         return (
                                             <button
                                                 key={`${link.label}-${index}`}
@@ -326,6 +337,65 @@ export default function AdminAttendees() {
                                             </button>
                                         );
                                     })}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Attendee Details Modal */}
+                    {selectedUser && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                            onClick={() => setSelectedUser(null)}
+                        >
+                            <div
+                                className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="text-xl font-semibold text-foreground">Attendee Details</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedUser(null)}
+                                        className="text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4 border-t border-sidebar-border/70 pt-4">
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Name</p>
+                                        <p className="text-sm font-medium text-foreground">
+                                            {selectedUser.first_name} {selectedUser.last_name}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
+                                        <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Age</p>
+                                        <p className="text-sm text-foreground">
+                                            {calculateAge(selectedUser.birthdate)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
+                                    <Link
+                                        href={`/admin/users/${selectedUser.id}/edit`}
+                                        className="flex-1 rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                                    >
+                                        Edit User
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedUser(null)}
+                                        className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                    >
+                                        Close
+                                    </button>
                                 </div>
                             </div>
                         </div>

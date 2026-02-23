@@ -23,7 +23,7 @@ function formatTime12Hour(time: string | null): string {
 }
 
 export default function Dashboard() {
-    const { auth, events, isAdmin, stats, reportEvents, topAttendees } = usePage().props as {
+    const { auth, events, isAdmin, stats, reportEvents, topAttendees, activityLogs } = usePage().props as {
         auth?: {
             user?: {
                 first_name?: string;
@@ -68,6 +68,15 @@ export default function Dashboard() {
             contact_number: string;
             events_attended: number;
             is_first_time: boolean;
+        }>;
+        activityLogs?: Array<{
+            id: number;
+            action: string;
+            target_type: string | null;
+            target_id: number | null;
+            description: string | null;
+            user: string;
+            created_at: string;
         }>;
     };
 
@@ -132,11 +141,18 @@ export default function Dashboard() {
     const upcomingEvents = eventList.filter((event) => !event.is_finished && !event.is_ongoing);
     const ongoingEvents = eventList.filter((event) => !event.is_finished && isEventOngoing(event));
     const defaultBanner = '/images/default-event.png';
-    const recentPerformanceEvents = (reportEvents ?? []).slice(0, 6);
-    const maxPerformanceValue = Math.max(
-        ...recentPerformanceEvents.map((event) => Math.max(event.total_registered, event.total_attended)),
-        1
+    const performanceEvents = reportEvents ?? [];
+    const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | 'all'>(
+        performanceEvents.length > 0 ? 'all' : (performanceEvents[0]?.id ?? null)
     );
+    const selectedPerformanceEvent = performanceEvents.find(
+        (event) => event.id === selectedPerformanceId
+    );
+    const registeredCount = selectedPerformanceEvent?.total_registered ?? 0;
+    const attendedCount = selectedPerformanceEvent?.total_attended ?? 0;
+    const registeredTotal = Math.max(registeredCount, 1);
+    const attendedPercent = Math.round((attendedCount / registeredTotal) * 100);
+    const recentActivityLogs = (activityLogs ?? []).slice(0, 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -148,7 +164,7 @@ export default function Dashboard() {
                 onClose={() => setIsScannerOpen(false)}
                 onScan={handleScan}
             />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl bg-muted/40 dark:bg-muted/20 p-4">
                 <div>
                     <h1 className="text-2xl font-semibold text-foreground">
                         Welcome{displayName ? `, ${displayName}` : ''}!
@@ -179,51 +195,51 @@ export default function Dashboard() {
                                 <div className="flex flex-col">
                                     <h3 className="mb-4 text-base font-semibold text-foreground">Analytics</h3>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="relative overflow-hidden rounded-lg border-2 border-black/30 bg-black p-4 shadow-sm">
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-muted-foreground">Total Events</p>
-                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_events}</p>
-                                                    <p className="mt-1 text-xs text-muted-foreground">{stats.finished_events} finished</p>
+                                                    <p className="text-sm font-medium text-white/70">Total Events</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_events}</p>
+                                                    <p className="mt-2 text-xs text-white/70">{stats.finished_events} finished</p>
                                                 </div>
-                                                <div className="mt-4 flex justify-end">
-                                                    <Calendar className="h-8 w-8 text-primary/30" />
+                                                <div className="pointer-events-none absolute -bottom-2 -right-2">
+                                                    <Calendar className="h-16 w-16 text-white/15" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="relative overflow-hidden rounded-lg border-2 border-orange-500/30 bg-orange-600 p-4 shadow-sm">
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
-                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendees}</p>
+                                                    <p className="text-sm font-medium text-white/80">Total Registered</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_attendees}</p>
                                                 </div>
-                                                <div className="mt-4 flex justify-end">
-                                                    <Users className="h-8 w-8 text-primary/30" />
+                                                <div className="pointer-events-none absolute -bottom-2 -right-2">
+                                                    <Users className="h-16 w-16 text-white/20" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="relative overflow-hidden rounded-lg border-2 border-purple-500/30 bg-purple-600 p-4 shadow-sm">
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
-                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendances}</p>
+                                                    <p className="text-sm font-medium text-white/80">Total Attendances</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_attendances}</p>
                                                 </div>
-                                                <div className="mt-4 flex justify-end">
-                                                    <CheckCircle className="h-8 w-8 text-primary/30" />
+                                                <div className="pointer-events-none absolute -bottom-2 -right-2">
+                                                    <CheckCircle className="h-16 w-16 text-white/20" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="relative overflow-hidden rounded-lg border-2 border-blue-500/30 bg-blue-600 p-4 shadow-sm">
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-muted-foreground">Avg. Events/Attendee</p>
-                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.average_attendance_rate}</p>
+                                                    <p className="text-sm font-medium text-white/80">Avg. Events/Attendee</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.average_attendance_rate}</p>
                                                 </div>
-                                                <div className="mt-4 flex justify-end">
-                                                    <TrendingUp className="h-8 w-8 text-primary/30" />
+                                                <div className="pointer-events-none absolute -bottom-2 -right-2">
+                                                    <TrendingUp className="h-16 w-16 text-white/20" />
                                                 </div>
                                             </div>
                                         </div>
@@ -237,10 +253,10 @@ export default function Dashboard() {
                                         Export Reports to CSV
                                     </h3>
                                     <div className="space-y-3">
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/events"
-                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
@@ -249,10 +265,10 @@ export default function Dashboard() {
                                             <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/attendees"
-                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
@@ -261,10 +277,10 @@ export default function Dashboard() {
                                             <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                             <a
                                                 href="/admin/reports/export/attendance-details"
-                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-all hover:scale-[1.02] hover:text-primary/80"
                                                 download
                                             >
                                                 <Download className="h-4 w-4" />
@@ -273,78 +289,176 @@ export default function Dashboard() {
                                             <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
 
-                        {recentPerformanceEvents.length > 0 && (
-                            <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
-                                <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5" />
-                                    Recent Event Performance
-                                </h2>
-                                <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                                    <div className="inline-flex items-center gap-2">
-                                        <span className="h-3 w-3 rounded-sm bg-orange-500" />
-                                        Registered
-                                    </div>
-                                    <div className="inline-flex items-center gap-2">
-                                        <span className="h-3 w-3 rounded-sm bg-purple-500" />
-                                        Attended
-                                    </div>
-                                </div>
-
-                                <div className="overflow-x-auto pb-2">
-                                    <div className="min-w-[640px] rounded-lg border border-sidebar-border/60 bg-background/40 p-4">
-                                        <div className="flex h-72 items-end gap-3">
-                                            {recentPerformanceEvents.map((event) => {
-                                                const registeredHeight = Math.max((event.total_registered / maxPerformanceValue) * 100, 2);
-                                                const attendedHeight = Math.max((event.total_attended / maxPerformanceValue) * 100, 2);
-
-                                                return (
-                                                    <div key={event.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-                                                        <div className="flex h-56 w-full items-end justify-center gap-1.5">
-                                                            <div className="flex w-12 flex-col items-center">
-                                                                <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
-                                                                <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                    <div
-                                                                        className="absolute inset-x-0 bottom-0 rounded-t-md bg-orange-500"
-                                                                        style={{ height: `${registeredHeight}%` }}
-                                                                        title={`Registered: ${event.total_registered}`}
-                                                                    />
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex w-12 flex-col items-center">
-                                                                <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
-                                                                <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                    <div
-                                                                        className="absolute inset-x-0 bottom-0 rounded-t-md bg-purple-500"
-                                                                        style={{ height: `${attendedHeight}%` }}
-                                                                        title={`Attended: ${event.total_attended}`}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <Link
-                                                            href={`/events/${event.id}`}
-                                                            className="w-full truncate text-center text-xs font-medium text-primary hover:underline"
-                                                            title={event.name}
-                                                        >
-                                                            {event.name}
-                                                        </Link>
-                                                    </div>
-                                                );
-                                            })}
+                        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                            {performanceEvents.length > 0 && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                                            <BarChart3 className="h-5 w-5" />
+                                            Event Performance
+                                        </h2>
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="event-performance" className="text-xs font-medium text-muted-foreground">
+                                                Select event
+                                            </label>
+                                            <select
+                                                id="event-performance"
+                                                value={selectedPerformanceId ?? ''}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setSelectedPerformanceId(value === 'all' ? 'all' : Number(value));
+                                                }}
+                                                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                                            >
+                                                <option value="all">All events</option>
+                                                {performanceEvents.map((event) => (
+                                                    <option key={event.id} value={event.id}>
+                                                        {event.name}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
+
+                                    {selectedPerformanceId === 'all' ? (
+                                        <div className="mt-6 overflow-x-auto pb-2">
+                                            <div className="min-w-[640px] rounded-lg border border-gray-200 bg-background/40 p-4 dark:border-[#555c63]">
+                                                <div className="flex h-72 items-end gap-3">
+                                                    {performanceEvents.map((event) => {
+                                                        const registeredHeight = Math.max((event.total_registered / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
+                                                        const attendedHeight = Math.max((event.total_attended / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
+
+                                                        return (
+                                                            <div key={event.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                                                                <div className="flex h-56 w-full items-end justify-center gap-1.5">
+                                                                    <div className="flex w-12 flex-col items-center">
+                                                                        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
+                                                                        <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                            <div
+                                                                                className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300"
+                                                                                style={{ height: `${registeredHeight}%` }}
+                                                                                title={`Registered: ${event.total_registered}`}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex w-12 flex-col items-center">
+                                                                        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
+                                                                        <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                            <div
+                                                                                className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300"
+                                                                                style={{ height: `${attendedHeight}%` }}
+                                                                                title={`Attended: ${event.total_attended}`}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <Link
+                                                                    href={`/events/${event.id}`}
+                                                                    className="w-full truncate text-center text-xs font-medium text-primary hover:underline"
+                                                                    title={event.name}
+                                                                >
+                                                                    {event.name}
+                                                                </Link>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        selectedPerformanceEvent && (
+                                            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                <div className="flex items-center justify-center">
+                                                    <div
+                                                        className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full"
+                                                        style={{
+                                                            background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)`,
+                                                        }}
+                                                        aria-label="Attendance donut chart"
+                                                    >
+                                                        <div className="absolute inset-5 rounded-full bg-white dark:bg-slate-900" />
+                                                        <div className="relative text-center">
+                                                            <p className="text-xs text-muted-foreground">Attended</p>
+                                                            <p className="text-2xl font-semibold text-foreground">
+                                                                {attendedPercent}%
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <p className="text-xs font-medium text-muted-foreground">Event</p>
+                                                        <Link
+                                                            href={`/events/${selectedPerformanceEvent.id}`}
+                                                            className="text-sm font-semibold text-primary hover:underline"
+                                                        >
+                                                            {selectedPerformanceEvent.name}
+                                                        </Link>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="rounded-md bg-muted/30 p-3">
+                                                            <p className="text-xs text-muted-foreground">Registered</p>
+                                                            <p className="text-lg font-semibold text-foreground">
+                                                                {registeredCount}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-md bg-muted/30 p-3">
+                                                            <p className="text-xs text-muted-foreground">Attended</p>
+                                                            <p className="text-lg font-semibold text-foreground">
+                                                                {attendedCount}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {attendedCount} of {registeredCount} registered attendees checked in.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
                                 </div>
+                            )}
+
+                            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-semibold text-foreground">Logs</h2>
+                                    <Link
+                                        href="/admin/logs"
+                                        className="text-xs font-medium text-primary hover:underline"
+                                    >
+                                        View all
+                                    </Link>
+                                </div>
+                                {recentActivityLogs.length === 0 ? (
+                                    <p className="mt-3 text-xs text-muted-foreground">No activity yet.</p>
+                                ) : (
+                                    <div className="mt-4 space-y-2">
+                                        {recentActivityLogs.map((log) => (
+                                            <div key={log.id} className="rounded-md bg-muted/30 px-3 py-2">
+                                                <p className="text-xs text-muted-foreground">
+                                                    {log.created_at}
+                                                </p>
+                                                <p className="text-sm text-foreground">
+                                                    <span className="font-semibold">{log.user}</span>{' '}
+                                                    {log.description ?? log.action}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
 
                         {topAttendees && topAttendees.length > 0 && (
-                            <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
+                            <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                 <h2 className="mb-4 text-lg font-semibold text-foreground">Top Attendees</h2>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
@@ -396,7 +510,7 @@ export default function Dashboard() {
                                         <Link
                                             key={event.id}
                                             href={`/events/${event.id}`}
-                                            className="group rounded-lg border-2 bg-background p-3 transition-all  hover:shadow-md"
+                                            className="group rounded-lg border-2 bg-white dark:bg-slate-900 p-3 shadow-sm transition-all  hover:shadow-md"
                                         >
                                             <div className="aspect-video overflow-hidden rounded-md border-2 border-sidebar-border/100">
                                                 <img
@@ -466,7 +580,7 @@ export default function Dashboard() {
                                     {upcomingEvents.map((event) => (
                                         <div
                                             key={event.id}
-                                            className="group rounded-lg border-2 border-sidebar-border/100 bg-background p-3 transition-all hover:border-primary/50 hover:shadow-md"
+                                            className="group rounded-lg border-2 border-sidebar-border/100 bg-white dark:bg-slate-900 p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
                                         >
                                             <Link href={`/events/${event.id}`}>
                                                 <div className="aspect-video overflow-hidden rounded-md border-2 border-sidebar-border/100">

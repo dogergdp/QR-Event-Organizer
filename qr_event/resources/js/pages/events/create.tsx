@@ -36,6 +36,10 @@ export default function CreateEvent() {
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<any>({});
 
+    const stripDigits = (value: string) => value.replace(/\d/g, '');
+    const capitalizeFirst = (value: string) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -48,7 +52,8 @@ export default function CreateEvent() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setData(prev => ({ ...prev, [name]: value }));
+        const sanitizedValue = name === 'name' ? stripDigits(value) : value;
+        setData(prev => ({ ...prev, [name]: sanitizedValue }));
     };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -120,6 +125,17 @@ export default function CreateEvent() {
                                 name="name"
                                 value={data.name}
                                 onChange={handleInputChange}
+                                onKeyDown={(e) => {
+                                    if (/\d/.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onBlur={() =>
+                                    setData((prev) => ({
+                                        ...prev,
+                                        name: capitalizeFirst(prev.name.trim()),
+                                    }))
+                                }
                                 required
                                 placeholder="Sunday Service"
                             />
@@ -186,7 +202,6 @@ export default function CreateEvent() {
                                 name="description"
                                 value={data.description}
                                 onChange={handleInputChange}
-                                required
                                 placeholder="Event description"
                                 className="flex min-h-[96px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />

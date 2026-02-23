@@ -9,7 +9,7 @@ interface Event {
     start_time: string | null;
     end_time: string | null;
     location: string;
-    description: string;
+    description: string | null;
 }
 
 type PreRegisterProps = {
@@ -29,6 +29,7 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
     const { data, setData, post, processing } = useForm({
         confirm_rsvp: false,
     });
+    const hasDescription = Boolean(event.description && event.description.trim());
 
     const formatTime = (time: string | null): string => {
         if (!time) return '';
@@ -76,10 +77,12 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                                 <p className="text-foreground font-medium">{event.location}</p>
                             </div>
 
-                            <div>
-                                <p className="text-sm text-muted-foreground">Description</p>
-                                <p className="text-foreground">{event.description}</p>
-                            </div>
+                            {hasDescription && (
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Description</p>
+                                    <p className="text-foreground">{event.description}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

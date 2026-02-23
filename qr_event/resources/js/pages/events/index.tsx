@@ -79,10 +79,10 @@ export default function EventsIndex() {
                             {allEvents.map((event) => (
                                 <div
                                     key={event.id}
-                                    className="group rounded-lg border border-sidebar-border/70 bg-background p-3 transition-all hover:border-primary/50 hover:shadow-md"
+                                    className="group rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-slate-900"
                                 >
                                     <Link href={`/events/${event.id}`} className="block">
-                                    <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
+                                    <div className="aspect-video overflow-hidden rounded-md">
                                         <img
                                             src={
                                                 event.banner_image
@@ -143,10 +143,10 @@ export default function EventsIndex() {
                             {finishedEvents.map((event) => (
                                 <div
                                     key={event.id}
-                                    className="group rounded-lg border border-sidebar-border/70 bg-background p-3 transition-all hover:border-primary/50 hover:shadow-md"
+                                    className="group rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-slate-900"
                                 >
                                     <Link href={`/events/${event.id}`} className="block">
-                                    <div className="aspect-video overflow-hidden rounded-md border border-sidebar-border/70">
+                                    <div className="aspect-video overflow-hidden rounded-md">
                                         <img
                                             src={
                                                 event.banner_image

@@ -142,10 +142,11 @@ export default function AdminUsers() {
                             No users registered yet.
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-sidebar-border/70">
+                        <>
+                            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                <table className="w-full text-sm">
+                                <thead className="bg-gray-50 dark:bg-[#444a4e]">
+                                    <tr className="border-b border-gray-200 dark:border-[#555c63]">
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             <button
                                                 type="button"
@@ -197,7 +198,7 @@ export default function AdminUsers() {
                                     {users.data.map((user) => (
                                         <tr
                                             key={user.id}
-                                            className="border-b border-sidebar-border/70 hover:bg-sidebar/50"
+                                            className="border-b border-gray-200 hover:bg-gray-50 dark:border-[#555c63] dark:hover:bg-[#444a4e]"
                                         >
                                             <td className="px-4 py-3 font-medium text-foreground">
                                                 {user.id}
@@ -206,7 +207,7 @@ export default function AdminUsers() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedUser(user)}
-                                                    className="hover:text-primary hover:underline transition-colors text-left"
+                                                    className="cursor-pointer text-left font-semibold transition-all hover:underline hover:scale-[1.03]"
                                                 >
                                                     {user.first_name} {user.last_name}
                                                 </button>
@@ -251,7 +252,8 @@ export default function AdminUsers() {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
 
                             <div className="mt-4 flex items-center justify-between gap-3">
                                 <div className="text-sm text-muted-foreground">
@@ -265,7 +267,7 @@ export default function AdminUsers() {
                                         const label = link.label.replace(/&laquo;|&raquo;/g, (match) => {
                                             return match === '&laquo;' ? '«' : '»';
                                         });
-                                        
+
                                         if (isDisabled) {
                                             return (
                                                 <span
@@ -276,7 +278,7 @@ export default function AdminUsers() {
                                                 </span>
                                             );
                                         }
-                                        
+
                                         return (
                                             <button
                                                 key={`${link.label}-${index}`}
@@ -295,7 +297,7 @@ export default function AdminUsers() {
                                     })}
                                 </div>
                             </div>
-                        </div>
+                        </>
                     )}
 
                     {/* User Details Modal */}
