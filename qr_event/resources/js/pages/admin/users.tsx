@@ -236,14 +236,14 @@ export default function AdminUsers() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedUser(user)}
-                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-black dark:text-muted-foreground dark:group-hover:text-black"
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-foreground"
                                                     title="View user details"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <Link
                                                     href={`/admin/users/${user.id}/edit`}
-                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-black dark:text-muted-foreground dark:group-hover:text-black"
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-muted-foreground group-hover:text-foreground"
                                                     title="Edit user"
                                                 >
                                                     <Pencil className="h-4 w-4" />

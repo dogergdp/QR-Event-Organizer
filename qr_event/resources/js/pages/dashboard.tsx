@@ -360,13 +360,13 @@ export default function Dashboard() {
                                             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                                 <div className="flex items-center justify-center">
                                                     <div
-                                                        className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full"
+                                                        className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full shadow-lg"
                                                         style={{
                                                             background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)`,
                                                         }}
                                                         aria-label="Attendance donut chart"
                                                     >
-                                                        <div className="absolute inset-5 rounded-full bg-white dark:bg-slate-900" />
+                                                        <div className="absolute inset-5 rounded-full bg-background" />
                                                         <div className="relative text-center">
                                                             <p className="text-xs text-muted-foreground">Attended</p>
                                                             <p className="text-2xl font-semibold text-foreground">
