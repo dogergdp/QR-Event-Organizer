@@ -103,6 +103,13 @@ class EventController extends Controller
             'is_ongoing' => ['sometimes', 'boolean'],
         ]);
 
+        // Validate that event cannot be both finished and ongoing
+        if (($validated['is_finished'] ?? false) && ($validated['is_ongoing'] ?? false)) {
+            return redirect()->back()->withErrors([
+                'status' => 'An event cannot be both finished and ongoing at the same time.',
+            ])->withInput();
+        }
+
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $request->file('banner_image')->store('events', 'public');
         }
@@ -167,6 +174,13 @@ class EventController extends Controller
             'is_finished' => ['sometimes', 'boolean'],
             'is_ongoing' => ['sometimes', 'boolean'],
         ]);
+
+        // Validate that event cannot be both finished and ongoing
+        if (($validated['is_finished'] ?? false) && ($validated['is_ongoing'] ?? false)) {
+            return redirect()->back()->withErrors([
+                'status' => 'An event cannot be both finished and ongoing at the same time.',
+            ])->withInput();
+        }
 
         if ($request->hasFile('banner_image')) {
             // Delete old image if exists

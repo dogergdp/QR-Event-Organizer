@@ -225,20 +225,31 @@ export default function EditEvent({ event }: { event: EventData }) {
                             <Checkbox
                                 id="is_finished"
                                 checked={data.is_finished}
-                                onCheckedChange={(checked) =>
-                                    setData(prev => ({ ...prev, is_finished: checked === true }))
-                                }
+                                onCheckedChange={(checked) => {
+                                    const isFinished = checked === true;
+                                    setData(prev => ({ 
+                                        ...prev, 
+                                        is_finished: isFinished,
+                                        is_ongoing: isFinished ? false : prev.is_ongoing
+                                    }));
+                                }}
                             />
                             <Label htmlFor="is_finished">Mark as Finished</Label>
                         </div>
+                        <InputError message={errors.status} />
 
                         <div className="flex items-center gap-2 md:col-span-2">
                             <Checkbox
                                 id="is_ongoing"
                                 checked={data.is_ongoing}
-                                onCheckedChange={(checked) =>
-                                    setData(prev => ({ ...prev, is_ongoing: checked === true }))
-                                }
+                                onCheckedChange={(checked) => {
+                                    const isOngoing = checked === true;
+                                    setData(prev => ({ 
+                                        ...prev, 
+                                        is_ongoing: isOngoing,
+                                        is_finished: isOngoing ? false : prev.is_finished
+                                    }));
+                                }}
                             />
                             <Label htmlFor="is_ongoing">Mark as Ongoing</Label>
                         </div>

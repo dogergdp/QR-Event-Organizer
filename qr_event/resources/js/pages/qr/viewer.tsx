@@ -139,7 +139,7 @@ export default function QRViewer() {
                 if (canUseBanner && bannerUrl) {
                     try {
                         const banner = await loadImage(bannerUrl);
-                        context.globalAlpha = 0.3;
+                        context.globalAlpha = 0.6;
                         drawImageCover(context, banner, 0, 0, outputSize, outputSize);
                         context.globalAlpha = 1;
                     } catch {
@@ -200,7 +200,7 @@ export default function QRViewer() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#313638] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
             <Head title={`QR Code - ${qrCode.name}`} />
 
             <div className="max-w-2xl w-full">
@@ -220,13 +220,13 @@ export default function QRViewer() {
 
                 {/* QR Code Display with Optional Banner */}
                 <div
-                    className={`bg-white rounded-lg overflow-hidden border-2 border-[#555c63] mb-6 ${
+                    className={`bg-background/80 rounded-lg overflow-hidden border-2 border-sidebar-border/50 mb-6 ${
                         canUseBanner ? 'relative' : ''
                     }`}
                 >
                     {/* Banner Background */}
                     {canUseBanner && bannerUrl && (
-                        <div className="absolute inset-0 opacity-30">
+                        <div className="absolute inset-0 opacity-60">
                             <img
                                 src={bannerUrl}
                                 alt={qrCode.event.name}
@@ -239,7 +239,7 @@ export default function QRViewer() {
                     {/* QR Code Container */}
                     <div className="relative p-8 flex flex-col items-center justify-center">
                         {/* QR Code using qrcode.react */}
-                        <div className="rounded-lg bg-white p-4 border-4 border-white shadow-lg">
+                        <div className="rounded-lg bg-background/90 p-4 border-4 border-sidebar-border/50 shadow-lg">
                             <QRCodeSVG
                                 value={qrValue}
                                 size={256}
@@ -259,12 +259,12 @@ export default function QRViewer() {
                         {/* Subtle ID Display */}
                         <div className="mt-6 text-center">
                             <div className="flex items-center gap-2 justify-center">
-                                <p className="text-xs text-gray-400 font-mono">
+                                <p className="text-xs text-muted-foreground font-mono">
                                     {showId ? qrCode.token.substring(0, 8) : '••••••••'}
                                 </p>
                                 <button
                                     onClick={() => setShowId(!showId)}
-                                    className="text-gray-400 hover:text-gray-600 transition"
+                                    className="text-muted-foreground hover:text-foreground transition"
                                     title={showId ? 'Hide ID' : 'Show ID'}
                                 >
                                     {showId ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -274,10 +274,10 @@ export default function QRViewer() {
 
                         {/* QR Info */}
                         <div className="mt-6 text-center">
-                            <p className="text-sm text-gray-600 mb-3">Scan this code to register or check-in</p>
+                            <p className="text-sm text-muted-foreground mb-3">Scan this code to register or check-in</p>
                             <button
                                 onClick={() => copyToClipboard(qrValue)}
-                                className="inline-flex items-center gap-2 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
+                                className="inline-flex items-center gap-2 px-3 py-1 text-xs bg-sidebar/40 hover:bg-sidebar/60 text-foreground rounded transition font-medium"
                             >
                                 <Copy className="w-3 h-3" />
                                 Copy URL
@@ -287,14 +287,14 @@ export default function QRViewer() {
                 </div>
 
                 {/* Download Options */}
-                <div className="bg-white dark:bg-[#444a4e] border-2 border-[#555c63] rounded-lg p-6">
+                <div className="bg-background/80 border-2 border-sidebar-border/50 rounded-lg p-6">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Download QR Code</h2>
 
                     <div className="space-y-3">
                         <button
                             onClick={() => downloadQRImage(false)}
                             disabled={isDownloading}
-                            className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
+                            className="w-full px-4 py-3 bg-black hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
                         >
                             <Download className="w-4 h-4" />
                             Download QR Code Only
@@ -304,7 +304,7 @@ export default function QRViewer() {
                             <button
                                 onClick={() => downloadQRImage(true)}
                                 disabled={isDownloading}
-                                className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
+                                className="w-full px-4 py-3 bg-purple-600 hover:bg-black disabled:bg-gray-400 text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
                             >
                                 <Download className="w-4 h-4" />
                                 Download with Banner
@@ -313,17 +313,17 @@ export default function QRViewer() {
                     </div>
 
                     <p className="text-xs text-muted-foreground mt-4 text-center">
-                        The QR code ID (<code className="bg-gray-100 dark:bg-[#555c63] px-1 rounded text-[10px]">{qrCode.token.substring(0, 8)}</code>) is embedded in the image
+                        The QR code ID (<code className="bg-sidebar/40 px-1 rounded text-[10px] font-mono">{qrCode.token.substring(0, 8)}</code>) is embedded in the image
                     </p>
                 </div>
 
                 {/* Info Section */}
-                <div className="mt-6 bg-blue-50 dark:bg-[#444a4e] border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="mt-6 bg-background/80 border-2 border-sidebar-border/50 rounded-lg p-4">
                     <h3 className="font-semibold text-foreground mb-2">QR Code Details</h3>
                     <div className="space-y-1 text-sm text-muted-foreground">
                         <p><strong>Event:</strong> {qrCode.event.name}</p>
                         <p><strong>Code Name:</strong> {qrCode.name}</p>
-                        <p><strong>Full ID:</strong> <code className="bg-gray-100 dark:bg-[#555c63] px-1 rounded text-xs font-mono">{qrCode.token}</code></p>
+                        <p><strong>Full ID:</strong> <code className="bg-sidebar/40 px-1 rounded text-xs font-mono">{qrCode.token}</code></p>
                     </div>
                 </div>
             </div>
