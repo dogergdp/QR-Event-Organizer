@@ -293,15 +293,39 @@ export default function AdminAttendees() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
-                                    {attendees.links.map((link, index) => (
-                                        <Link
-                                            key={`${link.label}-${index}`}
-                                            href={link.url ?? '#'}
-                                            preserveScroll
-                                            className={`rounded-md px-3 py-1 text-sm ${link.active ? 'bg-primary text-primary-foreground' : 'border border-sidebar-border/70 text-foreground'} ${!link.url ? 'pointer-events-none opacity-50' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
+                                    {attendees.links.map((link, index) => {
+                                        const isDisabled = !link.url;
+                                        const label = link.label.replace(/&laquo;|&raquo;/g, (match) => {
+                                            return match === '&laquo;' ? '«' : '»';
+                                        });
+                                        
+                                        if (isDisabled) {
+                                            return (
+                                                <span
+                                                    key={`${link.label}-${index}`}
+                                                    className="rounded-md px-3 py-1 text-sm font-medium border border-sidebar-border/70 text-muted-foreground cursor-not-allowed opacity-50"
+                                                >
+                                                    {label}
+                                                </span>
+                                            );
+                                        }
+                                        
+                                        return (
+                                            <button
+                                                key={`${link.label}-${index}`}
+                                                onClick={() => {
+                                                    window.location.href = link.url as string;
+                                                }}
+                                                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'border border-sidebar-border/70 text-foreground hover:bg-sidebar/50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

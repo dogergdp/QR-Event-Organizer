@@ -168,7 +168,7 @@ export default function CheckIn({
                                     className="h-5 w-5 rounded border-gray-300"
                                 />
                                 <span className="text-foreground">
-                                    I confirm my attendance at this event
+                                    I confirm my attendance at this event.
                                 </span>
                             </label>
 

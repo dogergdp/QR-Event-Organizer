@@ -198,18 +198,6 @@ export default function ShowEvent() {
                         {isAdmin && (
                             <div className="flex flex-wrap items-center gap-2">
                                 <Link
-                                    href={`/events/${event.id}/qr`}
-                                    className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
-                                >
-                                    Manage QR Codes
-                                </Link>
-                                <Link
-                                    href={`/events/${event.id}/qr-display`}
-                                    className="inline-flex items-center gap-2 rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
-                                >
-                                    Show QR Display
-                                </Link>
-                                <Link
                                     href={`/events/${event.id}/edit`}
                                     className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                                 >

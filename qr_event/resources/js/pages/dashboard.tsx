@@ -4,7 +4,7 @@ import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 import QRScanner from '@/components/QRScanner';
 import { useState } from 'react';
-import { Download, BarChart3 } from 'lucide-react';
+import { Download, BarChart3, Calendar, Users, CheckCircle, TrendingUp } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -145,12 +145,12 @@ export default function Dashboard() {
             />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div>
-                    <h1 className="text-xl font-semibold text-foreground">
+                    <h1 className="text-2xl font-semibold text-foreground">
                         Welcome{displayName ? `, ${displayName}` : ''}!
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {isAdmin
-                            ? 'Manage your events or create new ones.'
+                            ? ''
                             : 'Check your upcoming events and track your attendance.'}
                     </p>
                 </div>
@@ -168,61 +168,107 @@ export default function Dashboard() {
                 {isAdmin && stats && (
                     <>
                         <div className="mt-2">
-                            <h2 className="mb-4 text-lg font-semibold text-foreground">Analytics Overview</h2>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                    <p className="text-sm font-medium text-muted-foreground">Total Events</p>
-                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_events}</p>
-                                    <p className="mt-1 text-xs text-muted-foreground">{stats.finished_events} finished</p>
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Dashboard Overview</h2>
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                {/* Analytics Stats Column */}
+                                <div className="flex flex-col">
+                                    <h3 className="mb-4 text-base font-semibold text-foreground">Analytics</h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <div className="flex h-full flex-col">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Total Events</p>
+                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_events}</p>
+                                                    <p className="mt-1 text-xs text-muted-foreground">{stats.finished_events} finished</p>
+                                                </div>
+                                                <div className="mt-4 flex justify-end">
+                                                    <Calendar className="h-8 w-8 text-primary/30" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <div className="flex h-full flex-col">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
+                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendees}</p>
+                                                </div>
+                                                <div className="mt-4 flex justify-end">
+                                                    <Users className="h-8 w-8 text-primary/30" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <div className="flex h-full flex-col">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
+                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendances}</p>
+                                                </div>
+                                                <div className="mt-4 flex justify-end">
+                                                    <CheckCircle className="h-8 w-8 text-primary/30" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <div className="flex h-full flex-col">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Avg. Events/Attendee</p>
+                                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.average_attendance_rate}</p>
+                                                </div>
+                                                <div className="mt-4 flex justify-end">
+                                                    <TrendingUp className="h-8 w-8 text-primary/30" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                    <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
-                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendees}</p>
-                                </div>
+                                {/* Export Reports Column */}
+                                <div className="flex flex-col">
+                                    <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+                                        <Download className="h-4 w-4" />
+                                        Export Reports to CSV
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <a
+                                                href="/admin/reports/export/events"
+                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                download
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Download Events CSV
+                                            </a>
+                                            <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
+                                        </div>
 
-                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                    <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
-                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.total_attendances}</p>
-                                </div>
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <a
+                                                href="/admin/reports/export/attendees"
+                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                download
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Download Registered Users CSV
+                                            </a>
+                                            <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
+                                        </div>
 
-                                <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
-                                    <p className="text-sm font-medium text-muted-foreground">Avg. Events per Attendee</p>
-                                    <p className="mt-2 text-3xl font-bold text-foreground">{stats.average_attendance_rate}</p>
+                                        <div className="rounded-lg border-2 border-sidebar-border/100 bg-background p-4">
+                                            <a
+                                                href="/admin/reports/export/attendance-details"
+                                                className="flex items-center gap-2 rounded-md font-semibold text-primary hover:text-primary/80 transition-colors mb-2"
+                                                download
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Download Attendance Details CSV
+                                            </a>
+                                            <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
-                            <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                                <Download className="h-5 w-5" />
-                                Export Reports to CSV
-                            </h2>
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                <a
-                                    href="/admin/reports/export/events"
-                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                                    download
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Download Events CSV
-                                </a>
-                                <a
-                                    href="/admin/reports/export/attendees"
-                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                                    download
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Download Registered Users CSV
-                                </a>
-                                <a
-                                    href="/admin/reports/export/attendance-details"
-                                    className="inline-flex items-center border-2 border-sidebar-border/100 justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                                    download
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Download Attendance Details CSV
-                                </a>
                             </div>
                         </div>
 

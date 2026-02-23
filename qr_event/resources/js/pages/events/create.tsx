@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import InputError from '@/components/input-error';
@@ -206,8 +206,12 @@ export default function CreateEvent() {
                                 JPG or PNG only, max 2MB. Optional - default banner will be used if empty.
                             </p>
                             {preview && (
-                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70">
-                                    <img src={preview} alt="Preview" className="h-32 w-full object-cover" />
+                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted/40">
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
+                                        className="aspect-video w-full object-cover"
+                                    />
                                 </div>
                             )}
                         </div>
@@ -235,7 +239,13 @@ export default function CreateEvent() {
                         </div>
                     </div>
 
-                    <div className="mt-6 flex justify-end">
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
+                        <Link
+                            href="/events"
+                            className="inline-flex items-center rounded-md border border-sidebar-border/70 px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+                        >
+                            Cancel
+                        </Link>
                         <Button type="submit" disabled={processing}>
                             {processing ? 'Saving...' : 'Create Event'}
                         </Button>

@@ -1,7 +1,7 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -47,7 +47,7 @@ export default function EventsIndex() {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-semibold text-foreground">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             Events
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export default function EventsIndex() {
                                         />
                                     </div>
                                     <div className="mt-2">
-                                        {event.is_ongoing && (
+                                        {!!event.is_ongoing && (
                                             <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
                                                 ● Ongoing
                                             </span>
@@ -120,27 +120,6 @@ export default function EventsIndex() {
                                         </p>
                                     </div>
                                     </Link>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <Link
-                                            href={`/events/${event.id}/edit`}
-                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
-                                            title="Edit event"
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (confirm(`Delete event "${event.name}"?`)) {
-                                                    router.delete(`/events/${event.id}`);
-                                                }
-                                            }}
-                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
-                                            title="Delete event"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -200,27 +179,6 @@ export default function EventsIndex() {
                                         </p>
                                     </div>
                                     </Link>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <Link
-                                            href={`/events/${event.id}/edit`}
-                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
-                                            title="Edit event"
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (confirm(`Delete event "${event.name}"?`)) {
-                                                    router.delete(`/events/${event.id}`);
-                                                }
-                                            }}
-                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
-                                            title="Delete event"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
                                 </div>
                             ))}
                         </div>

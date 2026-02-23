@@ -112,22 +112,6 @@ export default function QRIndex() {
             <Head title="QR Codes" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 bg-white dark:bg-[#313638]">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            QR Codes
-                        </h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            All QR codes across your events
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
-                    >
-                        + Create QR Code
-                    </button>
-                </div>
 
                 {/* Search Bar */}
                 <div className="mb-4">
@@ -218,7 +202,7 @@ export default function QRIndex() {
                                             <div className="flex gap-2 justify-end">
                                                 <Link
                                                     href={`/admin/qr/${qr.id}/view`}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-blue-400"
                                                     title="View QR Code"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -229,7 +213,7 @@ export default function QRIndex() {
                                                             `${window.location.origin}/qr/${qr.token}`
                                                         )
                                                     }
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-black dark:text-blue-400"
                                                     title="Copy URL"
                                                 >
                                                     <Copy className="h-4 w-4" />
@@ -238,7 +222,7 @@ export default function QRIndex() {
                                                     onClick={() => handleToggle(qr)}
                                                     className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition ${
                                                         qr.is_active
-                                                            ? 'text-yellow-600 dark:text-yellow-400'
+                                                            ? 'text-red-600 dark:text-red-400'
                                                             : 'text-green-600 dark:text-green-400'
                                                     }`}
                                                     title={qr.is_active ? 'Deactivate QR code' : 'Activate QR code'}

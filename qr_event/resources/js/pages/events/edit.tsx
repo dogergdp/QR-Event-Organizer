@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import InputError from '@/components/input-error';
@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { BreadcrumbItem } from '@/types';
+import { Trash2 } from 'lucide-react';
 
 type EventData = {
     id: number;
@@ -200,14 +201,22 @@ export default function EditEvent({ event }: { event: EventData }) {
                                 JPG or PNG only, max 2MB. Leave empty to keep current image.
                             </p>
                             {preview ? (
-                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70">
+                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted/40">
                                     <p className="mb-1 text-xs font-medium text-muted-foreground">New preview:</p>
-                                    <img src={preview} alt="Preview" className="h-32 w-full object-cover" />
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
+                                        className="aspect-video w-full object-cover"
+                                    />
                                 </div>
                             ) : event.banner_image ? (
-                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70">
+                                <div className="mt-2 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted/40">
                                     <p className="mb-1 text-xs font-medium text-muted-foreground">Current image:</p>
-                                    <img src={`/storage/${event.banner_image}`} alt="Current" className="h-32 w-full object-cover" />
+                                    <img
+                                        src={`/storage/${event.banner_image}`}
+                                        alt="Current"
+                                        className="aspect-video w-full object-cover"
+                                    />
                                 </div>
                             ) : null}
                         </div>
@@ -235,10 +244,31 @@ export default function EditEvent({ event }: { event: EventData }) {
                         </div>
                     </div>
 
-                    <div className="mt-6 flex justify-end">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : 'Save Changes'}
-                        </Button>
+                    <div className="mt-6 flex flex-wrap justify-between gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (confirm(`Delete event "${event.name}"?`)) {
+                                    router.delete(`/events/${event.id}`);
+                                }
+                            }}
+                            className="inline-flex items-center gap-2 rounded-md border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Delete Event
+                        </button>
+
+                        <div className="flex flex-wrap gap-3">
+                            <Link
+                                href="/events"
+                                className="inline-flex items-center rounded-md border border-sidebar-border/70 px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+                            >
+                                Cancel
+                            </Link>
+                            <Button type="submit" disabled={processing}>
+                                {processing ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
                     </div>
                 </form>
             </div>

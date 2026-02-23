@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState, useRef } from 'react';
 import { Download, Copy, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -204,6 +204,14 @@ export default function QRViewer() {
             <Head title={`QR Code - ${qrCode.name}`} />
 
             <div className="max-w-2xl w-full">
+                <div className="mb-4">
+                    <Link
+                        href="/admin/qr-codes"
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        ← Back to QR Codes
+                    </Link>
+                </div>
                 {/* Header */}
                 <div className="mb-6 text-center">
                     <h1 className="text-3xl font-bold text-foreground mb-2">{qrCode.name}</h1>

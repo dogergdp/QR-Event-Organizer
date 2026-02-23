@@ -1,10 +1,11 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Form, Head, Link, usePage, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import { Trash2 } from 'lucide-react';
 
 export default function EditUser() {
     const { user } = usePage<any>().props as {
@@ -133,6 +134,20 @@ export default function EditUser() {
                                     <Link href="/admin/users" className="text-sm text-muted-foreground hover:underline">
                                         Cancel
                                     </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (confirm(`Delete ${user.first_name} ${user.last_name}? This action cannot be undone.`)) {
+                                                router.delete(`/admin/users/${user.id}`, {
+                                                    preserveScroll: true,
+                                                });
+                                            }
+                                        }}
+                                        className="ml-auto inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete User
+                                    </button>
                                 </div>
                             </>
                         )}

@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Pencil, Trash2, UserPlus } from 'lucide-react';
+import { Pencil, UserPlus } from 'lucide-react';
 
 function calculateAge(birthdate: string | null): string {
     if (!birthdate) return 'N/A';
@@ -122,11 +122,9 @@ export default function AdminUsers() {
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Contact Number
                                         </th>
-
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Age
                                         </th>
-
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Registration Date
                                         </th>
@@ -168,29 +166,13 @@ export default function AdminUsers() {
                                                 })}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Link
-                                                        href={`/admin/users/${user.id}/edit`}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
-                                                        title="Edit user"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Link>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            if (confirm(`Delete ${user.first_name} ${user.last_name}?`)) {
-                                                                router.delete(`/admin/users/${user.id}`, {
-                                                                    preserveScroll: true,
-                                                                });
-                                                            }
-                                                        }}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-red-600 dark:text-red-400"
-                                                        title="Delete user"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </div>
+                                                <Link
+                                                    href={`/admin/users/${user.id}/edit`}
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                                    title="Edit user"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
@@ -204,15 +186,39 @@ export default function AdminUsers() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
-                                    {users.links.map((link, index) => (
-                                        <Link
-                                            key={`${link.label}-${index}`}
-                                            href={link.url ?? '#'}
-                                            preserveScroll
-                                            className={`rounded-md px-3 py-1 text-sm ${link.active ? 'bg-primary text-primary-foreground' : 'border border-sidebar-border/70 text-foreground'} ${!link.url ? 'pointer-events-none opacity-50' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
+                                    {users.links.map((link, index) => {
+                                        const isDisabled = !link.url;
+                                        const label = link.label.replace(/&laquo;|&raquo;/g, (match) => {
+                                            return match === '&laquo;' ? '«' : '»';
+                                        });
+                                        
+                                        if (isDisabled) {
+                                            return (
+                                                <span
+                                                    key={`${link.label}-${index}`}
+                                                    className="rounded-md px-3 py-1 text-sm font-medium border border-sidebar-border/70 text-muted-foreground cursor-not-allowed opacity-50"
+                                                >
+                                                    {label}
+                                                </span>
+                                            );
+                                        }
+                                        
+                                        return (
+                                            <button
+                                                key={`${link.label}-${index}`}
+                                                onClick={() => {
+                                                    window.location.href = link.url as string;
+                                                }}
+                                                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'border border-sidebar-border/70 text-foreground hover:bg-sidebar/50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
