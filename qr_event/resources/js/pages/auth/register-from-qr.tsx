@@ -127,8 +127,11 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
 
     const handleConfirmIdentity = (isConfirmed: boolean) => {
         if (isConfirmed && matchedAttendee?.user_id) {
-            // Redirect to login, then back to QR scan so RSVP form shows automatically
-            window.location.href = `/login?redirect_url=${encodeURIComponent(`/qr/${qrToken}`)}`;
+            // Redirect to login with contact number pre-filled, then back to QR scan so RSVP form shows automatically
+            const params = new URLSearchParams();
+            params.set('redirect_url', `/qr/${qrToken}`);
+            params.set('contact_number', contactNumber);
+            window.location.href = `/login?${params.toString()}`;
         } else {
             // User chose not to login, proceed to create new account
             setMatchedAttendee(null);

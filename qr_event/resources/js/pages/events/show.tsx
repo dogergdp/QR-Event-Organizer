@@ -470,6 +470,12 @@ export default function ShowEvent() {
                                     <p className="text-xs font-medium text-muted-foreground">First Time Attendee</p>
                                     <p className="text-sm text-foreground">{selectedUser.is_first_time ? 'Yes' : 'No'}</p>
                                 </div>
+                                {selectedUser.remarks && (
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Remarks</p>
+                                        <p className="text-sm text-foreground">{selectedUser.remarks}</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">

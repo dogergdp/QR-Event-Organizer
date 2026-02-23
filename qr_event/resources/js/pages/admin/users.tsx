@@ -333,6 +333,12 @@ export default function AdminUsers() {
                                         <p className="text-xs font-medium text-muted-foreground">Registration Date</p>
                                         <p className="text-sm text-foreground">{new Date(selectedUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
+                                    {selectedUser.remarks && (
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Remarks</p>
+                                            <p className="text-sm text-foreground">{selectedUser.remarks}</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">

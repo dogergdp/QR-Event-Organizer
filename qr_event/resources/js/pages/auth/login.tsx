@@ -1,5 +1,5 @@
-import { Form, Head, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { Form, Head } from '@inertiajs/react';
+import { useState, useEffect, useRef } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -23,21 +23,17 @@ export default function Login({
     canRegister,
 }: Props) {
     const [showPassword, setShowPassword] = useState(false);
-    const redirectUrl = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('redirect_url');
+    const contactInputRef = useRef<HTMLInputElement>(null);
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const redirectUrl = params.get('redirect_url');
+    const preFilledContactNumber = params.get('contact_number');
 
     useEffect(() => {
-        if (redirectUrl) {
-            const handleSuccess = () => {
-                window.location.href = redirectUrl;
-            };
-            
-            router.on('success', handleSuccess);
-            
-            return () => {
-                router.off('success', handleSuccess);
-            };
+        // Pre-fill contact number if provided in URL
+        if (preFilledContactNumber && contactInputRef.current) {
+            contactInputRef.current.value = preFilledContactNumber;
         }
-    }, [redirectUrl]);
+    }, [preFilledContactNumber]);
 
     return (
         <AuthLayout
@@ -57,6 +53,7 @@ export default function Login({
                             <div className="grid gap-2">
                                 <Label htmlFor="contact_number">Contact Number</Label>
                                 <Input
+                                    ref={contactInputRef}
                                     id="contact_number"
                                     type="tel"
                                     name="contact_number"
