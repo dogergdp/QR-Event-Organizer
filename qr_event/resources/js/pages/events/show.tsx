@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
 import { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { Pencil, Eye } from 'lucide-react';
 
 function formatTime12Hour(time: string | null): string {
     if (!time) return '';
@@ -68,6 +68,7 @@ export default function ShowEvent() {
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>('rsvp');
+    const [selectedUser, setSelectedUser] = useState<any>(null);
 
     const allAttendees = attendees ?? [];
     const rsvpAttendees = allAttendees.filter((attendee) => !attendee.is_attended);
@@ -363,11 +364,17 @@ export default function ShowEvent() {
                                     ).map((attendee) => (
                                         <tr
                                             key={attendee.id}
-                                            className="border-b border-sidebar-border/70"
+                                            className="border-b border-sidebar-border/70 hover:bg-sidebar/50 transition-colors"
                                         >
                                             <td className="px-4 py-3 text-foreground">
-                                                {attendee.user.first_name}{' '}
-                                                {attendee.user.last_name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedUser(attendee.user)}
+                                                    className="hover:text-primary hover:underline transition-colors text-left"
+                                                >
+                                                    {attendee.user.first_name}{' '}
+                                                    {attendee.user.last_name}
+                                                </button>
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {attendee.user.contact_number}
@@ -434,6 +441,49 @@ export default function ShowEvent() {
                     onClose={() => setIsScannerOpen(false)}
                     onScan={handleScan}
                 />
+
+                {/* User Details Modal */}
+                {selectedUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedUser(null)}>
+                        <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                            <div className="mb-4 flex items-center justify-between">
+                                <h2 className="text-xl font-semibold text-foreground">User Details</h2>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedUser(null)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div className="space-y-4 border-t border-sidebar-border/70 pt-4">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Name</p>
+                                    <p className="text-sm font-medium text-foreground">{selectedUser.first_name} {selectedUser.last_name}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
+                                    <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">First Time Attendee</p>
+                                    <p className="text-sm text-foreground">{selectedUser.is_first_time ? 'Yes' : 'No'}</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedUser(null)}
+                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

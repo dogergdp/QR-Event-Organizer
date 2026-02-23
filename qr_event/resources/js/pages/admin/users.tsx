@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Pencil, UserPlus } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, UserPlus, Eye } from 'lucide-react';
 
 function calculateAge(birthdate: string | null): string {
     if (!birthdate) return 'N/A';
@@ -30,6 +31,7 @@ function calculateAge(birthdate: string | null): string {
 }
 
 export default function AdminUsers() {
+    const [selectedUser, setSelectedUser] = useState<any>(null);
     const { users, filters } = usePage<any>().props as {
         users: {
             data: Array<{
@@ -76,9 +78,16 @@ export default function AdminUsers() {
         );
     };
 
-    const sortIndicator = (column: 'id' | 'name' | 'age' | 'created_at') => {
-        if (currentSort !== column) return '';
-        return currentDirection === 'asc' ? ' ↑' : ' ↓';
+    const renderSortIcon = (column: 'id' | 'name' | 'age' | 'created_at') => {
+        if (currentSort !== column) {
+            return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />;
+        }
+
+        return currentDirection === 'asc' ? (
+            <ArrowUp className="h-3.5 w-3.5 text-primary" />
+        ) : (
+            <ArrowDown className="h-3.5 w-3.5 text-primary" />
+        );
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -140,18 +149,18 @@ export default function AdminUsers() {
                                             <button
                                                 type="button"
                                                 onClick={() => applySort('id')}
-                                                className="hover:text-primary transition-colors"
+                                                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
                                             >
-                                                ID{sortIndicator('id')}
+                                                ID {renderSortIcon('id')}
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             <button
                                                 type="button"
                                                 onClick={() => applySort('name')}
-                                                className="hover:text-primary transition-colors"
+                                                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
                                             >
-                                                Name{sortIndicator('name')}
+                                                Name {renderSortIcon('name')}
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
@@ -164,18 +173,18 @@ export default function AdminUsers() {
                                             <button
                                                 type="button"
                                                 onClick={() => applySort('age')}
-                                                className="hover:text-primary transition-colors"
+                                                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
                                             >
-                                                Age{sortIndicator('age')}
+                                                Age {renderSortIcon('age')}
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             <button
                                                 type="button"
                                                 onClick={() => applySort('created_at')}
-                                                className="hover:text-primary transition-colors"
+                                                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
                                             >
-                                                Registration Date{sortIndicator('created_at')}
+                                                Registration Date {renderSortIcon('created_at')}
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
@@ -193,7 +202,13 @@ export default function AdminUsers() {
                                                 {user.id}
                                             </td>
                                             <td className="px-4 py-3 font-medium text-foreground">
-                                                {user.first_name} {user.last_name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedUser(user)}
+                                                    className="hover:text-primary hover:underline transition-colors text-left"
+                                                >
+                                                    {user.first_name} {user.last_name}
+                                                </button>
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {user.dg_leader_name || 'N/A'}
@@ -215,10 +230,18 @@ export default function AdminUsers() {
                                                     minute: '2-digit',
                                                 })}
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-4 py-3 opacity-0 hover:opacity-100 transition-opacity flex items-center gap-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedUser(user)}
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-green-600 dark:text-green-400"
+                                                    title="View user details"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </button>
                                                 <Link
                                                     href={`/admin/users/${user.id}/edit`}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
+                                                    className="inline-flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-blue-600 dark:text-blue-400"
                                                     title="Edit user"
                                                 >
                                                     <Pencil className="h-4 w-4" />
@@ -269,6 +292,63 @@ export default function AdminUsers() {
                                             </button>
                                         );
                                     })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* User Details Modal */}
+                    {selectedUser && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedUser(null)}>
+                            <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="text-xl font-semibold text-foreground">User Details</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedUser(null)}
+                                        className="text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4 border-t border-sidebar-border/70 pt-4">
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Name</p>
+                                        <p className="text-sm font-medium text-foreground">{selectedUser.first_name} {selectedUser.last_name}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
+                                        <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Age</p>
+                                        <p className="text-sm text-foreground">{calculateAge(selectedUser.birthdate)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">DG Leader</p>
+                                        <p className="text-sm text-foreground">{selectedUser.dg_leader_name || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Registration Date</p>
+                                        <p className="text-sm text-foreground">{new Date(selectedUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
+                                    <Link
+                                        href={`/admin/users/${selectedUser.id}/edit`}
+                                        className="flex-1 rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                                    >
+                                        Edit User
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedUser(null)}
+                                        className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                    >
+                                        Close
+                                    </button>
                                 </div>
                             </div>
                         </div>
