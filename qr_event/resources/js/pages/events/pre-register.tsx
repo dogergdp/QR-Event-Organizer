@@ -30,6 +30,15 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
         confirm_rsvp: false,
     });
 
+    const formatTime = (time: string | null): string => {
+        if (!time) return '';
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+    };
+
     const handleRSVP = (e: React.FormEvent) => {
         e.preventDefault();
         if (!data.confirm_rsvp) {
@@ -53,10 +62,11 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                             <div>
                                 <p className="text-sm text-muted-foreground">Date & Time</p>
                                 <p className="text-foreground font-medium">{event.date}</p>
-                                {event.start_time && (
+                                {(event.start_time || event.end_time) && (
                                     <p className="text-sm text-muted-foreground">
-                                        {event.start_time}
-                                        {event.end_time && ` - ${event.end_time}`}
+                                        {event.start_time && formatTime(event.start_time)}
+                                        {event.start_time && event.end_time && ' - '}
+                                        {event.end_time && formatTime(event.end_time)}
                                     </p>
                                 )}
                             </div>
