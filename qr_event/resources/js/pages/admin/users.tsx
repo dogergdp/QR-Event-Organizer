@@ -52,7 +52,33 @@ export default function AdminUsers() {
         };
         filters: {
             search?: string;
+            sort?: 'id' | 'name' | 'age' | 'created_at';
+            direction?: 'asc' | 'desc';
         };
+    };
+
+    const currentSort = filters?.sort ?? 'created_at';
+    const currentDirection = filters?.direction ?? 'desc';
+
+    const applySort = (column: 'id' | 'name' | 'age' | 'created_at') => {
+        const nextDirection = currentSort === column && currentDirection === 'asc' ? 'desc' : 'asc';
+        router.get(
+            '/admin/users',
+            {
+                search: filters?.search ?? '',
+                sort: column,
+                direction: nextDirection,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            }
+        );
+    };
+
+    const sortIndicator = (column: 'id' | 'name' | 'age' | 'created_at') => {
+        if (currentSort !== column) return '';
+        return currentDirection === 'asc' ? ' ↑' : ' ↓';
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -111,10 +137,22 @@ export default function AdminUsers() {
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            ID
+                                            <button
+                                                type="button"
+                                                onClick={() => applySort('id')}
+                                                className="hover:text-primary transition-colors"
+                                            >
+                                                ID{sortIndicator('id')}
+                                            </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            Name
+                                            <button
+                                                type="button"
+                                                onClick={() => applySort('name')}
+                                                className="hover:text-primary transition-colors"
+                                            >
+                                                Name{sortIndicator('name')}
+                                            </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             DG Leader
@@ -123,10 +161,22 @@ export default function AdminUsers() {
                                             Contact Number
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            Age
+                                            <button
+                                                type="button"
+                                                onClick={() => applySort('age')}
+                                                className="hover:text-primary transition-colors"
+                                            >
+                                                Age{sortIndicator('age')}
+                                            </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
-                                            Registration Date
+                                            <button
+                                                type="button"
+                                                onClick={() => applySort('created_at')}
+                                                className="hover:text-primary transition-colors"
+                                            >
+                                                Registration Date{sortIndicator('created_at')}
+                                            </button>
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-foreground">
                                             Actions

@@ -7,6 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 export default function CreateUser() {
+    const today = new Date().toISOString().split('T')[0];
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Registered Users', href: '/admin/users' },
@@ -58,7 +59,7 @@ export default function CreateUser() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="birthdate">Birthdate</Label>
-                                    <Input id="birthdate" type="date" name="birthdate" required />
+                                    <Input id="birthdate" type="date" name="birthdate" max={today} required />
                                     <InputError message={errors.birthdate} />
                                 </div>
 

@@ -12,6 +12,7 @@ import { useState } from 'react';
 
 export default function Register() {
     const [hasDgLeader, setHasDgLeader] = useState('');
+    const today = new Date().toISOString().split('T')[0];
 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input
@@ -27,6 +28,10 @@ export default function Register() {
         }
         if (value.length > 6) {
             formatted = value.slice(0, 4) + '-' + value.slice(4, 6) + '-' + value.slice(6, 8);
+        }
+
+        if (formatted.length === 10 && formatted > today) {
+            formatted = today;
         }
         
         e.target.value = formatted;

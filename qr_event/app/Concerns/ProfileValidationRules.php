@@ -62,7 +62,7 @@ trait ProfileValidationRules
      */
     protected function birthdateRules(): array
     {
-        return ['required', 'date'];
+        return ['required', 'date', 'before_or_equal:today'];
     }
 
     /**

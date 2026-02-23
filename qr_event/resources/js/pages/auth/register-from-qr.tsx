@@ -30,6 +30,7 @@ type RegisterFromQRProps = {
 };
 
 export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false }: RegisterFromQRProps) {
+    const today = new Date().toISOString().split('T')[0];
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
     const [matchedAttendee, setMatchedAttendee] = useState<AttendeeMatch | null>(null);
@@ -64,6 +65,10 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
         }
         if (value.length > 6) {
             formatted = value.slice(0, 4) + '-' + value.slice(4, 6) + '-' + value.slice(6, 8);
+        }
+
+        if (formatted.length === 10 && formatted > today) {
+            formatted = today;
         }
         
         setData('birthdate', formatted);

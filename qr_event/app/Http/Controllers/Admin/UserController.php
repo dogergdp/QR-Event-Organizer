@@ -23,7 +23,7 @@ class UserController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')],
-            'birthdate' => ['required', 'date'],
+            'birthdate' => ['required', 'date', 'before_or_equal:today'],
             'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
             'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
             'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
@@ -42,8 +42,15 @@ class UserController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
+        $sort = (string) $request->query('sort', 'created_at');
+        $direction = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $users = User::query()
+        $allowedSorts = ['id', 'name', 'age', 'created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'created_at';
+        }
+
+        $usersQuery = User::query()
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -51,8 +58,19 @@ class UserController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 });
-            })
-            ->orderBy('created_at', 'desc')
+            });
+
+        if ($sort === 'name') {
+            $usersQuery
+                ->orderBy('first_name', $direction)
+                ->orderBy('last_name', $direction);
+        } elseif ($sort === 'age') {
+            $usersQuery->orderBy('birthdate', $direction === 'asc' ? 'desc' : 'asc');
+        } else {
+            $usersQuery->orderBy($sort, $direction);
+        }
+
+        $users = $usersQuery
             ->paginate(10, ['id', 'first_name', 'last_name', 'contact_number', 'birthdate', 'created_at', 'dg_leader_name'])
             ->withQueryString();
 
@@ -60,6 +78,8 @@ class UserController extends Controller
             'users' => $users,
             'filters' => [
                 'search' => $search,
+                'sort' => $sort,
+                'direction' => $direction,
             ],
         ]);
     }
@@ -87,7 +107,7 @@ class UserController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($user->id)],
-            'birthdate' => ['required', 'date'],
+            'birthdate' => ['required', 'date', 'before_or_equal:today'],
             'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
             'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
             'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],

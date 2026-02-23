@@ -20,6 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateEvent() {
+    const today = new Date().toISOString().split('T')[0];
     const [data, setData] = useState({
         name: '',
         date: '',
@@ -146,6 +147,7 @@ export default function CreateEvent() {
                                 name="date"
                                 value={data.date}
                                 onChange={handleInputChange}
+                                min={today}
                                 required
                             />
                             <InputError message={errors.date} />

@@ -132,6 +132,11 @@ export default function Dashboard() {
     const upcomingEvents = eventList.filter((event) => !event.is_finished && !event.is_ongoing);
     const ongoingEvents = eventList.filter((event) => !event.is_finished && isEventOngoing(event));
     const defaultBanner = '/images/default-event.png';
+    const recentPerformanceEvents = (reportEvents ?? []).slice(0, 6);
+    const maxPerformanceValue = Math.max(
+        ...recentPerformanceEvents.map((event) => Math.max(event.total_registered, event.total_attended)),
+        1
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -272,45 +277,68 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {reportEvents && reportEvents.length > 0 && (
+                        {recentPerformanceEvents.length > 0 && (
                             <div className="mt-4 rounded-lg border-2 border-sidebar-border/100 bg-background p-6">
                                 <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5" />
                                     Recent Event Performance
                                 </h2>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b-2 border-sidebar-border/100">
-                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Event Name</th>
-                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Date</th>
-                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Location</th>
-                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Registered</th>
-                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Attended</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {reportEvents.map((event) => (
-                                                <tr key={event.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
-                                                    <td className="px-4 py-3 font-medium text-foreground">
-                                                        <Link href={`/events/${event.id}`} className="hover:underline text-primary">
+                                <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="inline-flex items-center gap-2">
+                                        <span className="h-3 w-3 rounded-sm bg-orange-500" />
+                                        Registered
+                                    </div>
+                                    <div className="inline-flex items-center gap-2">
+                                        <span className="h-3 w-3 rounded-sm bg-purple-500" />
+                                        Attended
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto pb-2">
+                                    <div className="min-w-[640px] rounded-lg border border-sidebar-border/60 bg-background/40 p-4">
+                                        <div className="flex h-72 items-end gap-3">
+                                            {recentPerformanceEvents.map((event) => {
+                                                const registeredHeight = Math.max((event.total_registered / maxPerformanceValue) * 100, 2);
+                                                const attendedHeight = Math.max((event.total_attended / maxPerformanceValue) * 100, 2);
+
+                                                return (
+                                                    <div key={event.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                                                        <div className="flex h-56 w-full items-end justify-center gap-1.5">
+                                                            <div className="flex w-12 flex-col items-center">
+                                                                <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
+                                                                <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                    <div
+                                                                        className="absolute inset-x-0 bottom-0 rounded-t-md bg-orange-500"
+                                                                        style={{ height: `${registeredHeight}%` }}
+                                                                        title={`Registered: ${event.total_registered}`}
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex w-12 flex-col items-center">
+                                                                <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
+                                                                <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                    <div
+                                                                        className="absolute inset-x-0 bottom-0 rounded-t-md bg-purple-500"
+                                                                        style={{ height: `${attendedHeight}%` }}
+                                                                        title={`Attended: ${event.total_attended}`}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <Link
+                                                            href={`/events/${event.id}`}
+                                                            className="w-full truncate text-center text-xs font-medium text-primary hover:underline"
+                                                            title={event.name}
+                                                        >
                                                             {event.name}
                                                         </Link>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {new Date(event.date).toLocaleDateString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                        })}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">{event.location}</td>
-                                                    <td className="px-4 py-3 text-center text-foreground">{event.total_registered}</td>
-                                                    <td className="px-4 py-3 text-center text-foreground">{event.total_attended}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}

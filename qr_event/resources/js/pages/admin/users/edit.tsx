@@ -8,6 +8,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Trash2 } from 'lucide-react';
 
 export default function EditUser() {
+    const today = new Date().toISOString().split('T')[0];
     const { user } = usePage<any>().props as {
         user: {
             id: number;
@@ -68,7 +69,7 @@ export default function EditUser() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="birthdate">Birthdate</Label>
-                                    <Input id="birthdate" type="date" name="birthdate" defaultValue={user.birthdate ?? ''} required />
+                                    <Input id="birthdate" type="date" name="birthdate" defaultValue={user.birthdate ?? ''} max={today} required />
                                     <InputError message={errors.birthdate} />
                                 </div>
 

@@ -23,6 +23,7 @@ type EventData = {
 };
 
 export default function EditEvent({ event }: { event: EventData }) {
+    const today = new Date().toISOString().split('T')[0];
     const [data, setData] = useState({
         name: event.name,
         date: event.date,
@@ -142,6 +143,7 @@ export default function EditEvent({ event }: { event: EventData }) {
                                 name="date"
                                 value={data.date}
                                 onChange={handleInputChange}
+                                min={today}
                                 required
                             />
                             <InputError message={errors.date} />
