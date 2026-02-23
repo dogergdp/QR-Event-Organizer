@@ -13,9 +13,7 @@ interface Event {
 interface QRCode {
     id: number;
     name: string;
-    type: 'static' | 'timed';
     purpose: 'pre-registration' | 'attendance';
-    is_dynamic: boolean;
     is_active: boolean;
     expires_at: string | null;
     token: string;
@@ -151,7 +149,7 @@ export default function QRIndex() {
                                 <tr className="border-b-2 border-gray-300 dark:border-[#555c63] bg-gray-50 dark:bg-[#444a4e]">
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Name</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Event</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Type</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Purpose</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Status</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Expires At</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Token</th>
@@ -177,7 +175,7 @@ export default function QRIndex() {
                                             </Link>
                                         </td>
                                         <td className="py-3 px-4 capitalize">
-                                            {qr.type}
+                                            {qr.purpose.replace('-', ' ')}
                                         </td>
                                         <td className="py-3 px-4">
                                             {getStatusBadge(qr)}

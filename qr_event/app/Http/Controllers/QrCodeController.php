@@ -24,9 +24,7 @@ class QrCodeController extends Controller
             ->map(fn($qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
-                'type' => $qr->type,
                 'purpose' => $qr->purpose,
-                'is_dynamic' => $qr->is_dynamic,
                 'is_active' => $qr->is_active,
                 'expires_at' => $qr->expires_at?->format('Y-m-d H:i'),
                 'token' => $qr->token,
@@ -57,9 +55,7 @@ class QrCodeController extends Controller
             ->map(fn($qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
-                'type' => $qr->type,
                 'purpose' => $qr->purpose,
-                'is_dynamic' => $qr->is_dynamic,
                 'is_active' => $qr->is_active,
                 'expires_at' => $qr->expires_at?->format('Y-m-d H:i'),
                 'token' => $qr->token,
@@ -75,35 +71,6 @@ class QrCodeController extends Controller
             ],
             'qrCodes' => $qrCodes,
         ]);
-    }
-
-    /**
-     * Store a new QR code
-     */
-    public function store(Request $request, Event $event): RedirectResponse
-    {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'in:static,timed'],
-            'purpose' => ['required', 'in:pre-registration,attendance'],
-            'is_dynamic' => ['boolean'],
-            'expires_at' => ['nullable', 'date_format:Y-m-d\TH:i', 'after:now'],
-        ]);
-
-        $token = bin2hex(random_bytes(16));
-        
-        QrCode::create([
-            'event_id' => $event->id,
-            'name' => $validated['name'],
-            'type' => $validated['type'],
-            'purpose' => $validated['purpose'],
-            'is_dynamic' => $validated['is_dynamic'] ?? false,
-            'token' => $token,
-            'code' => route('qr.view', ['token' => $token]),
-            'expires_at' => $validated['expires_at'] ?? null,
-        ]);
-
-        return redirect()->route('events.qr.index', $event)->with('success', 'QR code created successfully.');
     }
 
     /**

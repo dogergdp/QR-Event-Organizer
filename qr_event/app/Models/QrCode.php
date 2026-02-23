@@ -10,18 +10,15 @@ class QrCode extends Model
     protected $fillable = [
         'event_id',
         'name',
-        'type',
         'purpose',
         'code',
         'is_active',
-        'is_dynamic',
         'expires_at',
         'token',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'is_dynamic' => 'boolean',
         'expires_at' => 'datetime',
     ];
 

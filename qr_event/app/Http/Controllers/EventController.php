@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\QrCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -107,7 +109,34 @@ class EventController extends Controller
         $validated['is_finished'] = $validated['is_finished'] ?? false;
         $validated['is_ongoing'] = $validated['is_ongoing'] ?? false;
 
-        Event::create($validated);
+        $event = Event::create($validated);
+
+        // Auto-generate QR codes for pre-registration and attendance
+        $expiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['end_time']);
+        
+        // Pre-registration QR Code
+        $preRegToken = Str::random(32);
+        QrCode::create([
+            'event_id' => $event->id,
+            'name' => 'Pre-Registration',
+            'purpose' => 'pre-registration',
+            'token' => $preRegToken,
+            'code' => '/qr/' . $preRegToken,
+            'is_active' => true,
+            'expires_at' => $expiresAt,
+        ]);
+
+        // Attendance Check-in QR Code
+        $attendanceToken = Str::random(32);
+        QrCode::create([
+            'event_id' => $event->id,
+            'name' => 'Attendance Check-in',
+            'purpose' => 'attendance',
+            'token' => $attendanceToken,
+            'code' => '/qr/' . $attendanceToken,
+            'is_active' => true,
+            'expires_at' => $expiresAt,
+        ]);
 
         return redirect()->route('dashboard');
     }

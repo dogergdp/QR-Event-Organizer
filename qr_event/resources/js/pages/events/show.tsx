@@ -242,24 +242,6 @@ export default function ShowEvent() {
                     </div>
                 )}
 
-                {/* QR Code Display (Admin Only) */}
-                {isAdmin && !event.is_finished && (
-                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
-                        <h2 className="mb-4 text-xl font-semibold text-foreground">
-                            Attendance QR Code
-                        </h2>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                            Display the QR code on a monitor for attendees to scan
-                        </p>
-                        <Link
-                            href={`/events/${event.id}/qr-display`}
-                            className="inline-flex rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 transition-colors"
-                        >
-                            Open QR Display
-                        </Link>
-                    </div>
-                )}
-
                 {/* Attendance Section */}
                 {!event.is_finished && userAttendance && (
                     <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">

@@ -74,44 +74,40 @@ class DatabaseSeeder extends Seeder
                 $eventData
             );
 
-            // Create QR codes for each event
-            $qrCodes = [
+            // Auto-generate QR codes for each event (expires at event end time)
+            $expiresAt = \Carbon\Carbon::parse($eventData['date'] . ' ' . $eventData['end_time']);
+            
+            // Pre-registration QR Code
+            $preRegToken = Str::random(32);
+            QrCode::firstOrCreate(
                 [
-                    'name' => 'Pre-Registration QR',
-                    'type' => 'static',
+                    'event_id' => $event->id,
                     'purpose' => 'pre-registration',
-                    'is_dynamic' => false,
+                ],
+                [
+                    'name' => 'Pre-Registration',
+                    'token' => $preRegToken,
+                    'code' => '/qr/' . $preRegToken,
                     'is_active' => true,
+                    'expires_at' => $expiresAt,
+                ]
+            );
+
+            // Attendance Check-in QR Code
+            $attendanceToken = Str::random(32);
+            QrCode::firstOrCreate(
+                [
+                    'event_id' => $event->id,
+                    'purpose' => 'attendance',
                 ],
                 [
                     'name' => 'Attendance Check-in',
-                    'type' => 'static',
-                    'purpose' => 'attendance',
-                    'is_dynamic' => false,
+                    'token' => $attendanceToken,
+                    'code' => '/qr/' . $attendanceToken,
                     'is_active' => true,
-                ],
-                [
-                    'name' => 'VIP Entry Dynamic',
-                    'type' => 'static',
-                    'purpose' => 'attendance',
-                    'is_dynamic' => true,
-                    'is_active' => true,
-                ],
-            ];
-
-            foreach ($qrCodes as $qrData) {
-                $token = Str::random(32);
-                QrCode::firstOrCreate(
-                    [
-                        'event_id' => $event->id,
-                        'name' => $qrData['name'],
-                    ],
-                    array_merge($qrData, [
-                        'token' => $token,
-                        'code' => '/qr/' . $token, // The QR code links to this endpoint
-                    ])
-                );
-            }
+                    'expires_at' => $expiresAt,
+                ]
+            );
         }
     }
 }

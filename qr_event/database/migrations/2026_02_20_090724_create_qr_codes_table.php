@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->enum('type', ['static', 'timed'])->default('static');
+            $table->enum('purpose', ['pre-registration', 'attendance']);
             $table->text('code'); // The actual QR code data/URL
             $table->boolean('is_active')->default(true);
             $table->dateTime('expires_at')->nullable();

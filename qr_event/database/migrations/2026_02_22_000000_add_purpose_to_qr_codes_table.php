@@ -11,10 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('qr_codes', function (Blueprint $table) {
-            $table->enum('purpose', ['pre-registration', 'attendance'])->default('attendance')->after('type');
-            $table->boolean('is_dynamic')->default(false)->after('purpose');
-        });
+        // Migration no longer needed - purpose is now in main table
     }
 
     /**
@@ -22,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('qr_codes', function (Blueprint $table) {
-            $table->dropColumn(['purpose', 'is_dynamic']);
-        });
+        // Migration no longer needed - purpose is now in main table
     }
 };

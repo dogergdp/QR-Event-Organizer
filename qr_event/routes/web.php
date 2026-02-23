@@ -169,11 +169,9 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');
     Route::delete('{event}', [EventController::class, 'destroy'])->name('destroy');
-    // QR Code management routes
+    // QR Code management routes (auto-generated, only toggle active status)
     Route::get('{event}/qr', [QrCodeController::class, 'index'])->name('qr.index');
-    Route::post('{event}/qr', [QrCodeController::class, 'store'])->name('qr.store');
     Route::put('qr/{qrCode}/toggle', [QrCodeController::class, 'toggle'])->name('qr.toggle');
-    Route::delete('qr/{qrCode}', [QrCodeController::class, 'destroy'])->name('qr.destroy');
 });
 
 // Public QR code view route (when users scan QR code)
