@@ -246,62 +246,33 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                {/* Export Reports Column */}
-                                <div className="flex flex-col">
-                                    <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
-                                        <Download className="h-4 w-4" />
-                                        Export Reports to CSV
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                            <a
-                                                href="/admin/reports/export/events"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                                download
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                Download Events CSV
-                                            </a>
-                                            <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
-                                        </div>
-
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                            <a
-                                                href="/admin/reports/export/attendees"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                                download
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                Download Registered Users CSV
-                                            </a>
-                                            <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
-                                        </div>
-
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                            <a
-                                                href="/admin/reports/export/attendance-details"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                                download
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                Download Attendance Details CSV
-                                            </a>
-                                            <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
-                                        </div>
-
-                                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                            <a
-                                                href="/admin/reports/export/logs"
-                                                className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                                download
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                Download Activity Logs CSV
-                                            </a>
-                                            <p className="text-xs text-muted-foreground">Full activity log with user, action, target, and timestamp.</p>
-                                        </div>
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-semibold text-foreground">Logs</h2>
+                                        <Link
+                                            href="/admin/logs"
+                                            className="text-xs font-medium text-primary hover:underline"
+                                        >
+                                            View all
+                                        </Link>
                                     </div>
-
+                                    {recentActivityLogs.length === 0 ? (
+                                        <p className="mt-3 text-xs text-muted-foreground">No activity yet.</p>
+                                    ) : (
+                                        <div className="mt-4 space-y-2">
+                                            {recentActivityLogs.map((log) => (
+                                                <div key={log.id} className="rounded-md bg-muted/30 px-3 py-2">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {log.created_at}
+                                                    </p>
+                                                    <p className="text-sm text-foreground">
+                                                        <span className="font-semibold">{log.user}</span>{' '}
+                                                        {log.description ?? log.action}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -439,33 +410,60 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-lg font-semibold text-foreground">Logs</h2>
-                                    <Link
-                                        href="/admin/logs"
-                                        className="text-xs font-medium text-primary hover:underline"
-                                    >
-                                        View all
-                                    </Link>
-                                </div>
-                                {recentActivityLogs.length === 0 ? (
-                                    <p className="mt-3 text-xs text-muted-foreground">No activity yet.</p>
-                                ) : (
-                                    <div className="mt-4 space-y-2">
-                                        {recentActivityLogs.map((log) => (
-                                            <div key={log.id} className="rounded-md bg-muted/30 px-3 py-2">
-                                                <p className="text-xs text-muted-foreground">
-                                                    {log.created_at}
-                                                </p>
-                                                <p className="text-sm text-foreground">
-                                                    <span className="font-semibold">{log.user}</span>{' '}
-                                                    {log.description ?? log.action}
-                                                </p>
-                                            </div>
-                                        ))}
+                            <div className="flex flex-col">
+                                <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+                                    <Download className="h-4 w-4" />
+                                    Export Reports to CSV
+                                </h3>
+                                <div className="space-y-3">
+                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
+                                        <a
+                                            href="/admin/reports/export/events"
+                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
+                                            download
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            Download Events CSV
+                                        </a>
+                                        <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
                                     </div>
-                                )}
+
+                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
+                                        <a
+                                            href="/admin/reports/export/attendees"
+                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
+                                            download
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            Download Registered Users CSV
+                                        </a>
+                                        <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
+                                    </div>
+
+                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
+                                        <a
+                                            href="/admin/reports/export/attendance-details"
+                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
+                                            download
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            Download Attendance Details CSV
+                                        </a>
+                                        <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
+                                    </div>
+
+                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
+                                        <a
+                                            href="/admin/reports/export/logs"
+                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
+                                            download
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            Download Activity Logs CSV
+                                        </a>
+                                        <p className="text-xs text-muted-foreground">Full activity log with user, action, target, and timestamp.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
