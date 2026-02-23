@@ -353,7 +353,6 @@ export default function Dashboard() {
                                                 <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
                                                 <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
                                                 <th className="px-4 py-2 text-center font-semibold text-foreground">Events Attended</th>
-                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -362,17 +361,6 @@ export default function Dashboard() {
                                                     <td className="px-4 py-3 font-medium text-foreground">{attendee.name}</td>
                                                     <td className="px-4 py-3 text-muted-foreground">{attendee.contact_number}</td>
                                                     <td className="px-4 py-3 text-center text-foreground">{attendee.events_attended}</td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        {attendee.is_first_time ? (
-                                                            <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                                                New
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                                                Regular
-                                                            </span>
-                                                        )}
-                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
