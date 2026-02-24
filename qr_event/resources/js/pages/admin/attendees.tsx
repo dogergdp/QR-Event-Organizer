@@ -192,12 +192,12 @@ export default function AdminAttendees() {
                     </form>
 
                     {!attendees || attendees.data.length === 0 ? (
-                        <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
+                        <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
                             No attendees registered yet.
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                            <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50 dark:bg-[#444a4e]">
                                         <tr className="border-b border-gray-200 dark:border-[#555c63]">

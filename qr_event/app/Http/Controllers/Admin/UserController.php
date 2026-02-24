@@ -129,6 +129,14 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_user',
+            'target_type' => 'User',
+            'target_id' => $user->id,
+            'description' => sprintf('Updated user: %s %s', $user->first_name, $user->last_name),
+        ]);
+
         return redirect()->route('admin.users')->with('success', 'User updated successfully.');
     }
 

@@ -215,6 +215,14 @@ class EventController extends Controller
 
         $event->update($validated);
 
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_event',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf('Updated event: %s', $event->name),
+        ]);
+
         return redirect()->route('dashboard');
     }
 

@@ -308,6 +308,17 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
+                                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300" />
+                                            <span>Registered</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300" />
+                                            <span>Attended</span>
+                                        </div>
+                                    </div>
+
                                     {selectedPerformanceId === 'all' ? (
                                         <div className="mt-6 overflow-x-auto pb-2">
                                             <div className="min-w-[640px] rounded-lg border border-gray-200 bg-background/40 p-4 dark:border-[#555c63]">
