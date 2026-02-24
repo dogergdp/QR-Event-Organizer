@@ -17,9 +17,16 @@ class QrCodeController extends Controller
     /**
      * Show all QR codes across all events (admin only)
      */
-    public function listAll(): Response
+    public function listAll(Request $request): Response
     {
+        $showFinished = $request->query('show_finished', '0') === '1';
+
         $qrCodes = QrCode::with('event')
+            ->when(!$showFinished, function ($query) {
+                $query->whereHas('event', function ($eventQuery) {
+                    $eventQuery->where('is_finished', false);
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($qr) => [
@@ -34,6 +41,7 @@ class QrCodeController extends Controller
                 'event' => [
                     'id' => $qr->event->id,
                     'name' => $qr->event->name,
+                    'is_finished' => $qr->event->is_finished,
                 ],
             ]);
 
@@ -42,6 +50,7 @@ class QrCodeController extends Controller
         return Inertia::render('qr/index', [
             'qrCodes' => $qrCodes,
             'events' => $events,
+            'showFinished' => $showFinished,
         ]);
     }
 
