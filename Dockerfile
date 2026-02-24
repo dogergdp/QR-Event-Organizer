@@ -38,8 +38,8 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 
 # Make start.sh executable
-RUN chmod +x ../start.sh
+RUN chmod +x /app/start.sh
 
 EXPOSE 8000
 
-CMD ["bash", "../start.sh"]
+CMD ["/bin/bash", "/app/start.sh"]
