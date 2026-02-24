@@ -288,7 +288,7 @@ export default function AdminAttendees() {
                                                             });
                                                         }
                                                     }}
-                                                    className="p-2 opacity-0 group-hover:opacity-100 rounded bg-red-600 text-white transition hover:bg-red-700"
+                                                    className="p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 rounded bg-red-600 text-white transition hover:bg-red-700"
                                                     title="Delete attendee"
                                                 >
                                                     <Trash2 className="h-4 w-4" />

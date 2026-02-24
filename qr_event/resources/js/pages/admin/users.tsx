@@ -232,7 +232,7 @@ export default function AdminUsers() {
                                                     minute: '2-digit',
                                                 })}
                                             </td>
-                                            <td className="px-4 py-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0">
+                                            <td className="px-4 py-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center gap-0">
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedUser(user)}
