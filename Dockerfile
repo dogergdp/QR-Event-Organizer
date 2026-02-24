@@ -37,6 +37,9 @@ RUN npm run build
 RUN php artisan config:cache
 RUN php artisan route:cache
 
+# Make start.sh executable
+RUN chmod +x ../start.sh
+
 EXPOSE 8000
 
 CMD ["bash", "../start.sh"]
