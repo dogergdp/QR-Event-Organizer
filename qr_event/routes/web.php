@@ -25,7 +25,7 @@ Route::get('dashboard', function () {
         
         $activityLogs = ActivityLog::with('user:id,first_name,last_name')
             ->latest()
-            ->take(10)
+            ->take(4)
             ->get()
             ->map(function ($log) {
                 $userName = $log->user
