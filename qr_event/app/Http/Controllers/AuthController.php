@@ -47,10 +47,10 @@ class AuthController extends Controller
 
         ActivityLog::create([
             'user_id' => $user->id,
-            'action' => 'create_user',
-            'target_type' => 'User',
-            'target_id' => $user->id,
-            'description' => sprintf('User registered via QR for event: %s', $event->name),
+            'action' => 'user_rsvp',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf('User RSVP\'d via QR for event: %s', $event->name),
         ]);
 
         // Log in the user

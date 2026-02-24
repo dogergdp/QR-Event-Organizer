@@ -86,8 +86,23 @@ class AttendeeController extends Controller
         return redirect()->route('admin.attendees')->with('success', 'Attendee added successfully.');
     }
 
-    public function destroy(Attendee $attendee): RedirectResponse
+    public function destroy(Request $request, Attendee $attendee): RedirectResponse
     {
+        $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'delete_attendee',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Removed attendee %s %s from event %s',
+                $attendee->user?->first_name ?? 'Unknown',
+                $attendee->user?->last_name ?? 'User',
+                $attendee->event?->name ?? 'Unknown event'
+            ),
+        ]);
+
         $attendee->delete();
 
         return redirect()->route('admin.attendees')->with('success', 'Attendee deleted successfully.');

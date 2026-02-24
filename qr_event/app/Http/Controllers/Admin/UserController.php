@@ -138,6 +138,14 @@ class UserController extends Controller
             return redirect()->route('admin.users')->with('error', 'You cannot delete your own account.');
         }
 
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'delete_user',
+            'target_type' => 'User',
+            'target_id' => $user->id,
+            'description' => sprintf('Deleted user: %s %s', $user->first_name, $user->last_name),
+        ]);
+
         $user->delete();
 
         return redirect()->route('admin.users')->with('success', 'User deleted successfully.');

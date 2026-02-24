@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -26,7 +27,7 @@ class CreateNewUser implements CreatesNewUsers
             'dg_leader_name' => Rule::requiredIf($input['has_dg_leader'] === 'yes'),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'],
             'password' => $input['password'],
@@ -36,5 +37,15 @@ class CreateNewUser implements CreatesNewUsers
             'has_dg_leader' => $input['has_dg_leader'],
             'dg_leader_name' => $input['dg_leader_name'] ?? null,
         ]);
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'user_registration',
+            'target_type' => 'User',
+            'target_id' => $user->id,
+            'description' => sprintf('User registered: %s %s', $user->first_name, $user->last_name),
+        ]);
+
+        return $user;
     }
 }

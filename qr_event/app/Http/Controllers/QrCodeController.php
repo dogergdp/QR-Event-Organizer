@@ -221,7 +221,15 @@ class QrCodeController extends Controller
                 ->first();
 
             if ($attendee) {
-                // Already RSVP'd - go straight to mark attendance
+                // If already attended, show success message
+                if ($attendee->is_attended) {
+                    return Inertia::render('attendance/already-attended', [
+                        'event' => $event,
+                        'attendee' => $attendee,
+                    ]);
+                }
+
+                // RSVP'd but not yet attended - go to mark attendance
                 return Inertia::render('attendance/mark', [
                     'event' => $event,
                     'qrCode' => $qrCode,

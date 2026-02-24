@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Services\QRCodeService;
@@ -89,6 +90,19 @@ class AttendanceController extends Controller
             ]
         );
 
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'user_attendance',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf(
+                'User %s %s confirmed attendance for event: %s',
+                $user->first_name,
+                $user->last_name,
+                $event->name
+            ),
+        ]);
+
         return redirect()->route('events.show', $event->id)
             ->with('success', 'Attendance confirmed! Thank you for attending.');
     }
@@ -111,6 +125,19 @@ class AttendanceController extends Controller
                 'attended_time' => now(),
             ]
         );
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'user_attendance',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf(
+                'User %s %s marked attendance for event: %s',
+                $user->first_name,
+                $user->last_name,
+                $event->name
+            ),
+        ]);
 
         return redirect()->route('events.show', $event->id)
             ->with('success', 'Attendance confirmed! Thank you for attending.');

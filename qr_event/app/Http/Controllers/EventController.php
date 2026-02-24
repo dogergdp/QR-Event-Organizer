@@ -274,6 +274,19 @@ class EventController extends Controller
                 'event_id' => $event->id,
             ]);
 
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'user_rsvp',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf(
+                'User %s %s RSVP\'d to event: %s',
+                $user->first_name,
+                $user->last_name,
+                $event->name
+            ),
+        ]);
+
         // Mark as attended (RSVP confirmed - could add a separate field if needed)
         // For now we're marking as a registration confirmation
 

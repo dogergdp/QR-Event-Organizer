@@ -49,6 +49,13 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {redirectUrl && (
+                            <input
+                                type="hidden"
+                                name="redirect_url"
+                                value={redirectUrl}
+                            />
+                        )}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="contact_number">Contact Number</Label>

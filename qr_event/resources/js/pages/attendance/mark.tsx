@@ -66,13 +66,20 @@ export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
                                 Confirm your attendance at this event.
                             </p>
 
-                            <label className="flex items-start gap-3 cursor-pointer mb-6">
-                                <input
-                                    type="checkbox"
-                                    checked={data.confirm_attendance}
-                                    onChange={(e) => setData('confirm_attendance', e.target.checked)}
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                />
+                            <label className="flex items-start gap-3 cursor-pointer mb-6 relative">
+                                <div className="mt-1 relative flex-shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.confirm_attendance}
+                                        onChange={(e) => setData('confirm_attendance', e.target.checked)}
+                                        className="appearance-none h-6 w-6 border-2 border-primary dark:border-primary rounded bg-white dark:bg-[#2a2d30] cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary peer"
+                                    />
+                                    {data.confirm_attendance && (
+                                        <svg className="absolute top-0 left-0 w-6 h-6 text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </div>
                                 <span className="text-sm text-foreground">
                                     I confirm my attendance for this event.
                                 </span>

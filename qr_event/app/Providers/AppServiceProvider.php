@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\ActivityLog;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -26,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureUrlGeneration();
+        $this->configureActivityLogging();
     }
 
     /**
@@ -59,5 +63,27 @@ class AppServiceProvider extends ServiceProvider
         if (str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
         }
+    }
+
+    /**
+     * Configure global activity logging listeners.
+     */
+    protected function configureActivityLogging(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            $user = $event->user;
+            $userId = data_get($user, 'id');
+            $firstName = (string) data_get($user, 'first_name', '');
+            $lastName = (string) data_get($user, 'last_name', '');
+            $fullName = trim($firstName.' '.$lastName);
+
+            ActivityLog::create([
+                'user_id' => $userId,
+                'action' => 'user_login',
+                'target_type' => 'User',
+                'target_id' => $userId,
+                'description' => sprintf('User logged in: %s', $fullName !== '' ? $fullName : 'Unknown user'),
+            ]);
+        });
     }
 }
