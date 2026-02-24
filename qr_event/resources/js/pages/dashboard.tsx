@@ -4,7 +4,7 @@ import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 import QRScanner from '@/components/QRScanner';
 import { useState } from 'react';
-import { Download, BarChart3, Calendar, Users, CheckCircle, TrendingUp } from 'lucide-react';
+import { Download, BarChart3, Calendar, Users, CheckCircle, TrendingUp, ChevronLeft, ChevronRight, Clock, ListTodo, Users2, Activity } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,6 +20,100 @@ function formatTime12Hour(time: string | null): string {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${hour12}:${minutes} ${ampm}`;
+}
+
+function getDaysInMonth(date: Date): Date[] {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days: Date[] = [];
+
+    // Previous month's days (grayed out)
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        days.push(new Date(year, month, -i));
+    }
+
+    // Current month's days
+    for (let day = 1; day <= daysInMonth; day++) {
+        days.push(new Date(year, month, day));
+    }
+
+    // Next month's days (grayed out)
+    const remainingDays = 42 - days.length; // 6 weeks * 7 days
+    for (let day = 1; day <= remainingDays; day++) {
+        days.push(new Date(year, month + 1, day));
+    }
+
+    return days;
+}
+
+function formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getEventsByDate(eventList: Array<any>): Record<string, Array<any>> {
+    const groupedEvents: Record<string, Array<any>> = {};
+    
+    eventList.forEach((event) => {
+        const dateKey = event.date; // Assuming date is already in YYYY-MM-DD format
+        if (!groupedEvents[dateKey]) {
+            groupedEvents[dateKey] = [];
+        }
+        groupedEvents[dateKey].push(event);
+    });
+
+    return groupedEvents;
+}
+
+function getNextEventTime(eventList: Array<any>): string {
+    const now = new Date();
+    const upcomingEvents = eventList
+        .filter((event) => {
+            const eventDate = new Date(event.date);
+            return eventDate >= now && !event.is_finished;
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    if (upcomingEvents.length === 0) {
+        return 'No events';
+    }
+
+    const nextEvent = upcomingEvents[0];
+    const eventDate = new Date(nextEvent.date);
+    const daysUntil = Math.ceil(
+        (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysUntil === 0) {
+        return 'Today';
+    } else if (daysUntil === 1) {
+        return 'Tomorrow';
+    } else if (daysUntil < 7) {
+        return `${daysUntil}d`;
+    } else {
+        return `${Math.ceil(daysUntil / 7)}w`;
+    }
+}
+
+function getUpcomingThisWeek(eventList: Array<any>): Array<any> {
+    const now = new Date();
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+
+    return eventList
+        .filter((event) => {
+            const eventDate = new Date(event.date);
+            return eventDate >= now && eventDate <= weekEnd && !event.is_finished;
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 5);
 }
 
 export default function Dashboard() {
@@ -81,6 +175,7 @@ export default function Dashboard() {
     };
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const isEventOngoing = (event: any) => {
         return event?.is_ongoing ?? false;
@@ -153,6 +248,12 @@ export default function Dashboard() {
     const registeredTotal = Math.max(registeredCount, 1);
     const attendedPercent = Math.round((attendedCount / registeredTotal) * 100);
     const recentActivityLogs = (activityLogs ?? []).slice(0, 10);
+    
+    // Calendar data
+    const calendarDays = getDaysInMonth(currentMonth);
+    const eventsByDate = getEventsByDate(eventList);
+    const nextEventTime = getNextEventTime(eventList);
+    const upcomingThisWeek = getUpcomingThisWeek(eventList);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -190,9 +291,9 @@ export default function Dashboard() {
                     <>
                         <div className="mt-2">
                             <h2 className="mb-4 text-lg font-semibold text-foreground">Dashboard Overview</h2>
-                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                {/* Analytics Stats Column */}
-                                <div className="flex flex-col">
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+                                {/* Analytics Stats Column - takes 2 columns */}
+                                <div className="flex flex-col lg:col-span-2">
                                     <h3 className="mb-4 text-base font-semibold text-foreground">Analytics</h3>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="relative overflow-hidden rounded-lg border-2 border-black/30 bg-black p-4 shadow-sm">
@@ -235,51 +336,164 @@ export default function Dashboard() {
                                         <div className="relative overflow-hidden rounded-lg border-2 border-blue-500/30 bg-blue-600 p-4 shadow-sm">
                                             <div className="flex h-full flex-col">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-white/80">Avg. Events/Attendee</p>
-                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.average_attendance_rate}</p>
+                                                    <p className="text-sm font-medium text-white/80">Next Event is in</p>
+                                                    <p className="mt-2 text-5xl font-bold leading-none text-white">{nextEventTime}</p>
                                                 </div>
                                                 <div className="pointer-events-none absolute -bottom-2 -right-2">
-                                                    <TrendingUp className="h-16 w-16 text-white/20" />
+                                                    <Clock className="h-16 w-16 text-white/20" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-semibold text-foreground">Logs</h2>
-                                        <Link
-                                            href="/admin/logs"
-                                            className="text-xs font-medium text-primary hover:underline"
-                                        >
-                                            View all
-                                        </Link>
-                                    </div>
-                                    {recentActivityLogs.length === 0 ? (
-                                        <p className="mt-3 text-xs text-muted-foreground">No activity yet.</p>
+                                {/* Upcoming This Week */}
+                                <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-1">
+                                    <h3 className="mb-3 text-base font-semibold text-foreground flex items-center gap-2">
+                                        <ListTodo className="h-5 w-5" />
+                                        This Week
+                                    </h3>
+                                    {upcomingThisWeek.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground">No events scheduled</p>
                                     ) : (
-                                        <div className="mt-4 space-y-2">
-                                            {recentActivityLogs.map((log) => (
-                                                <div key={log.id} className="rounded-md bg-muted/30 px-3 py-2">
+                                        <div className="space-y-2">
+                                            {upcomingThisWeek.map((event) => (
+                                                <Link
+                                                    key={event.id}
+                                                    href={`/events/${event.id}`}
+                                                    className="block rounded-md bg-muted/50 p-2 hover:bg-muted transition-colors"
+                                                >
+                                                    <p className="text-xs font-medium text-foreground truncate">{event.name}</p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {log.created_at}
+                                                        {new Date(event.date).toLocaleDateString('default', { month: 'short', day: 'numeric' })}
+                                                        {event.start_time && (
+                                                            <> • {formatTime12Hour(event.start_time)}</>
+                                                        )}
                                                     </p>
-                                                    <p className="text-sm text-foreground">
-                                                        <span className="font-semibold">{log.user}</span>{' '}
-                                                        {log.description ?? log.action}
-                                                    </p>
-                                                </div>
+                                                </Link>
                                             ))}
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Mini Calendar */}
+                                <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-1">
+                                    <h3 className="mb-2 text-base font-semibold text-foreground flex items-center gap-2">
+                                        <Calendar className="h-5 w-5" />
+                                        Calendar
+                                    </h3>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <button
+                                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                                            className="rounded p-0.5 hover:bg-muted dark:hover:bg-white/10"
+                                        >
+                                            <ChevronLeft className="h-3 w-3" />
+                                        </button>
+                                        <span className="text-xs font-semibold text-foreground">
+                                            {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                                            className="rounded p-0.5 hover:bg-muted dark:hover:bg-white/10"
+                                        >
+                                            <ChevronRight className="h-3 w-3" />
+                                        </button>
+                                    </div>
+
+                                    {/* Traditional calendar table */}
+                                    <div className="space-y-1">
+                                        {/* Day headers */}
+                                        <div className="grid grid-cols-7 gap-0 text-[10px] font-semibold text-muted-foreground text-center">
+                                            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                                                <div key={day} className="py-0.5">
+                                                    {day}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Calendar weeks */}
+                                        <div className="space-y-1">
+                                            {(() => {
+                                                const weeks = [];
+                                                for (let i = 0; i < calendarDays.length; i += 7) {
+                                                    weeks.push(calendarDays.slice(i, i + 7));
+                                                }
+                                                return weeks.map((week, weekIndex) => (
+                                                    <div key={weekIndex} className="grid grid-cols-7 gap-2">
+                                                        {week.map((date, dayIndex) => {
+                                                            const dateKey = formatDateKey(date);
+                                                            const dayEvents = eventsByDate[dateKey] || [];
+                                                            const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                                                            const isToday = dateKey === formatDateKey(new Date());
+
+                                                            return (
+                                                                <div
+                                                                    key={dayIndex}
+                                                                    className="group relative flex flex-col items-center"
+                                                                >
+                                                                    {/* Date number with circle envelope */}
+                                                                    <div className="relative">
+                                                                        {dayEvents.length > 0 && (
+                                                                            <div
+                                                                                className={`absolute inset-0 rounded-full ${
+                                                                                    dayEvents.some(e => e.is_ongoing)
+                                                                                        ? 'bg-green-500/30'
+                                                                                        : dayEvents.some(e => !e.is_finished)
+                                                                                        ? 'bg-blue-500/30'
+                                                                                        : 'bg-gray-400/30'
+                                                                                }`}
+                                                                            />
+                                                                        )}
+                                                                        <span
+                                                                            className={`relative text-[11px] font-semibold px-1.5 py-0.5 rounded transition-all ${
+                                                                                isCurrentMonth
+                                                                                    ? isToday
+                                                                                        ? 'bg-primary/30 text-primary font-bold'
+                                                                                        : 'text-foreground'
+                                                                                    : 'text-muted-foreground opacity-50'
+                                                                            }`}
+                                                                        >
+                                                                            {date.getDate()}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Hover tooltip */}
+                                                                    {dayEvents.length > 0 && (
+                                                                        <div className="absolute top-full mt-1 hidden group-hover:block z-50">
+                                                                            <div className="bg-foreground text-background rounded-md shadow-lg p-2 text-left text-xs whitespace-nowrap">
+                                                                                {dayEvents.slice(0, 2).map((event) => (
+                                                                                    <Link
+                                                                                        key={event.id}
+                                                                                        href={`/events/${event.id}`}
+                                                                                        className="block py-0.5 hover:underline truncate max-w-[150px]"
+                                                                                    >
+                                                                                        {event.name}
+                                                                                    </Link>
+                                                                                ))}
+                                                                                {dayEvents.length > 2 && (
+                                                                                    <div className="text-xs text-opacity-70 pt-0.5 border-t border-background/30">
+                                                                                        +{dayEvents.length - 2} more
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ));
+                                            })()}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                        {/* Second Row: Performance & Top Attendees */}
+                        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                             {performanceEvents.length > 0 && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-2">
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                                             <BarChart3 className="h-5 w-5" />
@@ -421,94 +635,118 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            <div className="flex flex-col">
-                                <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
-                                    <Download className="h-4 w-4" />
+                            {topAttendees && topAttendees.length > 0 && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                    <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
+                                        <Users2 className="h-5 w-5" />
+                                        Top Attendees
+                                    </h2>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b-2 border-sidebar-border/100">
+                                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
+                                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
+                                                    <th className="px-4 py-2 text-center font-semibold text-foreground">Events Attended</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {topAttendees.map((attendee) => (
+                                                    <tr key={attendee.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
+                                                        <td className="px-4 py-3 font-medium text-foreground">{attendee.name}</td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.contact_number}</td>
+                                                        <td className="px-4 py-3 text-center text-foreground">{attendee.events_attended}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Third Row: Logs & Exports */}
+                        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            {/* Logs Section */}
+                            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                                        <Activity className="h-5 w-5" />
+                                        Recent Activity
+                                    </h2>
+                                    <Link
+                                        href="/admin/logs"
+                                        className="text-xs font-medium text-primary hover:underline"
+                                    >
+                                        View all
+                                    </Link>
+                                </div>
+                                {recentActivityLogs.length === 0 ? (
+                                    <p className="mt-3 text-xs text-muted-foreground">No activity yet.</p>
+                                ) : (
+                                    <div className="mt-4 space-y-2">
+                                        {recentActivityLogs.map((log) => (
+                                            <div key={log.id} className="rounded-md bg-muted/30 px-3 py-2">
+                                                <p className="text-xs text-muted-foreground">
+                                                    {log.created_at}
+                                                </p>
+                                                <p className="text-sm text-foreground">
+                                                    <span className="font-semibold">{log.user}</span>{' '}
+                                                    {log.description ?? log.action}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Export Section */}
+                            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+                                    <Download className="h-5 w-5" />
                                     Export Reports to CSV
-                                </h3>
+                                </h2>
                                 <div className="space-y-3">
-                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                        <a
-                                            href="/admin/reports/export/events"
-                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                            download
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            Download Events CSV
-                                        </a>
-                                        <p className="text-xs text-muted-foreground">Event list with registration and attendance counts.</p>
-                                    </div>
+                                    <a
+                                        href="/admin/reports/export/events"
+                                        className="flex items-center gap-2 rounded-md p-3 bg-muted/40 font-medium text-primary transition-colors hover:bg-muted dark:hover:bg-muted/60"
+                                        download
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        Download Events CSV
+                                    </a>
 
-                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                        <a
-                                            href="/admin/reports/export/attendees"
-                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                            download
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            Download Registered Users CSV
-                                        </a>
-                                        <p className="text-xs text-muted-foreground">All system users with demographics and leadership info.</p>
-                                    </div>
+                                    <a
+                                        href="/admin/reports/export/attendees"
+                                        className="flex items-center gap-2 rounded-md p-3 bg-muted/40 font-medium text-primary transition-colors hover:bg-muted dark:hover:bg-muted/60"
+                                        download
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        Download Registered Users CSV
+                                    </a>
 
-                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                        <a
-                                            href="/admin/reports/export/attendance-details"
-                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                            download
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            Download Attendance Details CSV
-                                        </a>
-                                        <p className="text-xs text-muted-foreground">Complete attendance records (user, event, status, time).</p>
-                                    </div>
+                                    <a
+                                        href="/admin/reports/export/attendance-details"
+                                        className="flex items-center gap-2 rounded-md p-3 bg-muted/40 font-medium text-primary transition-colors hover:bg-muted dark:hover:bg-muted/60"
+                                        download
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        Download Attendance Details CSV
+                                    </a>
 
-                                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-transform hover:scale-[1.02] dark:border-[#555c63] dark:bg-[#313638]">
-                                        <a
-                                            href="/admin/reports/export/logs"
-                                            className="mb-2 flex items-center gap-2 rounded-md font-semibold text-primary transition-colors hover:text-primary/80"
-                                            download
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            Download Activity Logs CSV
-                                        </a>
-                                        <p className="text-xs text-muted-foreground">Full activity log with user, action, target, and timestamp.</p>
-                                    </div>
+                                    <a
+                                        href="/admin/reports/export/logs"
+                                        className="flex items-center gap-2 rounded-md p-3 bg-muted/40 font-medium text-primary transition-colors hover:bg-muted dark:hover:bg-muted/60"
+                                        download
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        Download Activity Logs CSV
+                                    </a>
                                 </div>
                             </div>
                         </div>
-
-                        {topAttendees && topAttendees.length > 0 && (
-                            <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                                <h2 className="mb-4 text-lg font-semibold text-foreground">Top Attendees</h2>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b-2 border-sidebar-border/100">
-                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
-                                                <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
-                                                <th className="px-4 py-2 text-center font-semibold text-foreground">Events Attended</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {topAttendees.map((attendee) => (
-                                                <tr key={attendee.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
-                                                    <td className="px-4 py-3 font-medium text-foreground">{attendee.name}</td>
-                                                    <td className="px-4 py-3 text-muted-foreground">{attendee.contact_number}</td>
-                                                    <td className="px-4 py-3 text-center text-foreground">{attendee.events_attended}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
                     </>
                 )}
-                
-
-
- 
                 
                 {!isAdmin && (
                     <>
