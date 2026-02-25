@@ -267,6 +267,7 @@ class EventController extends Controller
                 'description' => $event->description,
             ],
             'fromQr' => false,
+            // Do NOT create attendee record here; only show confirmation page
         ]);
     }
 

@@ -38,20 +38,7 @@ class AuthController extends Controller
         $qrCode = QrCode::where('token', $input['qr_token'])->first();
         $event = $qrCode->event;
 
-        // Create attendee record for pre-registration
-        Attendee::create([
-            'user_id' => $user->id,
-            'event_id' => $event->id,
-            'is_attended' => false,
-        ]);
-
-        ActivityLog::create([
-            'user_id' => $user->id,
-            'action' => 'user_rsvp',
-            'target_type' => 'Event',
-            'target_id' => $event->id,
-            'description' => sprintf('User RSVP\'d via QR for event: %s', $event->name),
-        ]);
+        // Do NOT create attendee record or activity log here; RSVP confirmation should be explicit
 
         // Log in the user
         Auth::login($user);
