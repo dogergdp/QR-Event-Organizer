@@ -1,4 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+    useEffect(() => {
+        const socketUrl = import.meta.env.VITE_SOCKET_IO_URL;
+        if (!socketUrl) return;
+        const socket = io(socketUrl, { transports: ['websocket', 'polling'] });
+        const refresh = () => router.reload({ only: ['users'] });
+        socket.on('users:update', refresh);
+        return () => {
+            socket.off('users:update', refresh);
+            socket.disconnect();
+        };
+    }, []);
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';

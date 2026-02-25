@@ -250,13 +250,30 @@ export default function Dashboard() {
     const ongoingEvents = eventList.filter((event) => !event.is_finished && isEventOngoing(event));
     const defaultBanner = '/images/default-event.png';
     const performanceEvents = reportEvents ?? [];
-    const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | 'all'>(
-        performanceEvents.length > 0 ? 'all' : (performanceEvents[0]?.id ?? null)
-    );
+    // Default to latest event (most recent date)
+    const latestEventId: number | 'all' = performanceEvents.length > 0
+        ? performanceEvents.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].id
+        : 'all';
+    const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | 'all'>(latestEventId);
     const [activePerformanceTab, setActivePerformanceTab] = useState<'rsvp' | 'attendees'>('rsvp');
     const selectedPerformanceEvent = performanceEvents.find(
         (event) => event.id === selectedPerformanceId
     );
+    // Sort RSVP and attendees by latest (most recent first)
+    const sortedRSVP = selectedPerformanceEvent?.rsvp
+        ? [...selectedPerformanceEvent.rsvp].sort((a, b) => {
+            const aTime = a.attended_time || '';
+            const bTime = b.attended_time || '';
+            return bTime.localeCompare(aTime);
+        })
+        : [];
+    const sortedAttendees = selectedPerformanceEvent?.attendees
+        ? [...selectedPerformanceEvent.attendees].sort((a, b) => {
+            const aTime = a.attended_time || '';
+            const bTime = b.attended_time || '';
+            return bTime.localeCompare(aTime);
+        })
+        : [];
     const registeredCount = selectedPerformanceEvent?.total_registered ?? 0;
     const attendedCount = selectedPerformanceEvent?.total_attended ?? 0;
     const registeredTotal = Math.max(registeredCount, 1);
@@ -333,15 +350,14 @@ export default function Dashboard() {
                     <>
                         {/* First Row: Event Performance + Event People (Wrapped in One Card) */}
                         <div className="mt-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                            <h2 className="mb-4 text-lg font-semibold text-foreground">Event Performance</h2>
+                            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+                                <BarChart3 className="h-5 w-5" />
+                                Event Performance
+                            </h2>
                             <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                                 {performanceEvents.length > 0 && (
                                     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-8">
                                         <div className="flex flex-wrap items-center justify-between gap-3">
-                                            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                                                <BarChart3 className="h-5 w-5" />
-                                                Event Performance
-                                            </h3>
                                             <div className="flex items-center gap-2">
                                                 <label htmlFor="event-performance" className="text-xs font-medium text-muted-foreground">
                                                     Select event
@@ -428,16 +444,16 @@ export default function Dashboard() {
                                                 <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                                     <div className="flex items-center justify-center">
                                                         <div
-                                                            className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full shadow-lg"
+                                                            className="donut-animate relative flex h-64 w-64 items-center justify-center rounded-full shadow-lg"
                                                             style={{
                                                                 background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)`,
                                                             }}
                                                             aria-label="Attendance donut chart"
                                                         >
-                                                            <div className="absolute inset-5 rounded-full bg-background" />
+                                                            <div className="absolute inset-12 rounded-full bg-background" />
                                                             <div className="relative text-center">
                                                                 <p className="text-xs text-muted-foreground">Attended</p>
-                                                                <p className="text-2xl font-semibold text-foreground">
+                                                                <p className="text-3xl font-semibold text-foreground">
                                                                     {attendedPercent}%
                                                                 </p>
                                                             </div>
@@ -527,30 +543,26 @@ export default function Dashboard() {
                                             </div>
 
                                             <div className="mt-3 max-h-80 overflow-y-auto">
-                                                {(activePerformanceTab === 'rsvp'
-                                                    ? selectedPerformanceEvent.rsvp
-                                                    : selectedPerformanceEvent.attendees
-                                                ).length === 0 ? (
+                                                {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).length === 0 ? (
                                                     <div className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">
                                                         {activePerformanceTab === 'rsvp' ? 'No RSVPs yet' : 'No attendees yet'}
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-2">
-                                                        {(activePerformanceTab === 'rsvp'
-                                                            ? selectedPerformanceEvent.rsvp
-                                                            : selectedPerformanceEvent.attendees
-                                                        ).map((person) => (
-                                                            <div
-                                                                key={person.id}
-                                                                className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2"
-                                                            >
-                                                                <p className="text-sm font-medium text-foreground">{person.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{person.contact_number}</p>
-                                                                {activePerformanceTab === 'attendees' && person.attended_time && (
-                                                                    <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto">
+                                                        {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees)
+                                                            .slice(0, 12)
+                                                            .map((person, idx) => (
+                                                                <div
+                                                                    key={person.id}
+                                                                    className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2"
+                                                                >
+                                                                    <p className="text-sm font-medium text-foreground">{person.name}</p>
+                                                                    <p className="text-xs text-muted-foreground">{person.contact_number}</p>
+                                                                    {activePerformanceTab === 'attendees' && person.attended_time && (
+                                                                        <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>
+                                                                    )}
+                                                                </div>
+                                                            ))}
                                                     </div>
                                                 )}
                                             </div>

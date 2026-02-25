@@ -2,7 +2,19 @@ import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+    useEffect(() => {
+        const socketUrl = import.meta.env.VITE_SOCKET_IO_URL;
+        if (!socketUrl) return;
+        const socket = io(socketUrl, { transports: ['websocket', 'polling'] });
+        const refresh = () => router.reload({ only: ['attendees'] });
+        socket.on('attendees:update', refresh);
+        return () => {
+            socket.off('attendees:update', refresh);
+            socket.disconnect();
+        };
+    }, []);
 
 function calculateAge(birthdate: string | null): string {
     if (!birthdate) return 'N/A';

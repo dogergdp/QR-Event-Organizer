@@ -6,9 +6,11 @@
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
         "dev": "vite",
+        "dev:live": "concurrently \"npm run dev\" \"npm run socket:server\"",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
+        "socket:server": "node socket-server.js",
         "types": "tsc --noEmit"
     },
     "devDependencies": {
@@ -58,6 +60,8 @@
         "qrcode.react": "^4.2.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
+        "socket.io": "^4.8.1",
+        "socket.io-client": "^4.8.1",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.0.1",
         "tailwindcss": "^4.0.0",
