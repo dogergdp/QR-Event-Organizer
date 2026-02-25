@@ -1,46 +1,11 @@
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
-    useEffect(() => {
-        const socketUrl = import.meta.env.VITE_SOCKET_IO_URL;
-        if (!socketUrl) return;
-        const socket = io(socketUrl, { transports: ['websocket', 'polling'] });
-        const refresh = () => router.reload({ only: ['users'] });
-        socket.on('users:update', refresh);
-        return () => {
-            socket.off('users:update', refresh);
-            socket.disconnect();
-        };
-    }, []);
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, UserPlus, Eye } from 'lucide-react';
+import { calculateAge } from '@/utils/dateUtils';
 
-function calculateAge(birthdate: string | null): string {
-    if (!birthdate) return 'N/A';
 
-    const match = birthdate.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return 'N/A';
-
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    const day = Number(match[3]);
-
-    if (!year || month < 1 || month > 12 || day < 1 || day > 31) return 'N/A';
-
-    const today = new Date();
-    let age = today.getFullYear() - year;
-
-    const hasHadBirthdayThisYear =
-        today.getMonth() + 1 > month ||
-        (today.getMonth() + 1 === month && today.getDate() >= day);
-
-    if (!hasHadBirthdayThisYear) {
-        age -= 1;
-    }
-
-    return age >= 0 && age <= 130 ? age.toString() : 'N/A';
-}
 
 export default function AdminUsers() {
     const [selectedUser, setSelectedUser] = useState<any>(null);
