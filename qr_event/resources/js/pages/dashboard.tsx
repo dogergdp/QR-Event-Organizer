@@ -3,8 +3,9 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 import QRScanner from '@/components/QRScanner';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, BarChart3, Calendar, Users, CheckCircle, TrendingUp, ChevronLeft, ChevronRight, Clock, ListTodo, Users2, Activity } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -155,6 +156,18 @@ export default function Dashboard() {
             location: string;
             total_registered: number;
             total_attended: number;
+            rsvp: Array<{
+                id: number;
+                name: string;
+                contact_number: string;
+                attended_time: string | null;
+            }>;
+            attendees: Array<{
+                id: number;
+                name: string;
+                contact_number: string;
+                attended_time: string | null;
+            }>;
         }>;
         topAttendees?: Array<{
             id: number;
@@ -240,6 +253,7 @@ export default function Dashboard() {
     const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | 'all'>(
         performanceEvents.length > 0 ? 'all' : (performanceEvents[0]?.id ?? null)
     );
+    const [activePerformanceTab, setActivePerformanceTab] = useState<'rsvp' | 'attendees'>('rsvp');
     const selectedPerformanceEvent = performanceEvents.find(
         (event) => event.id === selectedPerformanceId
     );
@@ -254,6 +268,34 @@ export default function Dashboard() {
     const eventsByDate = getEventsByDate(eventList);
     const nextEventTime = getNextEventTime(eventList);
     const upcomingThisWeek = getUpcomingThisWeek(eventList);
+
+    useEffect(() => {
+        if (!isAdmin) {
+            return;
+        }
+
+        const socketUrl = import.meta.env.VITE_SOCKET_IO_URL;
+        if (!socketUrl) {
+            return;
+        }
+
+        const socket = io(socketUrl, {
+            transports: ['websocket', 'polling'],
+        });
+
+        const refreshDashboard = () => {
+            router.reload({
+                only: ['events', 'stats', 'reportEvents', 'topAttendees', 'activityLogs'],
+            });
+        };
+
+        socket.on('dashboard:update', refreshDashboard);
+
+        return () => {
+            socket.off('dashboard:update', refreshDashboard);
+            socket.disconnect();
+        };
+    }, [isAdmin]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -289,6 +331,235 @@ export default function Dashboard() {
 
                 {isAdmin && stats && (
                     <>
+                        {/* First Row: Event Performance + Event People (Wrapped in One Card) */}
+                        <div className="mt-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Event Performance</h2>
+                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                                {performanceEvents.length > 0 && (
+                                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-8">
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                                                <BarChart3 className="h-5 w-5" />
+                                                Event Performance
+                                            </h3>
+                                            <div className="flex items-center gap-2">
+                                                <label htmlFor="event-performance" className="text-xs font-medium text-muted-foreground">
+                                                    Select event
+                                                </label>
+                                                <select
+                                                    id="event-performance"
+                                                    value={selectedPerformanceId ?? ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setSelectedPerformanceId(value === 'all' ? 'all' : Number(value));
+                                                    }}
+                                                    className="h-9 rounded-md border border-input bg-white px-3 text-sm text-foreground dark:border-[#555c63] dark:bg-[#444a4e]"
+                                                >
+                                                    <option value="all">All events</option>
+                                                    {performanceEvents.map((event) => (
+                                                        <option key={event.id} value={event.id}>
+                                                            {event.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300" />
+                                                <span>Registered</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300" />
+                                                <span>Attended</span>
+                                            </div>
+                                        </div>
+
+                                        {selectedPerformanceId === 'all' ? (
+                                            <div className="mt-6 overflow-x-auto pb-2">
+                                                <div className="min-w-[640px] rounded-lg border border-gray-200 bg-background/40 p-4 dark:border-[#555c63]">
+                                                    <div className="flex h-72 items-end gap-3">
+                                                        {performanceEvents.map((event) => {
+                                                            const registeredHeight = Math.max((event.total_registered / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
+                                                            const attendedHeight = Math.max((event.total_attended / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
+
+                                                            return (
+                                                                <div key={event.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                                                                    <div className="flex h-56 w-full items-end justify-center gap-1.5">
+                                                                        <div className="flex w-12 flex-col items-center">
+                                                                            <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
+                                                                            <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                                <div
+                                                                                    className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300"
+                                                                                    style={{ height: `${registeredHeight}%` }}
+                                                                                    title={`Registered: ${event.total_registered}`}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex w-12 flex-col items-center">
+                                                                            <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
+                                                                            <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
+                                                                                <div
+                                                                                    className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300"
+                                                                                    style={{ height: `${attendedHeight}%` }}
+                                                                                    title={`Attended: ${event.total_attended}`}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <Link
+                                                                        href={`/events/${event.id}`}
+                                                                        className="w-full truncate text-center text-xs font-medium text-primary hover:underline"
+                                                                        title={event.name}
+                                                                    >
+                                                                        {event.name}
+                                                                    </Link>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            selectedPerformanceEvent && (
+                                                <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                    <div className="flex items-center justify-center">
+                                                        <div
+                                                            className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full shadow-lg"
+                                                            style={{
+                                                                background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)`,
+                                                            }}
+                                                            aria-label="Attendance donut chart"
+                                                        >
+                                                            <div className="absolute inset-5 rounded-full bg-background" />
+                                                            <div className="relative text-center">
+                                                                <p className="text-xs text-muted-foreground">Attended</p>
+                                                                <p className="text-2xl font-semibold text-foreground">
+                                                                    {attendedPercent}%
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <p className="text-xs font-medium text-muted-foreground">Event</p>
+                                                            <Link
+                                                                href={`/events/${selectedPerformanceEvent.id}`}
+                                                                className="text-sm font-semibold text-primary hover:underline"
+                                                            >
+                                                                {selectedPerformanceEvent.name}
+                                                            </Link>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="rounded-md bg-muted/30 p-3">
+                                                                <p className="text-xs text-muted-foreground">Registered</p>
+                                                                <p className="text-lg font-semibold text-foreground">
+                                                                    {registeredCount}
+                                                                </p>
+                                                            </div>
+                                                            <div className="rounded-md bg-muted/30 p-3">
+                                                                <p className="text-xs text-muted-foreground">Attended</p>
+                                                                <p className="text-lg font-semibold text-foreground">
+                                                                    {attendedCount}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {attendedCount} of {registeredCount} registered attendees checked in.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-4">
+                                    <h3 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
+                                        <Users2 className="h-5 w-5" />
+                                        Event People
+                                    </h3>
+
+                                    {selectedPerformanceId === 'all' || !selectedPerformanceEvent ? (
+                                        <p className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-sm text-muted-foreground">
+                                            Select a specific event in Event Performance to view RSVP and attendee lists.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="mb-3">
+                                                <Link
+                                                    href={`/events/${selectedPerformanceEvent.id}`}
+                                                    className="text-sm font-semibold text-primary hover:underline"
+                                                >
+                                                    {selectedPerformanceEvent.name}
+                                                </Link>
+                                            </div>
+
+                                            <div className="border-b border-sidebar-border/70">
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActivePerformanceTab('rsvp')}
+                                                        className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${
+                                                            activePerformanceTab === 'rsvp'
+                                                                ? 'bg-muted text-foreground'
+                                                                : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        RSVP ({selectedPerformanceEvent.rsvp.length})
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActivePerformanceTab('attendees')}
+                                                        className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${
+                                                            activePerformanceTab === 'attendees'
+                                                                ? 'bg-muted text-foreground'
+                                                                : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        Attendees ({selectedPerformanceEvent.attendees.length})
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 max-h-80 overflow-y-auto">
+                                                {(activePerformanceTab === 'rsvp'
+                                                    ? selectedPerformanceEvent.rsvp
+                                                    : selectedPerformanceEvent.attendees
+                                                ).length === 0 ? (
+                                                    <div className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">
+                                                        {activePerformanceTab === 'rsvp' ? 'No RSVPs yet' : 'No attendees yet'}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {(activePerformanceTab === 'rsvp'
+                                                            ? selectedPerformanceEvent.rsvp
+                                                            : selectedPerformanceEvent.attendees
+                                                        ).map((person) => (
+                                                            <div
+                                                                key={person.id}
+                                                                className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2"
+                                                            >
+                                                                <p className="text-sm font-medium text-foreground">{person.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{person.contact_number}</p>
+                                                                {activePerformanceTab === 'attendees' && person.attended_time && (
+                                                                    <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="mt-2">
                             <h2 className="mb-4 text-lg font-semibold text-foreground">Dashboard Overview</h2>
                             <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -488,181 +759,6 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Second Row: Performance & Top Attendees */}
-                        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                            {performanceEvents.length > 0 && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                                            <BarChart3 className="h-5 w-5" />
-                                            Event Performance
-                                        </h2>
-                                        <div className="flex items-center gap-2">
-                                            <label htmlFor="event-performance" className="text-xs font-medium text-muted-foreground">
-                                                Select event
-                                            </label>
-                                            <select
-                                                id="event-performance"
-                                                value={selectedPerformanceId ?? ''}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setSelectedPerformanceId(value === 'all' ? 'all' : Number(value));
-                                                }}
-                                                className="h-9 rounded-md border border-input bg-white px-3 text-sm text-foreground dark:border-[#555c63] dark:bg-[#444a4e]"
-                                            >
-                                                <option value="all">All events</option>
-                                                {performanceEvents.map((event) => (
-                                                    <option key={event.id} value={event.id}>
-                                                        {event.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300" />
-                                            <span>Registered</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300" />
-                                            <span>Attended</span>
-                                        </div>
-                                    </div>
-
-                                    {selectedPerformanceId === 'all' ? (
-                                        <div className="mt-6 overflow-x-auto pb-2">
-                                            <div className="min-w-[640px] rounded-lg border border-gray-200 bg-background/40 p-4 dark:border-[#555c63]">
-                                                <div className="flex h-72 items-end gap-3">
-                                                    {performanceEvents.map((event) => {
-                                                        const registeredHeight = Math.max((event.total_registered / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
-                                                        const attendedHeight = Math.max((event.total_attended / Math.max(...performanceEvents.map((item) => Math.max(item.total_registered, item.total_attended)), 1)) * 100, 2);
-
-                                                        return (
-                                                            <div key={event.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-                                                                <div className="flex h-56 w-full items-end justify-center gap-1.5">
-                                                                    <div className="flex w-12 flex-col items-center">
-                                                                        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
-                                                                        <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                            <div
-                                                                                className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300"
-                                                                                style={{ height: `${registeredHeight}%` }}
-                                                                                title={`Registered: ${event.total_registered}`}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="flex w-12 flex-col items-center">
-                                                                        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
-                                                                        <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                            <div
-                                                                                className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300"
-                                                                                style={{ height: `${attendedHeight}%` }}
-                                                                                title={`Attended: ${event.total_attended}`}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <Link
-                                                                    href={`/events/${event.id}`}
-                                                                    className="w-full truncate text-center text-xs font-medium text-primary hover:underline"
-                                                                    title={event.name}
-                                                                >
-                                                                    {event.name}
-                                                                </Link>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        selectedPerformanceEvent && (
-                                            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                                                <div className="flex items-center justify-center">
-                                                    <div
-                                                        className="donut-animate relative flex h-44 w-44 items-center justify-center rounded-full shadow-lg"
-                                                        style={{
-                                                            background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)`,
-                                                        }}
-                                                        aria-label="Attendance donut chart"
-                                                    >
-                                                        <div className="absolute inset-5 rounded-full bg-background" />
-                                                        <div className="relative text-center">
-                                                            <p className="text-xs text-muted-foreground">Attended</p>
-                                                            <p className="text-2xl font-semibold text-foreground">
-                                                                {attendedPercent}%
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-3">
-                                                    <div>
-                                                        <p className="text-xs font-medium text-muted-foreground">Event</p>
-                                                        <Link
-                                                            href={`/events/${selectedPerformanceEvent.id}`}
-                                                            className="text-sm font-semibold text-primary hover:underline"
-                                                        >
-                                                            {selectedPerformanceEvent.name}
-                                                        </Link>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="rounded-md bg-muted/30 p-3">
-                                                            <p className="text-xs text-muted-foreground">Registered</p>
-                                                            <p className="text-lg font-semibold text-foreground">
-                                                                {registeredCount}
-                                                            </p>
-                                                        </div>
-                                                        <div className="rounded-md bg-muted/30 p-3">
-                                                            <p className="text-xs text-muted-foreground">Attended</p>
-                                                            <p className="text-lg font-semibold text-foreground">
-                                                                {attendedCount}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {attendedCount} of {registeredCount} registered attendees checked in.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-                            )}
-
-                            {topAttendees && topAttendees.length > 0 && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
-                                    <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                                        <Users2 className="h-5 w-5" />
-                                        Top Attendees
-                                    </h2>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead>
-                                                <tr className="border-b-2 border-sidebar-border/100">
-                                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
-                                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
-                                                    <th className="px-4 py-2 text-center font-semibold text-foreground">Events Attended</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {topAttendees.map((attendee) => (
-                                                    <tr key={attendee.id} className="border-b-2 border-sidebar-border/100 hover:bg-muted/50">
-                                                        <td className="px-4 py-3 font-medium text-foreground">{attendee.name}</td>
-                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.contact_number}</td>
-                                                        <td className="px-4 py-3 text-center text-foreground">{attendee.events_attended}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Third Row: Logs & Exports */}

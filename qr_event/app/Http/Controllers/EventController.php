@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\QrCode;
+use App\Services\LiveDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -161,6 +162,8 @@ class EventController extends Controller
             'expires_at' => $attendanceExpiresAt,
         ]);
 
+        LiveDashboardService::notify('event_created', $event->id);
+
         return redirect()->route('dashboard');
     }
 
@@ -223,6 +226,8 @@ class EventController extends Controller
             'description' => sprintf('Updated event: %s', $event->name),
         ]);
 
+        LiveDashboardService::notify('event_updated', $event->id);
+
         return redirect()->route('dashboard');
     }
 
@@ -238,6 +243,8 @@ class EventController extends Controller
             'target_id' => $event->id,
             'description' => sprintf('Deleted event: %s', $event->name),
         ]);
+
+        LiveDashboardService::notify('event_deleted', $event->id);
 
         $event->delete();
 
@@ -294,6 +301,8 @@ class EventController extends Controller
                 $event->name
             ),
         ]);
+
+        LiveDashboardService::notify('event_rsvp', $event->id);
 
         // Mark as attended (RSVP confirmed - could add a separate field if needed)
         // For now we're marking as a registration confirmation

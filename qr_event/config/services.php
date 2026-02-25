@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'live_updates' => [
+        'url' => env('SOCKET_IO_SERVER_URL'),
+        'secret' => env('SOCKET_IO_SERVER_SECRET'),
+    ],
+
 ];

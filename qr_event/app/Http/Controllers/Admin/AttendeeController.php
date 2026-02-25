@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\User;
+use App\Services\LiveDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -83,6 +84,8 @@ class AttendeeController extends Controller
             ),
         ]);
 
+        LiveDashboardService::notify('attendee_created', $attendee->event_id);
+
         return redirect()->route('admin.attendees')->with('success', 'Attendee added successfully.');
     }
 
@@ -102,6 +105,8 @@ class AttendeeController extends Controller
                 $attendee->event?->name ?? 'Unknown event'
             ),
         ]);
+
+        LiveDashboardService::notify('attendee_deleted', $attendee->event_id);
 
         $attendee->delete();
 

@@ -52,7 +52,12 @@ Route::get('dashboard', function () {
         $totalAttendances = Attendee::where('is_attended', true)->count();
         
         // Get events with attendance counts for report
-        $reportEvents = Event::withCount([
+        $reportEvents = Event::with([
+            'attendees' => fn($query) => $query
+                ->with('user:id,first_name,last_name,contact_number')
+                ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time'),
+        ])
+        ->withCount([
             'attendees',
             'attendees as attended_count' => fn($q) => $q->where('is_attended', true)
         ])
@@ -67,6 +72,24 @@ Route::get('dashboard', function () {
             'location' => $event->location,
             'total_registered' => $event->attendees_count,
             'total_attended' => $event->attended_count,
+            'rsvp' => $event->attendees
+                ->where('is_attended', false)
+                ->values()
+                ->map(fn($attendee) => [
+                    'id' => $attendee->id,
+                    'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                    'contact_number' => $attendee->user->contact_number ?? '',
+                    'attended_time' => null,
+                ]),
+            'attendees' => $event->attendees
+                ->where('is_attended', true)
+                ->values()
+                ->map(fn($attendee) => [
+                    'id' => $attendee->id,
+                    'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                    'contact_number' => $attendee->user->contact_number ?? '',
+                    'attended_time' => optional($attendee->attended_time)?->format('M d, Y h:i A'),
+                ]),
         ]);
 
         // Get top attendees

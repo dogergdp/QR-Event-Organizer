@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
+use App\Services\LiveDashboardService;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -103,6 +104,8 @@ class AttendanceController extends Controller
             ),
         ]);
 
+        LiveDashboardService::notify('attendance_confirmed', $event->id);
+
         return redirect()->route('events.show', $event->id)
             ->with('success', 'Attendance confirmed! Thank you for attending.');
     }
@@ -138,6 +141,8 @@ class AttendanceController extends Controller
                 $event->name
             ),
         ]);
+
+        LiveDashboardService::notify('attendance_marked', $event->id);
 
         return redirect()->route('events.show', $event->id)
             ->with('success', 'Attendance confirmed! Thank you for attending.');
