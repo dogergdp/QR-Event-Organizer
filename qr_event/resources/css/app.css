@@ -9,9 +9,10 @@
 
 @theme {
     --font-sans:
-        'Merriweather', ui-serif, system-ui, serif,
+        'Instrument Sans', 'Rubik', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-rubik: 'Rubik', sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);

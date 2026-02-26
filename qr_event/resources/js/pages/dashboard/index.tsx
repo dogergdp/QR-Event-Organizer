@@ -24,7 +24,7 @@ export default function Dashboard() {
     const { auth, isAdmin, events } = props;
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    
+
     const handleScan = useScanHandler(setIsScannerOpen);
     useDashboardSocket(!!isAdmin);
 
@@ -46,7 +46,7 @@ export default function Dashboard() {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl bg-muted/40 dark:bg-muted/20 p-4">
                 {/* Header Context */}
                 <div>
-                    <h1 className="text-2xl font-semibold text-foreground">
+                    <h1 className="text-2xl font-extrabold text-foreground">
                         Welcome{displayName ? `, ${displayName}` : ''}!
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -60,9 +60,9 @@ export default function Dashboard() {
                 {isAdmin ? (
                     <AdminView {...props} />
                 ) : (
-                    <UserView 
-                        events={events} 
-                        onScanClick={() => setIsScannerOpen(true)} 
+                    <UserView
+                        events={events}
+                        onScanClick={() => setIsScannerOpen(true)}
                     />
                 )}
             </div>

@@ -120,7 +120,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('dashboard', [
+        return Inertia::render('dashboard/index', [
             'events' => $events,
             'isAdmin' => false,
         ]);
