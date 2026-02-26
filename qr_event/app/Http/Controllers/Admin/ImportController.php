@@ -16,8 +16,10 @@ class ImportController extends Controller
      * Import users from CSV.
      */
     public function importUsers(Request $request)
+        
     {
-        $request->validate([
+    set_time_limit(300); // Allow more time for large imports    
+    $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
 
@@ -39,19 +41,15 @@ class ImportController extends Controller
         $importedCount = 0;
         $errors = [];
 
+        // Batch processing
+        $batch = [];
+        $batchSize = 100;
         while (($row = fgetcsv($handle)) !== false) {
             $rowCount++;
-
-            // Map row to associative array
-            // We assume a specific order or we can try to find headers
-            // Let's assume the order from export or a standard order:
-            // 0: First Name, 1: Last Name, 2: Contact Number, 3: Birthdate, 4: Marital Status, 5: Has DG Leader, 6: DG Leader Name, 7: Wants to Join DG, 8: Remarks
-
             if (count($row) < 3) {
                 $errors[] = "Row {$rowCount}: Insufficient data.";
                 continue;
             }
-
             $data = [
                 'first_name' => trim($row[0] ?? ''),
                 'last_name' => trim($row[1] ?? ''),
@@ -62,14 +60,43 @@ class ImportController extends Controller
                 'dg_leader_name' => trim($row[6] ?? ''),
                 'want_to_join_dg' => strtolower(trim($row[7] ?? '')),
                 'remarks' => trim($row[8] ?? ''),
-                'password' => 'password', // Default password
-                'password_confirmation' => 'password',
+                'password' => $this->normalizeContactNumber($row[2] ?? ''),
+                'password_confirmation' => $this->normalizeContactNumber($row[2] ?? ''),
             ];
-
-            // Normalize values
             $data['has_dg_leader'] = in_array($data['has_dg_leader'], ['yes', 'y', '1', 'true']) ? 'yes' : 'no';
             $data['want_to_join_dg'] = in_array($data['want_to_join_dg'], ['yes', 'y', '1', 'true']) ? 'yes' : 'no';
+            $batch[] = $data;
+            // If batch is full, process
+            if (count($batch) >= $batchSize) {
+                $this->processBatch($batch, $request, $errors, $importedCount);
+                $batch = [];
+            }
+        }
+        // Process any remaining users
+    if (count($batch) > 0) {
+        $this->processBatch($batch, $request, $errors, $importedCount);
+    }
 
+    fclose($handle);
+
+        $message = "Successfully imported {$importedCount} users.";
+        if (count($errors) > 0) {
+            $message .= " Encounted " . count($errors) . " errors.";
+            return redirect()->route('admin.users')->with([
+                'success' => $message,
+                'import_errors' => $errors,
+            ]);
+        }
+
+        return redirect()->route('admin.users')->with('success', $message);
+    }
+
+    /**
+     * Process a batch of users for import.
+     */
+    private function processBatch(array $batch, Request $request, array &$errors, int &$importedCount)
+    {
+        foreach ($batch as $data) {
             // Validation
             $validator = Validator::make($data, [
                 'first_name' => ['required', 'string', 'max:255'],
@@ -81,12 +108,10 @@ class ImportController extends Controller
                 'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($data['has_dg_leader'] === 'yes')],
                 'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($data['has_dg_leader'] === 'no')],
             ]);
-
             if ($validator->fails()) {
-                $errors[] = "Row {$rowCount} ({$data['first_name']} {$data['last_name']}): " . implode(', ', $validator->errors()->all());
+                $errors[] = "({$data['first_name']} {$data['last_name']}): " . implode(', ', $validator->errors()->all());
                 continue;
             }
-
             // Create user
             $user = User::create([
                 'first_name' => $data['first_name'],
@@ -100,7 +125,6 @@ class ImportController extends Controller
                 'remarks' => $data['remarks'],
                 'password' => Hash::make($data['password']),
             ]);
-
             ActivityLog::create([
                 'user_id' => $request->user()?->id,
                 'action' => 'import_user',
@@ -108,22 +132,8 @@ class ImportController extends Controller
                 'target_id' => $user->id,
                 'description' => sprintf('Imported user: %s %s', $user->first_name, $user->last_name),
             ]);
-
             $importedCount++;
         }
-
-        fclose($handle);
-
-        $message = "Successfully imported {$importedCount} users.";
-        if (count($errors) > 0) {
-            $message .= " Encounted " . count($errors) . " errors.";
-            return redirect()->route('admin.users')->with([
-                'success' => $message,
-                'import_errors' => $errors,
-            ]);
-        }
-
-        return redirect()->route('admin.users')->with('success', $message);
     }
 
     /**
