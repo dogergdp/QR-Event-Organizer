@@ -2,13 +2,13 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
-import { useState } from 'react';
-import { Pencil, Eye } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Pencil } from 'lucide-react';
 
 function formatTime12Hour(time: string | null): string {
     if (!time) return '';
     const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
+    const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${hour12}:${minutes} ${ampm}`;
@@ -24,18 +24,21 @@ function formatDateTime12Hour(dateTimeString: string | null): string {
     });
 }
 
+interface AttendeeUser {
+    first_name: string;
+    last_name: string;
+    contact_number: string;
+    is_first_time: boolean;
+    remarks: string | null;
+}
+
 interface Attendee {
     id: number;
     user_id: number;
     is_attended: boolean;
-    is_first_time: boolean;
+    is_first_time: boolean; // IMPORTANT: event-specific first-time flag
     attended_time: string | null;
-    user: {
-        first_name: string;
-        last_name: string;
-        contact_number: string;
-        remarks: string | null;
-    };
+    user: AttendeeUser;
 }
 
 interface EventShowProps {
@@ -49,6 +52,7 @@ interface EventShowProps {
         location: string;
         banner_image?: string | null;
         is_finished?: boolean;
+        is_ongoing?: boolean;
         created_at: string;
         updated_at: string;
     };
@@ -64,36 +68,64 @@ interface EventShowProps {
 }
 
 export default function ShowEvent() {
-    const { event, isAdmin, userAttendance, attendees } =
-        usePage<any>().props as EventShowProps;
+    const { event, isAdmin, userAttendance, attendees } = usePage<any>()
+        .props as EventShowProps;
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>('rsvp');
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>(
+        'rsvp',
+    );
 
-    const [firstTimeFilter, setFirstTimeFilter] = useState<'all' | 'yes' | 'no'>('all');
+    // "First time" filter toggle: All / Yes / No
+    const [firstTimeFilter, setFirstTimeFilter] = useState<
+        'all' | 'yes' | 'no'
+    >('all');
+
+    // Store the whole attendee so modal can show attendee.is_first_time reliably
+    const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(
+        null,
+    );
 
     const allAttendees = attendees ?? [];
-    const rsvpAttendees = allAttendees.filter((attendee) => !attendee.is_attended);
-    const attendanceAttendees = allAttendees.filter((attendee) => attendee.is_attended);
+
+    const rsvpAttendees = useMemo(
+        () => allAttendees.filter((attendee) => !attendee.is_attended),
+        [allAttendees],
+    );
+
+    const attendanceAttendees = useMemo(
+        () => allAttendees.filter((attendee) => attendee.is_attended),
+        [allAttendees],
+    );
 
     const applyFirstTimeFilter = (list: Attendee[]) => {
         if (firstTimeFilter === 'all') return list;
-        if (firstTimeFilter === 'yes') return list.filter((a) => a.is_first_time);
+        if (firstTimeFilter === 'yes')
+            return list.filter((a) => a.is_first_time);
         return list.filter((a) => !a.is_first_time);
     };
 
-    const filteredRsvpAttendees = applyFirstTimeFilter(rsvpAttendees);
-    const filteredAttendanceAttendees = applyFirstTimeFilter(attendanceAttendees);
+    const filteredRsvpAttendees = useMemo(
+        () => applyFirstTimeFilter(rsvpAttendees),
+        [rsvpAttendees, firstTimeFilter],
+    );
+
+    const filteredAttendanceAttendees = useMemo(
+        () => applyFirstTimeFilter(attendanceAttendees),
+        [attendanceAttendees, firstTimeFilter],
+    );
 
     const defaultBanner = '/images/default-event.png';
-    const hasDescription = Boolean(event.description && event.description.trim());
+    const hasDescription = Boolean(
+        event.description && event.description.trim(),
+    );
 
     const handleScan = (decodedText: string) => {
         console.log('QR Code scanned:', decodedText);
         setIsScannerOpen(false);
 
         let url = decodedText;
+
         if (url.startsWith('http://') || url.startsWith('https://')) {
             try {
                 const urlObj = new URL(url);
@@ -112,6 +144,7 @@ export default function ShowEvent() {
         const absoluteUrl = `${window.location.origin}${url}`;
 
         console.log('Navigating to:', url);
+
         try {
             router.visit(url, {
                 preserveState: false,
@@ -126,32 +159,33 @@ export default function ShowEvent() {
         window.setTimeout(() => {
             const nextPath = window.location.pathname + window.location.search;
             if (nextPath === currentPath) {
-                console.log('Inertia navigation did not change location, forcing full redirect');
+                console.log(
+                    'Inertia navigation did not change location, forcing full redirect',
+                );
                 window.location.href = absoluteUrl;
             }
         }, 600);
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-        {
-            title: event.name,
-            href: `/events/${event.id}`,
-        },
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: event.name, href: `/events/${event.id}` },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.name} />
+
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 {/* Event Banner */}
                 <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
                     <div className="aspect-video overflow-hidden rounded-xl">
                         <img
-                            src={event.banner_image ? `/storage/${event.banner_image}` : defaultBanner}
+                            src={
+                                event.banner_image
+                                    ? `/storage/${event.banner_image}`
+                                    : defaultBanner
+                            }
                             alt={event.name}
                             className="h-full w-full object-cover"
                         />
@@ -165,6 +199,7 @@ export default function ShowEvent() {
                             <h1 className="text-3xl font-bold text-foreground">
                                 {event.name}
                             </h1>
+
                             <div className="mt-4 grid gap-4 md:grid-cols-2">
                                 <div>
                                     <p className="text-sm font-semibold text-muted-foreground">
@@ -172,7 +207,7 @@ export default function ShowEvent() {
                                     </p>
                                     <p className="mt-1 text-lg text-foreground">
                                         {new Date(
-                                            event.date
+                                            event.date,
                                         ).toLocaleDateString('en-US', {
                                             weekday: 'long',
                                             year: 'numeric',
@@ -181,6 +216,7 @@ export default function ShowEvent() {
                                         })}
                                     </p>
                                 </div>
+
                                 <div>
                                     <p className="text-sm font-semibold text-muted-foreground">
                                         START TIME
@@ -191,6 +227,7 @@ export default function ShowEvent() {
                                             : 'N/A'}
                                     </p>
                                 </div>
+
                                 <div>
                                     <p className="text-sm font-semibold text-muted-foreground">
                                         END TIME
@@ -201,6 +238,7 @@ export default function ShowEvent() {
                                             : 'N/A'}
                                     </p>
                                 </div>
+
                                 <div className="md:col-span-2">
                                     <p className="text-sm font-semibold text-muted-foreground">
                                         LOCATION
@@ -211,11 +249,12 @@ export default function ShowEvent() {
                                 </div>
                             </div>
                         </div>
+
                         {isAdmin && (
                             <div className="flex flex-wrap items-center gap-2">
                                 <Link
                                     href={`/events/${event.id}/edit`}
-                                    className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/90 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90"
                                 >
                                     <Pencil className="h-4 w-4" />
                                     Edit Event
@@ -249,6 +288,7 @@ export default function ShowEvent() {
                                     RSVP now to confirm your attendance
                                 </p>
                             </div>
+
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setIsScannerOpen(true)}
@@ -256,6 +296,7 @@ export default function ShowEvent() {
                                 >
                                     Scan QR to RSVP
                                 </button>
+
                                 <Link
                                     href={`/events/${event.id}/rsvp`}
                                     className="rounded-lg bg-black px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
@@ -275,14 +316,16 @@ export default function ShowEvent() {
                                 <h2 className="text-xl font-semibold text-foreground">
                                     Your Attendance
                                 </h2>
+
                                 {userAttendance.is_attended ? (
                                     <p className="mt-2 text-sm text-green-600">
                                         ✓ You have attended this event
                                         {userAttendance.attended_time && (
                                             <>
-                                                {' '}(
+                                                {' '}
+                                                (
                                                 {formatDateTime12Hour(
-                                                    userAttendance.attended_time
+                                                    userAttendance.attended_time,
                                                 )}
                                                 )
                                             </>
@@ -290,10 +333,13 @@ export default function ShowEvent() {
                                     </p>
                                 ) : (
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        You are registered for this event. Scan the attendance QR code at the venue to mark your attendance.
+                                        You are registered for this event. Scan
+                                        the attendance QR code at the venue to
+                                        mark your attendance.
                                     </p>
                                 )}
                             </div>
+
                             {!userAttendance.is_attended && (
                                 <button
                                     onClick={() => setIsScannerOpen(true)}
@@ -320,9 +366,10 @@ export default function ShowEvent() {
                                     </p>
                                 )}
                             </div>
+
                             <a
                                 href={`/admin/reports/export/event/${event.id}/attendees`}
-                                className="inline-flex items-center rounded-lg bg-black px-4 py-2 text-sm font-medium text-white  transition-colors gap-2"
+                                className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors"
                             >
                                 <span>↓</span>
                                 Download CSV
@@ -334,7 +381,9 @@ export default function ShowEvent() {
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => setActiveAdminTab('rsvp')}
+                                        onClick={() =>
+                                            setActiveAdminTab('rsvp')
+                                        }
                                         className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
                                             activeAdminTab === 'rsvp'
                                                 ? 'bg-muted text-foreground'
@@ -343,16 +392,20 @@ export default function ShowEvent() {
                                     >
                                         RSVP ({rsvpAttendees.length})
                                     </button>
+
                                     <button
                                         type="button"
-                                        onClick={() => setActiveAdminTab('attendance')}
+                                        onClick={() =>
+                                            setActiveAdminTab('attendance')
+                                        }
                                         className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
                                             activeAdminTab === 'attendance'
                                                 ? 'bg-muted text-foreground'
                                                 : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                     >
-                                        Attendance ({attendanceAttendees.length})
+                                        Attendance ({attendanceAttendees.length}
+                                        )
                                     </button>
                                 </div>
 
@@ -361,10 +414,13 @@ export default function ShowEvent() {
                                     <span className="text-xs font-medium text-muted-foreground">
                                         First time:
                                     </span>
+
                                     <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
                                         <button
                                             type="button"
-                                            onClick={() => setFirstTimeFilter('all')}
+                                            onClick={() =>
+                                                setFirstTimeFilter('all')
+                                            }
                                             className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                                                 firstTimeFilter === 'all'
                                                     ? 'bg-muted text-foreground'
@@ -375,7 +431,9 @@ export default function ShowEvent() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setFirstTimeFilter('yes')}
+                                            onClick={() =>
+                                                setFirstTimeFilter('yes')
+                                            }
                                             className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                                                 firstTimeFilter === 'yes'
                                                     ? 'bg-muted text-foreground'
@@ -386,7 +444,9 @@ export default function ShowEvent() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setFirstTimeFilter('no')}
+                                            onClick={() =>
+                                                setFirstTimeFilter('no')
+                                            }
                                             className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                                                 firstTimeFilter === 'no'
                                                     ? 'bg-muted text-foreground'
@@ -403,71 +463,88 @@ export default function ShowEvent() {
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                <tr className="border-b border-sidebar-border/70">
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        Name
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        Contact
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        First Time
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        {activeAdminTab === 'attendance' ? 'Attended Time' : 'Status'}
-                                    </th>
-                                </tr>
+                                    <tr className="border-b border-sidebar-border/70">
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Name
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Contact
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            First Time
+                                        </th>
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            {activeAdminTab === 'attendance'
+                                                ? 'Attended Time'
+                                                : 'Status'}
+                                        </th>
+                                    </tr>
                                 </thead>
+
                                 <tbody>
-                                {(activeAdminTab === 'rsvp'
+                                    {(activeAdminTab === 'rsvp'
                                         ? filteredRsvpAttendees
                                         : filteredAttendanceAttendees
-                                ).map((attendee) => (
-                                    <tr
-                                        key={attendee.id}
-                                        className="border-b border-sidebar-border/70 hover:bg-sidebar/50 transition-colors"
-                                    >
-                                        <td className="px-4 py-3 text-foreground">
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedUser(attendee.user)}
-                                                className="hover:text-primary hover:underline transition-colors text-left"
-                                            >
-                                                {attendee.user.first_name}{' '}
-                                                {attendee.user.last_name}
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {attendee.user.contact_number}
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {attendee.is_first_time ? 'Yes' : 'No'}
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {activeAdminTab === 'attendance' ? (
-                                                attendee.attended_time
-                                                    ? formatDateTime12Hour(
-                                                        attendee.attended_time
+                                    ).map((attendee) => (
+                                        <tr
+                                            key={attendee.id}
+                                            className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
+                                        >
+                                            <td className="px-4 py-3 text-foreground">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedAttendee(
+                                                            attendee,
+                                                        )
+                                                    }
+                                                    className="text-left transition-colors hover:text-primary hover:underline"
+                                                >
+                                                    {attendee.user.first_name}{' '}
+                                                    {attendee.user.last_name}
+                                                </button>
+                                            </td>
+
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {attendee.user.contact_number}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {attendee.is_first_time
+                                                    ? 'Yes'
+                                                    : 'No'}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {activeAdminTab ===
+                                                'attendance' ? (
+                                                    attendee.attended_time ? (
+                                                        formatDateTime12Hour(
+                                                            attendee.attended_time,
+                                                        )
+                                                    ) : (
+                                                        '—'
                                                     )
-                                                    : '—'
-                                            ) : attendee.is_attended ? (
-                                                <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                                ) : attendee.is_attended ? (
+                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                                                         Attended
                                                     </span>
-                                            ) : (
-                                                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                                                ) : (
+                                                    <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
                                                         RSVP Only
                                                     </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
 
-                            {(activeAdminTab === 'rsvp'
-                                ? filteredRsvpAttendees.length === 0
-                                : filteredAttendanceAttendees.length === 0) ? (
+                            {(
+                                activeAdminTab === 'rsvp'
+                                    ? filteredRsvpAttendees.length === 0
+                                    : filteredAttendanceAttendees.length === 0
+                            ) ? (
                                 <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
                                     {activeAdminTab === 'rsvp'
                                         ? 'No RSVPs yet'
@@ -496,15 +573,23 @@ export default function ShowEvent() {
                 />
 
                 {/* User Details Modal */}
-                {selectedUser && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedUser(null)}>
-                        <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                {selectedAttendee && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                        onClick={() => setSelectedAttendee(null)}
+                    >
+                        <div
+                            className="max-h-[90vh] w-full max-w-md overflow-auto rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-xl font-semibold text-foreground">User Details</h2>
+                                <h2 className="text-xl font-semibold text-foreground">
+                                    User Details
+                                </h2>
                                 <button
                                     type="button"
-                                    onClick={() => setSelectedUser(null)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                    onClick={() => setSelectedAttendee(null)}
+                                    className="text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     ✕
                                 </button>
@@ -512,28 +597,51 @@ export default function ShowEvent() {
 
                             <div className="space-y-4 border-t border-sidebar-border/70 pt-4">
                                 <div>
-                                    <p className="text-xs font-medium text-muted-foreground">Name</p>
-                                    <p className="text-sm font-medium text-foreground">{selectedUser.first_name} {selectedUser.last_name}</p>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Name
+                                    </p>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {selectedAttendee.user.first_name}{' '}
+                                        {selectedAttendee.user.last_name}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
-                                    <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Contact Number
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.user.contact_number}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs font-medium text-muted-foreground">First Time Attendee</p>
-                                    <p className="text-sm text-foreground">{selectedUser.is_first_time ? 'Yes' : 'No'}</p>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        First Time Attendee
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.is_first_time
+                                            ? 'Yes'
+                                            : 'No'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs font-medium text-muted-foreground">Remarks</p>
-                                    <p className="text-sm text-foreground">{selectedUser.remarks || 'No remarks'}</p>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Remarks
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.user.remarks ||
+                                            'No remarks'}
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
                                 <button
                                     type="button"
-                                    onClick={() => setSelectedUser(null)}
-                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                    onClick={() => setSelectedAttendee(null)}
+                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-sidebar/50"
                                 >
                                     Close
                                 </button>
