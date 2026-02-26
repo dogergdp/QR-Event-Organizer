@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Pencil } from 'lucide-react';
+import { formatTime12Hour } from '@/utils/dateUtils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -10,14 +11,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-function formatTime12Hour(time: string | null): string {
-    if (!time) return '';
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-}
 
 export default function EventsIndex() {
     const { events } = usePage().props as {

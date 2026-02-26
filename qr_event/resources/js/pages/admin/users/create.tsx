@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 export default function CreateUser() {
+    const [hasDgLeader, setHasDgLeader] = useState('no');
     const today = new Date().toISOString().split('T')[0];
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -48,11 +50,11 @@ export default function CreateUser() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="contact_number">Contact Number</Label>
-                                    <Input 
-                                        id="contact_number" 
-                                        name="contact_number" 
+                                    <Input
+                                        id="contact_number"
+                                        name="contact_number"
                                         placeholder="09123456789"
-                                        required 
+                                        required
                                     />
                                     <InputError message={errors.contact_number} />
                                 </div>
@@ -85,7 +87,8 @@ export default function CreateUser() {
                                     <select
                                         id="has_dg_leader"
                                         name="has_dg_leader"
-                                        defaultValue="no"
+                                        value={hasDgLeader}
+                                        onChange={(e) => setHasDgLeader(e.target.value)}
                                         required
                                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                     >
@@ -95,36 +98,56 @@ export default function CreateUser() {
                                     <InputError message={errors.has_dg_leader} />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <Label htmlFor="dg_leader_name">DG Leader Name</Label>
-                                    <Input
-                                        id="dg_leader_name"
-                                        name="dg_leader_name"
-                                        placeholder="Optional if no DG group"
-                                    />
-                                    <InputError message={errors.dg_leader_name} />
-                                </div>
+                                {hasDgLeader === 'no' && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="want_to_join_dg">Do you want to join a DG group?</Label>
+                                        <select
+                                            id="want_to_join_dg"
+                                            name="want_to_join_dg"
+                                            required
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                        >
+                                            <option value="">Select an option</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                        <InputError message={errors.want_to_join_dg} />
+                                    </div>
+                                )}
+
+                                {hasDgLeader === 'yes' && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="dg_leader_name">DG Leader Name</Label>
+                                        <Input
+                                            id="dg_leader_name"
+                                            name="dg_leader_name"
+                                            placeholder="DG Leader Name"
+                                            required
+                                        />
+                                        <InputError message={errors.dg_leader_name} />
+                                    </div>
+                                )}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">Password</Label>
-                                    <Input 
-                                        id="password" 
-                                        type="password" 
-                                        name="password" 
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        name="password"
                                         placeholder="Minimum 8 characters"
-                                        required 
+                                        required
                                     />
                                     <InputError message={errors.password} />
                                 </div>
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">Confirm Password</Label>
-                                    <Input 
-                                        id="password_confirmation" 
-                                        type="password" 
-                                        name="password_confirmation" 
+                                    <Input
+                                        id="password_confirmation"
+                                        type="password"
+                                        name="password_confirmation"
                                         placeholder="Re-enter password"
-                                        required 
+                                        required
                                     />
                                 </div>
 

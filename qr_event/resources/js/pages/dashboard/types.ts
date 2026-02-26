@@ -1,3 +1,6 @@
+
+
+
 export interface DashboardProps {
     auth?: {
         user?: {
@@ -19,6 +22,7 @@ export interface DashboardProps {
         is_finished?: boolean;
         is_ongoing?: boolean;
         has_rsvp?: boolean;
+        is_attended?: boolean;
     }>;
     isAdmin?: boolean;
     stats?: {

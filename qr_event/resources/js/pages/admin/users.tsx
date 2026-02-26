@@ -23,6 +23,8 @@ export default function AdminUsers() {
                 birthdate: string | null;
                 created_at: string;
                 remarks: string | null;
+                has_dg_leader: string;
+                want_to_join_dg: string | null;
             }>;
             links: Array<{
                 url: string | null;
@@ -38,6 +40,11 @@ export default function AdminUsers() {
             sort?: 'id' | 'name' | 'age' | 'created_at';
             direction?: 'asc' | 'desc';
         };
+        flash?: {
+            success?: string;
+            error?: string;
+        };
+        import_errors?: string[];
     };
 
     const currentSort = filters?.sort ?? 'created_at';
@@ -334,6 +341,12 @@ export default function AdminUsers() {
                                         <p className="text-xs font-medium text-muted-foreground">DG Leader</p>
                                         <p className="text-sm text-foreground">{selectedUser.dg_leader_name || 'N/A'}</p>
                                     </div>
+                                    {selectedUser.has_dg_leader === 'no' && (
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Wants to join a DG group?</p>
+                                            <p className="text-sm text-foreground capitalize">{selectedUser.want_to_join_dg || 'Not specified'}</p>
+                                        </div>
+                                    )}
                                     <div>
                                         <p className="text-xs font-medium text-muted-foreground">Registration Date</p>
                                         <p className="text-sm text-foreground">{new Date(selectedUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
@@ -384,7 +397,7 @@ export default function AdminUsers() {
                                         Upload a CSV file containing user details. The expected format is:
                                     </p>
                                     <div className="rounded bg-muted p-2 text-[10px] font-mono overflow-x-auto whitespace-nowrap">
-                                        First Name, Last Name, Contact Number, Birthdate (YYYY-MM-DD), Marital Status, Has DG Leader (yes/no), DG Leader Name, Remarks
+                                        First Name, Last Name, Contact Number, Birthdate (YYYY-MM-DD), Marital Status, Has DG Leader (yes/no), DG Leader Name, Wants to Join DG (yes/no), Remarks
                                     </div>
                                     <p className="text-xs text-muted-foreground italic">
                                         * Birthdate, Marital Status (single, married, separated, widowed), and Has DG Leader are required.

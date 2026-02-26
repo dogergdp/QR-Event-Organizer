@@ -29,6 +29,7 @@ class User extends Authenticatable
         'marital_status',
         'has_dg_leader',
         'dg_leader_name',
+        'want_to_join_dg',
         'remarks',
         'is_first_time',
     ];

@@ -25,6 +25,7 @@ class CreateNewUser implements CreatesNewUsers
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
             'dg_leader_name' => Rule::requiredIf($input['has_dg_leader'] === 'yes'),
+            'want_to_join_dg' => Rule::requiredIf($input['has_dg_leader'] === 'no'),
         ])->validate();
 
         $user = User::create([
@@ -36,6 +37,7 @@ class CreateNewUser implements CreatesNewUsers
             'marital_status' => $input['marital_status'],
             'has_dg_leader' => $input['has_dg_leader'],
             'dg_leader_name' => $input['dg_leader_name'] ?? null,
+            'want_to_join_dg' => $input['want_to_join_dg'] ?? null,
         ]);
 
         ActivityLog::create([

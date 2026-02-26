@@ -28,11 +28,16 @@ class UserController extends Controller
             'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
             'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
             'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($request->input('has_dg_leader') === 'no')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
             ? $validated['dg_leader_name']
+            : null;
+
+        $validated['want_to_join_dg'] = $validated['has_dg_leader'] === 'no'
+            ? $validated['want_to_join_dg']
             : null;
 
         $user = User::create($validated);
@@ -120,11 +125,16 @@ class UserController extends Controller
             'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
             'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
             'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($request->input('has_dg_leader') === 'no')],
             'remarks' => ['nullable', 'string'],
         ]);
 
         $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
             ? $validated['dg_leader_name']
+            : null;
+
+        $validated['want_to_join_dg'] = $validated['has_dg_leader'] === 'no'
+            ? $validated['want_to_join_dg']
             : null;
 
         $user->update($validated);

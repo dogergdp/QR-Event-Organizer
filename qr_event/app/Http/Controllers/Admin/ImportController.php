@@ -45,7 +45,7 @@ class ImportController extends Controller
             // Map row to associative array
             // We assume a specific order or we can try to find headers
             // Let's assume the order from export or a standard order:
-            // 0: First Name, 1: Last Name, 2: Contact Number, 3: Birthdate, 4: Marital Status, 5: Has DG Leader, 6: DG Leader Name, 7: Remarks
+            // 0: First Name, 1: Last Name, 2: Contact Number, 3: Birthdate, 4: Marital Status, 5: Has DG Leader, 6: DG Leader Name, 7: Wants to Join DG, 8: Remarks
 
             if (count($row) < 3) {
                 $errors[] = "Row {$rowCount}: Insufficient data.";
@@ -60,13 +60,15 @@ class ImportController extends Controller
                 'marital_status' => strtolower(trim($row[4] ?? 'single')),
                 'has_dg_leader' => strtolower(trim($row[5] ?? 'no')),
                 'dg_leader_name' => trim($row[6] ?? ''),
-                'remarks' => trim($row[7] ?? ''),
+                'want_to_join_dg' => strtolower(trim($row[7] ?? '')),
+                'remarks' => trim($row[8] ?? ''),
                 'password' => 'password', // Default password
                 'password_confirmation' => 'password',
             ];
 
             // Normalize values
             $data['has_dg_leader'] = in_array($data['has_dg_leader'], ['yes', 'y', '1', 'true']) ? 'yes' : 'no';
+            $data['want_to_join_dg'] = in_array($data['want_to_join_dg'], ['yes', 'y', '1', 'true']) ? 'yes' : 'no';
 
             // Validation
             $validator = Validator::make($data, [
@@ -77,6 +79,7 @@ class ImportController extends Controller
                 'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
                 'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
                 'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($data['has_dg_leader'] === 'yes')],
+                'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($data['has_dg_leader'] === 'no')],
             ]);
 
             if ($validator->fails()) {
@@ -93,6 +96,7 @@ class ImportController extends Controller
                 'marital_status' => $data['marital_status'],
                 'has_dg_leader' => $data['has_dg_leader'],
                 'dg_leader_name' => $data['has_dg_leader'] === 'yes' ? $data['dg_leader_name'] : null,
+                'want_to_join_dg' => $data['has_dg_leader'] === 'no' ? ($data['want_to_join_dg'] ?? 'no') : null,
                 'remarks' => $data['remarks'],
                 'password' => Hash::make($data['password']),
             ]);

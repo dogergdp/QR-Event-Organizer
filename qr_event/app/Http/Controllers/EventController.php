@@ -44,31 +44,44 @@ class EventController extends Controller
     /**
      * Show event details page.
      */
-    public function show(Event $event): Response
+    public function show(Request $request, Event $event): Response
     {
-        $user = request()->user();
+        $user = $request->user();
+        $status = $request->query('status', 'rsvp');
+        $isFirstTime = $request->query('first_time');
+
+        $attendees = $event->attendees()
+            ->with('user')
+            ->when($status === 'rsvp', fn($q) => $q->where('is_attended', false))
+            ->when($status === 'attendance', fn($q) => $q->where('is_attended', true))
+            ->when($isFirstTime === 'yes', fn($q) => $q->where('is_first_time', true))
+            ->when($isFirstTime === 'no', fn($q) => $q->where('is_first_time', false))
+            ->paginate(10)
+            ->through(fn($attendee) => [
+                'id' => $attendee->id,
+                'user_id' => $attendee->user_id,
+                'is_attended' => $attendee->is_attended,
+                'is_first_time' => (bool) $attendee->is_first_time,
+                'attended_time' => $attendee->attended_time,
+                'user' => [
+                    'first_name' => $attendee->user->first_name,
+                    'last_name' => $attendee->user->last_name,
+                    'contact_number' => $attendee->user->contact_number,
+                    'is_first_time' => (bool) $attendee->user->is_first_time,
+                    'remarks' => $attendee->user->remarks,
+                ],
+            ])
+            ->withQueryString();
 
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
             'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
-            'attendees' => $event->attendees()
-                ->with('user')
-                ->get()
-                ->map(fn($attendee) => [
-                    'id' => $attendee->id,
-                    'user_id' => $attendee->user_id,
-                    'is_attended' => $attendee->is_attended,
-                    'is_first_time' => (bool) $attendee->is_first_time,
-                    'attended_time' => $attendee->attended_time,
-                    'user' => [
-                        'first_name' => $attendee->user->first_name,
-                        'last_name' => $attendee->user->last_name,
-                        'contact_number' => $attendee->user->contact_number,
-                        'is_first_time' => (bool) $attendee->user->is_first_time,
-                        'remarks' => $attendee->user->remarks,
-                    ],
-                ]),
+            'attendees' => $attendees,
+            'filters' => [
+                'status' => $status,
+                'first_time' => $isFirstTime ?? 'all',
+            ],
         ]);
     }
 

@@ -17,7 +17,7 @@ export default function Register() {
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input
         const value = e.target.value.replace(/\D/g, '');
-        
+
         // Format as YYYY-MM-DD
         let formatted = value;
         if (value.length >= 4) {
@@ -33,7 +33,7 @@ export default function Register() {
         if (formatted.length === 10 && formatted > today) {
             formatted = today;
         }
-        
+
         e.target.value = formatted;
     };
     return (
@@ -156,6 +156,24 @@ export default function Register() {
                                 <InputError message={errors.has_dg_leader} />
                             </div>
 
+                            {hasDgLeader === 'no' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="want_to_join_dg">Do you want to join a DG group?</Label>
+                                    <select
+                                        id="want_to_join_dg"
+                                        name="want_to_join_dg"
+                                        required
+                                        tabIndex={8.5}
+                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <option value="">Select an option</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                    <InputError message={errors.want_to_join_dg} />
+                                </div>
+                            )}
+
                             {hasDgLeader === 'yes' && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="dg_leader_name">DG Leader Name</Label>
@@ -207,7 +225,7 @@ export default function Register() {
                             </div>
 
 
- 
+
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"

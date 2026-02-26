@@ -4,116 +4,48 @@ import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
 import { useMemo, useState } from 'react';
 import { Pencil } from 'lucide-react';
+import {formatTime12Hour, formatDateTime12Hour} from '@/utils/dateUtils';
+import { show as showRoute } from '@/routes/events';
 
-function formatTime12Hour(time: string | null): string {
-    if (!time) return '';
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-}
 
-function formatDateTime12Hour(dateTimeString: string | null): string {
-    if (!dateTimeString) return '';
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
-}
 
-interface AttendeeUser {
-    first_name: string;
-    last_name: string;
-    contact_number: string;
-    is_first_time: boolean;
-    remarks: string | null;
-}
+import type { AttendeeUser, Attendee, EventShowProps } from './types';
 
-interface Attendee {
-    id: number;
-    user_id: number;
-    is_attended: boolean;
-    is_first_time: boolean; // IMPORTANT: event-specific first-time flag
-    attended_time: string | null;
-    user: AttendeeUser;
-}
 
-interface EventShowProps {
-    event: {
-        id: number;
-        name: string;
-        date: string;
-        start_time: string | null;
-        end_time: string | null;
-        description: string | null;
-        location: string;
-        banner_image?: string | null;
-        is_finished?: boolean;
-        is_ongoing?: boolean;
-        created_at: string;
-        updated_at: string;
-    };
-    isAdmin: boolean;
-    userAttendance?: {
-        id: number;
-        user_id: number;
-        event_id: number;
-        is_attended: boolean;
-        attended_time: string | null;
-    } | null;
-    attendees?: Attendee[];
-}
 
 export default function ShowEvent() {
-    const { event, isAdmin, userAttendance, attendees } = usePage<any>()
+    const { event, isAdmin, userAttendance, attendees, filters } = usePage<any>()
         .props as EventShowProps;
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>(
-        'rsvp',
-    );
 
-    // "First time" filter toggle: All / Yes / No
-    const [firstTimeFilter, setFirstTimeFilter] = useState<
-        'all' | 'yes' | 'no'
-    >('all');
+    const activeAdminTab = filters?.status ?? 'rsvp';
+    const firstTimeFilter = filters?.first_time ?? 'all';
+
+    const setActiveAdminTab = (tab: 'rsvp' | 'attendance') => {
+        router.get(
+            showRoute.url(event.id),
+            { ...filters, status: tab },
+            { preserveState: true, replace: true },
+        );
+    };
+
+    const setFirstTimeFilter = (filter: 'all' | 'yes' | 'no') => {
+        router.get(
+            showRoute.url(event.id),
+            { ...filters, first_time: filter },
+            { preserveState: true, replace: true },
+        );
+    };
 
     // Store the whole attendee so modal can show attendee.is_first_time reliably
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(
         null,
     );
 
-    const allAttendees = attendees ?? [];
+    const allAttendees = attendees?.data ?? [];
 
-    const rsvpAttendees = useMemo(
-        () => allAttendees.filter((attendee) => !attendee.is_attended),
-        [allAttendees],
-    );
-
-    const attendanceAttendees = useMemo(
-        () => allAttendees.filter((attendee) => attendee.is_attended),
-        [allAttendees],
-    );
-
-    const applyFirstTimeFilter = (list: Attendee[]) => {
-        if (firstTimeFilter === 'all') return list;
-        if (firstTimeFilter === 'yes')
-            return list.filter((a) => a.is_first_time);
-        return list.filter((a) => !a.is_first_time);
-    };
-
-    const filteredRsvpAttendees = useMemo(
-        () => applyFirstTimeFilter(rsvpAttendees),
-        [rsvpAttendees, firstTimeFilter],
-    );
-
-    const filteredAttendanceAttendees = useMemo(
-        () => applyFirstTimeFilter(attendanceAttendees),
-        [attendanceAttendees, firstTimeFilter],
-    );
+    const filteredAttendees = allAttendees;
 
     const defaultBanner = '/images/default-event.png';
     const hasDescription = Boolean(
@@ -390,7 +322,7 @@ export default function ShowEvent() {
                                                 : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                     >
-                                        RSVP ({rsvpAttendees.length})
+                                        RSVP {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
                                     </button>
 
                                     <button
@@ -404,8 +336,7 @@ export default function ShowEvent() {
                                                 : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                     >
-                                        Attendance ({attendanceAttendees.length}
-                                        )
+                                        Attendance {activeAdminTab === 'attendance' && `(${attendees?.total ?? 0})`}
                                     </button>
                                 </div>
 
@@ -482,10 +413,7 @@ export default function ShowEvent() {
                                 </thead>
 
                                 <tbody>
-                                    {(activeAdminTab === 'rsvp'
-                                        ? filteredRsvpAttendees
-                                        : filteredAttendanceAttendees
-                                    ).map((attendee) => (
+                                    {filteredAttendees.map((attendee: Attendee) => (
                                         <tr
                                             key={attendee.id}
                                             className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
@@ -539,19 +467,60 @@ export default function ShowEvent() {
                                     ))}
                                 </tbody>
                             </table>
-
-                            {(
-                                activeAdminTab === 'rsvp'
-                                    ? filteredRsvpAttendees.length === 0
-                                    : filteredAttendanceAttendees.length === 0
-                            ) ? (
-                                <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
-                                    {activeAdminTab === 'rsvp'
-                                        ? 'No RSVPs yet'
-                                        : 'No attendance records yet'}
-                                </div>
-                            ) : null}
                         </div>
+
+                        {attendees && attendees.data.length === 0 && (
+                            <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
+                                {activeAdminTab === 'rsvp'
+                                    ? 'No RSVPs found for this selection'
+                                    : 'No attendance records found for this selection'}
+                            </div>
+                        )}
+
+                        {attendees && attendees.data.length > 0 && (
+                            <div className="mt-4 flex items-center justify-between gap-3">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {attendees.from ?? 0} to {attendees.to ?? 0} of{' '}
+                                    <span className="font-semibold text-foreground">{attendees.total}</span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {attendees.links.map((link: any, index: number) => {
+                                        const isDisabled = !link.url;
+                                        const label = link.label.replace(/&laquo;|&raquo;/g, (match: string) => {
+                                            return match === '&laquo;' ? '«' : '»';
+                                        });
+
+                                        if (isDisabled) {
+                                            return (
+                                                <span
+                                                    key={`${link.label}-${index}`}
+                                                    className="rounded-md px-3 py-1 text-sm font-medium border border-sidebar-border/70 text-muted-foreground cursor-not-allowed opacity-50"
+                                                >
+                                                    {label}
+                                                </span>
+                                            );
+                                        }
+
+                                        return (
+                                            <button
+                                                key={`${link.label}-${index}`}
+                                                onClick={() => {
+                                                    window.location.href = link.url as string;
+                                                }}
+                                                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'border border-sidebar-border/70 text-foreground hover:bg-sidebar/50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

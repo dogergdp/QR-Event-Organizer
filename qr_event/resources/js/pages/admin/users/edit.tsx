@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Form, Head, Link, usePage, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -19,9 +20,12 @@ export default function EditUser() {
             marital_status: string;
             has_dg_leader: string;
             dg_leader_name: string | null;
+            want_to_join_dg: string | null;
             remarks: string | null;
         };
     };
+
+    const [hasDgLeader, setHasDgLeader] = useState(user.has_dg_leader);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -95,7 +99,8 @@ export default function EditUser() {
                                     <select
                                         id="has_dg_leader"
                                         name="has_dg_leader"
-                                        defaultValue={user.has_dg_leader}
+                                        value={hasDgLeader}
+                                        onChange={(e) => setHasDgLeader(e.target.value)}
                                         required
                                         className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                                     >
@@ -105,16 +110,37 @@ export default function EditUser() {
                                     <InputError message={errors.has_dg_leader} />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <Label htmlFor="dg_leader_name">DG Leader Name</Label>
-                                    <Input
-                                        id="dg_leader_name"
-                                        name="dg_leader_name"
-                                        defaultValue={user.dg_leader_name ?? ''}
-                                        placeholder="Optional if no DG group"
-                                    />
-                                    <InputError message={errors.dg_leader_name} />
-                                </div>
+                                {hasDgLeader === 'no' && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="want_to_join_dg">Do you want to join a DG group?</Label>
+                                        <select
+                                            id="want_to_join_dg"
+                                            name="want_to_join_dg"
+                                            defaultValue={user.want_to_join_dg ?? ''}
+                                            required
+                                            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                        >
+                                            <option value="">Select an option</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                        <InputError message={errors.want_to_join_dg} />
+                                    </div>
+                                )}
+
+                                {hasDgLeader === 'yes' && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="dg_leader_name">DG Leader Name</Label>
+                                        <Input
+                                            id="dg_leader_name"
+                                            name="dg_leader_name"
+                                            defaultValue={user.dg_leader_name ?? ''}
+                                            placeholder="DG Leader Name"
+                                            required
+                                        />
+                                        <InputError message={errors.dg_leader_name} />
+                                    </div>
+                                )}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="remarks">Admin Remarks</Label>

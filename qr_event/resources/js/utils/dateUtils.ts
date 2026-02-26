@@ -1,5 +1,19 @@
 // Utility functions for date and time formatting
 
+
+
+
+
+export function formatDateTime12Hour(dateTimeString: string | null): string {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+}
+
 export function formatTime12Hour(time: string | null): string {
     if (!time) return '';
     const [hours, minutes] = time.split(':');
