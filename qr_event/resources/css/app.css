@@ -166,7 +166,14 @@
 
     .donut-animate {
         animation: donut-pop 700ms ease-out both;
+        transition: --donut-percent 700ms ease-in-out;
     }
+}
+
+@property --donut-percent {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
 }
 
 @keyframes bar-rise {

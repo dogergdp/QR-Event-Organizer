@@ -28,12 +28,12 @@ interface Attendee {
     id: number;
     user_id: number;
     is_attended: boolean;
+    is_first_time: boolean;
     attended_time: string | null;
     user: {
         first_name: string;
         last_name: string;
         contact_number: string;
-        is_first_time: boolean;
         remarks: string | null;
     };
 }
@@ -71,9 +71,20 @@ export default function ShowEvent() {
     const [activeAdminTab, setActiveAdminTab] = useState<'rsvp' | 'attendance'>('rsvp');
     const [selectedUser, setSelectedUser] = useState<any>(null);
 
+    const [firstTimeFilter, setFirstTimeFilter] = useState<'all' | 'yes' | 'no'>('all');
+
     const allAttendees = attendees ?? [];
     const rsvpAttendees = allAttendees.filter((attendee) => !attendee.is_attended);
     const attendanceAttendees = allAttendees.filter((attendee) => attendee.is_attended);
+
+    const applyFirstTimeFilter = (list: Attendee[]) => {
+        if (firstTimeFilter === 'all') return list;
+        if (firstTimeFilter === 'yes') return list.filter((a) => a.is_first_time);
+        return list.filter((a) => !a.is_first_time);
+    };
+
+    const filteredRsvpAttendees = applyFirstTimeFilter(rsvpAttendees);
+    const filteredAttendanceAttendees = applyFirstTimeFilter(attendanceAttendees);
 
     const defaultBanner = '/images/default-event.png';
     const hasDescription = Boolean(event.description && event.description.trim());
@@ -81,7 +92,7 @@ export default function ShowEvent() {
     const handleScan = (decodedText: string) => {
         console.log('QR Code scanned:', decodedText);
         setIsScannerOpen(false);
-        
+
         let url = decodedText;
         if (url.startsWith('http://') || url.startsWith('https://')) {
             try {
@@ -92,7 +103,7 @@ export default function ShowEvent() {
                 return;
             }
         }
-        
+
         if (!url.startsWith('/')) {
             url = `/${url}`;
         }
@@ -319,114 +330,150 @@ export default function ShowEvent() {
                         </div>
 
                         <div className="mt-4 border-b border-sidebar-border/70">
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveAdminTab('rsvp')}
-                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                        activeAdminTab === 'rsvp'
-                                            ? 'bg-muted text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    RSVP ({rsvpAttendees.length})
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveAdminTab('attendance')}
-                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                        activeAdminTab === 'attendance'
-                                            ? 'bg-muted text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Attendance ({attendanceAttendees.length})
-                                </button>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveAdminTab('rsvp')}
+                                        className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                            activeAdminTab === 'rsvp'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        RSVP ({rsvpAttendees.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveAdminTab('attendance')}
+                                        className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                            activeAdminTab === 'attendance'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        Attendance ({attendanceAttendees.length})
+                                    </button>
+                                </div>
+
+                                {/* First-time filter toggle */}
+                                <div className="flex items-center gap-2 pb-2 md:pb-0">
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                        First time:
+                                    </span>
+                                    <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFirstTimeFilter('all')}
+                                            className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                firstTimeFilter === 'all'
+                                                    ? 'bg-muted text-foreground'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            All
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFirstTimeFilter('yes')}
+                                            className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                firstTimeFilter === 'yes'
+                                                    ? 'bg-muted text-foreground'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFirstTimeFilter('no')}
+                                            className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                firstTimeFilter === 'no'
+                                                    ? 'bg-muted text-foreground'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-sidebar-border/70">
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Name
-                                        </th>
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Contact
-                                        </th>
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            First Time
-                                        </th>
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            {activeAdminTab === 'attendance' ? 'Attended Time' : 'Status'}
-                                        </th>
-                                    </tr>
+                                <tr className="border-b border-sidebar-border/70">
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                        Name
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                        Contact
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                        First Time
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                        {activeAdminTab === 'attendance' ? 'Attended Time' : 'Status'}
+                                    </th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {(activeAdminTab === 'rsvp'
-                                        ? rsvpAttendees
-                                        : attendanceAttendees
-                                    ).map((attendee) => (
-                                        <tr
-                                            key={attendee.id}
-                                            className="border-b border-sidebar-border/70 hover:bg-sidebar/50 transition-colors"
-                                        >
-                                            <td className="px-4 py-3 text-foreground">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setSelectedUser(attendee.user)}
-                                                    className="hover:text-primary hover:underline transition-colors text-left"
-                                                >
-                                                    {attendee.user.first_name}{' '}
-                                                    {attendee.user.last_name}
-                                                </button>
-                                            </td>
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                {attendee.user.contact_number}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {attendee.user.is_first_time ? (
-                                                    <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                                        New
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-xs text-muted-foreground">
-                                                        —
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                {activeAdminTab === 'attendance' ? (
-                                                    attendee.attended_time
-                                                        ? formatDateTime12Hour(
-                                                              attendee.attended_time
-                                                          )
-                                                        : '—'
-                                                ) : attendee.is_attended ? (
-                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                {(activeAdminTab === 'rsvp'
+                                        ? filteredRsvpAttendees
+                                        : filteredAttendanceAttendees
+                                ).map((attendee) => (
+                                    <tr
+                                        key={attendee.id}
+                                        className="border-b border-sidebar-border/70 hover:bg-sidebar/50 transition-colors"
+                                    >
+                                        <td className="px-4 py-3 text-foreground">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedUser(attendee.user)}
+                                                className="hover:text-primary hover:underline transition-colors text-left"
+                                            >
+                                                {attendee.user.first_name}{' '}
+                                                {attendee.user.last_name}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            {attendee.user.contact_number}
+                                        </td>
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            {attendee.is_first_time ? 'Yes' : 'No'}
+                                        </td>
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            {activeAdminTab === 'attendance' ? (
+                                                attendee.attended_time
+                                                    ? formatDateTime12Hour(
+                                                        attendee.attended_time
+                                                    )
+                                                    : '—'
+                                            ) : attendee.is_attended ? (
+                                                <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                                                         Attended
                                                     </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                                            ) : (
+                                                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
                                                         RSVP Only
                                                     </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
 
-                        {(activeAdminTab === 'rsvp'
-                            ? rsvpAttendees.length === 0
-                            : attendanceAttendees.length === 0) ? (
-                            <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
-                                {activeAdminTab === 'rsvp'
-                                    ? 'No RSVPs yet'
-                                    : 'No attendance records yet'}
-                            </div>
-                        ) : null}
+                            {(activeAdminTab === 'rsvp'
+                                ? filteredRsvpAttendees.length === 0
+                                : filteredAttendanceAttendees.length === 0) ? (
+                                <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
+                                    {activeAdminTab === 'rsvp'
+                                        ? 'No RSVPs yet'
+                                        : 'No attendance records yet'}
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 )}

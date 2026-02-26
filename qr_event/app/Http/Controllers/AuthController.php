@@ -75,6 +75,7 @@ class AuthController extends Controller
                 'start_time' => $event->start_time,
             ],
             'qrToken' => $request->query('qr_token'),
+            'hasAnsweredFirstTime' => (bool) $request->query('hasAnsweredFirstTime', false),
         ]);
     }
 }

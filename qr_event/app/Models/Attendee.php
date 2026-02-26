@@ -11,22 +11,19 @@ class Attendee extends Model
         'user_id',
         'event_id',
         'is_attended',
+        'is_first_time',
         'attended_time',
     ];
 
     protected $casts = [
         'is_attended' => 'boolean',
+        'is_first_time' => 'boolean',
         'attended_time' => 'datetime',
     ];
 
     protected static function booted(): void
     {
-        static::updated(function (Attendee $attendee) {
-            // If user is marked as attended and it's their first time, update is_first_time to false
-            if ($attendee->is_attended && $attendee->user && $attendee->user->is_first_time) {
-                $attendee->user->update(['is_first_time' => false]);
-            }
-        });
+        // No global is_first_time update here anymore, per-event focus.
     }
 
     public function user(): BelongsTo

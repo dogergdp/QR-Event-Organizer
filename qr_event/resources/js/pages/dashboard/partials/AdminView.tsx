@@ -22,7 +22,7 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
         ? [...selectedPerformanceEvent.rsvp].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
     const sortedAttendees = selectedPerformanceEvent?.attendees
         ? [...selectedPerformanceEvent.attendees].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
-    
+
     const registeredCount = selectedPerformanceEvent?.total_registered ?? 0;
     const attendedCount = selectedPerformanceEvent?.total_attended ?? 0;
     const attendedPercent = Math.round((attendedCount / Math.max(registeredCount, 1)) * 100);
@@ -60,11 +60,11 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
 
                         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300" />
+                                <span className="h-3 w-3 rounded-sm bg-orange-600" />
                                 <span>Registered</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-sm bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300" />
+                                <span className="h-3 w-3 rounded-sm bg-purple-600" />
                                 <span>Attended</span>
                             </div>
                         </div>
@@ -83,13 +83,13 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                                         <div className="flex w-12 flex-col items-center">
                                                             <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_registered}</span>
                                                             <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                <div className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-orange-700 via-orange-500 to-orange-300" style={{ height: `${regHeight}%` }} title={`Registered: ${event.total_registered}`} />
+                                                                <div className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-orange-600" style={{ height: `${regHeight}%` }} title={`Registered: ${event.total_registered}`} />
                                                             </div>
                                                         </div>
                                                         <div className="flex w-12 flex-col items-center">
                                                             <span className="mb-1 text-[10px] font-semibold text-muted-foreground">{event.total_attended}</span>
                                                             <div className="relative h-44 w-full overflow-hidden rounded-t-md bg-muted/40">
-                                                                <div className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-purple-700 via-purple-500 to-purple-300" style={{ height: `${attHeight}%` }} title={`Attended: ${event.total_attended}`} />
+                                                                <div className="bar-animate absolute inset-x-0 bottom-0 rounded-t-md bg-purple-600" style={{ height: `${attHeight}%` }} title={`Attended: ${event.total_attended}`} />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -105,8 +105,14 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                         ) : (
                             selectedPerformanceEvent && (
                                 <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div className="flex items-center justify-center">
-                                        <div className="donut-animate relative flex h-64 w-64 items-center justify-center rounded-full shadow-lg" style={{ background: `conic-gradient(#7c3aed 0% ${attendedPercent}%, #f97316 ${attendedPercent}% 100%)` }}>
+                                    <div className="flex h-72 items-center justify-center">
+                                        <div
+                                            className="donut-animate relative flex h-64 w-64 items-center justify-center rounded-full shadow-lg"
+                                            style={{
+                                                background: `conic-gradient(#9333ea 0% var(--donut-percent), #ea580c var(--donut-percent) 100%)`,
+                                                ['--donut-percent' as any]: `${attendedPercent}%`
+                                            }}
+                                        >
                                             <div className="absolute inset-12 rounded-full bg-background" />
                                             <div className="relative text-center">
                                                 <p className="text-xs text-muted-foreground">Attended</p>
@@ -120,13 +126,22 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                             <Link href={`/events/${selectedPerformanceEvent.id}`} className="text-sm font-semibold text-primary hover:underline">{selectedPerformanceEvent.name}</Link>
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
-                                            <div className="rounded-md bg-muted/30 p-3">
-                                                <p className="text-xs text-muted-foreground">Registered</p>
-                                                <p className="text-lg font-semibold text-foreground">{registeredCount}</p>
+                                            <div className="relative overflow-hidden rounded-lg border-2 border-orange-500/30 bg-orange-600 p-4 shadow-sm">
+                                                <div className="flex h-full flex-col">
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-white/80">Registered</p>
+                                                        <p className="mt-2 text-5xl font-bold leading-none text-white">{registeredCount}</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="rounded-md bg-muted/30 p-3">
-                                                <p className="text-xs text-muted-foreground">Attended</p>
-                                                <p className="text-lg font-semibold text-foreground">{attendedCount}</p>
+
+                                            <div className="relative overflow-hidden rounded-lg border-2 border-purple-500/30 bg-purple-600 p-4 shadow-sm">
+                                                <div className="flex h-full flex-col">
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-white/80">Attended</p>
+                                                        <p className="mt-2 text-5xl font-bold leading-none text-white">{attendedCount}</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <p className="text-xs text-muted-foreground">{attendedCount} of {registeredCount} registered attendees checked in.</p>
@@ -156,13 +171,20 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                         </button>
                                     </div>
                                 </div>
-                                <div className="mt-3 max-h-80 overflow-y-auto">
+                                <div className="mt-3 h-80 overflow-y-auto">
                                     {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).length === 0 ? (
-                                        <div className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">No {activePerformanceTab === 'rsvp' ? 'RSVPs' : 'attendees'} yet</div>
+                                        <div className="flex h-full items-center justify-center rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">No {activePerformanceTab === 'rsvp' ? 'RSVPs' : 'attendees'} yet</div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto">
-                                            {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).slice(0, 12).map((person) => (
-                                                <div key={person.id} className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).slice(0, 12).map((person: any) => (
+                                                <div key={person.id} className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2 relative overflow-hidden">
+                                                    {person.is_first_time && (
+                                                        <div className="absolute top-0 right-0">
+                                                            <div className="bg-primary text-[8px] font-bold text-primary-foreground px-1.5 py-0.5 rounded-bl-md">
+                                                                FIRST TIME
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     <p className="text-sm font-medium text-foreground">{person.name}</p>
                                                     <p className="text-xs text-muted-foreground">{person.contact_number}</p>
                                                     {activePerformanceTab === 'attendees' && person.attended_time && <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>}
@@ -186,41 +208,41 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                             <h3 className="mb-4 text-base font-semibold text-foreground">Analytics</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {/* Stat Cards */}
-                                <div className="relative overflow-hidden rounded-lg border-2 border-black/30 bg-black p-4 shadow-sm">
+                                <div className="relative overflow-hidden rounded-lg border-2 border-muted/30 bg-white p-4 shadow-sm dark:bg-[#444a4e]">
                                     <div className="flex h-full flex-col">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-white/70">Total Events</p>
-                                            <p className="mt-2 text-5xl font-bold leading-none text-yellow-300">{stats.total_events}</p>
-                                            <p className="mt-2 text-xs text-white/70">{stats.finished_events} finished</p>
+                                            <p className="text-sm font-medium text-muted-foreground">Total Events</p>
+                                            <p className="mt-2 text-5xl font-bold leading-none text-foreground">{stats.total_events}</p>
+                                            <p className="mt-2 text-xs text-muted-foreground">{stats.finished_events} finished</p>
                                         </div>
-                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Calendar className="h-16 w-16 text-white/15" /></div>
+                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Calendar className="h-16 w-16 text-foreground/5" /></div>
                                     </div>
                                 </div>
-                                <div className="relative overflow-hidden rounded-lg border-2 border-orange-500/30 bg-orange-600 p-4 shadow-sm">
+                                <div className="relative overflow-hidden rounded-lg border-2 border-muted/30 bg-white p-4 shadow-sm dark:bg-[#444a4e]">
                                     <div className="flex h-full flex-col">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-white/80">Total Registered</p>
-                                            <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_attendees}</p>
+                                            <p className="text-sm font-medium text-muted-foreground">Total Registered</p>
+                                            <p className="mt-2 text-5xl font-bold leading-none text-foreground">{stats.total_attendees}</p>
                                         </div>
-                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Users className="h-16 w-16 text-white/20" /></div>
+                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Users className="h-16 w-16 text-foreground/5" /></div>
                                     </div>
                                 </div>
-                                <div className="relative overflow-hidden rounded-lg border-2 border-purple-500/30 bg-purple-600 p-4 shadow-sm">
+                                <div className="relative overflow-hidden rounded-lg border-2 border-muted/30 bg-white p-4 shadow-sm dark:bg-[#444a4e]">
                                     <div className="flex h-full flex-col">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-white/80">Total Attendances</p>
-                                            <p className="mt-2 text-5xl font-bold leading-none text-white">{stats.total_attendances}</p>
+                                            <p className="text-sm font-medium text-muted-foreground">Total Attendances</p>
+                                            <p className="mt-2 text-5xl font-bold leading-none text-foreground">{stats.total_attendances}</p>
                                         </div>
-                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><CheckCircle className="h-16 w-16 text-white/20" /></div>
+                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><CheckCircle className="h-16 w-16 text-foreground/5" /></div>
                                     </div>
                                 </div>
-                                <div className="relative overflow-hidden rounded-lg border-2 border-blue-500/30 bg-blue-600 p-4 shadow-sm">
+                                <div className="relative overflow-hidden rounded-lg border-2 border-muted/30 bg-white p-4 shadow-sm dark:bg-[#444a4e]">
                                     <div className="flex h-full flex-col">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-white/80">Next Event is in</p>
-                                            <p className="mt-2 text-5xl font-bold leading-none text-white">{nextEventTime}</p>
+                                            <p className="text-sm font-medium text-muted-foreground">Next Event is in</p>
+                                            <p className="mt-2 text-5xl font-bold leading-none text-foreground">{nextEventTime}</p>
                                         </div>
-                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Clock className="h-16 w-16 text-white/20" /></div>
+                                        <div className="pointer-events-none absolute -bottom-2 -right-2"><Clock className="h-16 w-16 text-foreground/5" /></div>
                                     </div>
                                 </div>
                             </div>
@@ -264,7 +286,7 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                         const eventsByDate = getEventsByDate(events ?? []);
                                         const weeks = [];
                                         for (let i = 0; i < calendarDays.length; i += 7) weeks.push(calendarDays.slice(i, i + 7));
-                                        
+
                                         return weeks.map((week, wIdx) => (
                                             <div key={wIdx} className="grid grid-cols-7 gap-2">
                                                 {week.map((date, dIdx) => {

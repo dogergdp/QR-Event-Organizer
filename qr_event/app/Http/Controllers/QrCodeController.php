@@ -242,6 +242,8 @@ class QrCodeController extends Controller
                 return Inertia::render('attendance/mark', [
                     'event' => $event,
                     'qrCode' => $qrCode,
+                    'isFirstTime' => $attendee->is_first_time,
+                    'hasAnsweredFirstTime' => true,
                 ]);
             }
 
@@ -249,6 +251,7 @@ class QrCodeController extends Controller
             return redirect()->route('qr.register-confirm', [
                 'event' => $event->id,
                 'qr_token' => $token,
+                'hasAnsweredFirstTime' => false,
             ]);
         }
 

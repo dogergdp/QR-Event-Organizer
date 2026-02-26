@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, UserPlus, Eye } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, UserPlus, Eye, Upload, Download, AlertCircle } from 'lucide-react';
 import { calculateAge } from '@/utils/dateUtils';
 
 
 
 export default function AdminUsers() {
     const [selectedUser, setSelectedUser] = useState<any>(null);
-    const { users, filters } = usePage<any>().props as {
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [importFile, setImportFile] = useState<File | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const { users, filters, flash, import_errors } = usePage<any>().props as {
         users: {
             data: Array<{
                 id: number;
@@ -87,17 +90,39 @@ export default function AdminUsers() {
                                 View all registered users in the system
                             </p>
                         </div>
-                        <Link
-                            href="/admin/users/create"
-                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                            <UserPlus className="h-4 w-4" />
-                            Add User
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setIsImportModalOpen(true)}
+                                className="inline-flex items-center gap-2 rounded-lg border border-sidebar-border/70 bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                            >
+                                <Upload className="h-4 w-4" />
+                                Import
+                            </button>
+                            <Link
+                                href="/admin/users/create"
+                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                            >
+                                <UserPlus className="h-4 w-4" />
+                                Add User
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    {import_errors && import_errors.length > 0 && (
+                        <div className="mb-4 rounded-md bg-destructive/10 p-4 border border-destructive/20">
+                            <div className="flex items-center gap-2 mb-2 text-destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <h3 className="text-sm font-bold">Import Warnings/Errors</h3>
+                            </div>
+                            <ul className="list-disc list-inside text-xs text-destructive/80 max-h-40 overflow-y-auto space-y-1">
+                                {import_errors.map((error: string, idx: number) => (
+                                    <li key={idx}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     <form method="get" action="/admin/users" className="mb-4 flex gap-2">
                         <input
                             type="text"
@@ -333,6 +358,95 @@ export default function AdminUsers() {
                                     >
                                         Close
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Import Users Modal */}
+                    {isImportModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !isImporting && setIsImportModalOpen(false)}>
+                            <div className="w-full max-w-md rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="text-xl font-semibold text-foreground">Import Users</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => !isImporting && setIsImportModalOpen(false)}
+                                        className="text-muted-foreground hover:text-foreground transition-colors"
+                                        disabled={isImporting}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4 border-t border-sidebar-border/70 pt-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Upload a CSV file containing user details. The expected format is:
+                                    </p>
+                                    <div className="rounded bg-muted p-2 text-[10px] font-mono overflow-x-auto whitespace-nowrap">
+                                        First Name, Last Name, Contact Number, Birthdate (YYYY-MM-DD), Marital Status, Has DG Leader (yes/no), DG Leader Name, Remarks
+                                    </div>
+                                    <p className="text-xs text-muted-foreground italic">
+                                        * Birthdate, Marital Status (single, married, separated, widowed), and Has DG Leader are required.
+                                    </p>
+
+                                    <div className="mt-4">
+                                        <label className="block text-sm font-medium text-foreground mb-2">Select CSV File</label>
+                                        <input
+                                            type="file"
+                                            accept=".csv,.txt"
+                                            onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                                            className="block w-full text-sm text-muted-foreground
+                                                file:mr-4 file:py-2 file:px-4
+                                                file:rounded-md file:border-0
+                                                file:text-sm file:font-semibold
+                                                file:bg-primary file:text-primary-foreground
+                                                hover:file:bg-primary/90"
+                                            disabled={isImporting}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
+                                    <button
+                                        type="button"
+                                        disabled={!importFile || isImporting}
+                                        onClick={() => {
+                                            if (!importFile) return;
+                                            setIsImporting(true);
+                                            const formData = new FormData();
+                                            formData.append('file', importFile);
+                                            router.post('/admin/users/import', formData, {
+                                                onSuccess: () => {
+                                                    setIsImporting(false);
+                                                    setIsImportModalOpen(false);
+                                                    setImportFile(null);
+                                                },
+                                                onError: () => setIsImporting(false),
+                                                onFinish: () => setIsImporting(false),
+                                            });
+                                        }}
+                                        className="flex-1 rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        {isImporting ? 'Importing...' : 'Start Import'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsImportModalOpen(false)}
+                                        className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                        disabled={isImporting}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <a
+                                        href="/admin/reports/export/attendees"
+                                        className="text-xs text-primary hover:underline flex items-center justify-center gap-1"
+                                        download
+                                    >
+                                        <Download className="h-3 w-3" /> Download Template (Current Users CSV)
+                                    </a>
                                 </div>
                             </div>
                         </div>

@@ -31,7 +31,7 @@ class DashboardController extends Controller
         $reportEvents = Event::with([
             'attendees' => fn($query) => $query
                 ->with('user:id,first_name,last_name,contact_number')
-                ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time'),
+                ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'is_first_time'),
         ])
         ->withCount([
             'attendees',
@@ -53,12 +53,14 @@ class DashboardController extends Controller
                 'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
                 'contact_number' => $attendee->user->contact_number ?? '',
                 'attended_time' => null,
+                'is_first_time' => $attendee->is_first_time,
             ]),
             'attendees' => $event->attendees->where('is_attended', true)->values()->map(fn($attendee) => [
                 'id' => $attendee->id,
                 'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
                 'contact_number' => $attendee->user->contact_number ?? '',
                 'attended_time' => optional($attendee->attended_time)?->format('M d, Y h:i A'),
+                'is_first_time' => $attendee->is_first_time,
             ]),
         ]);
 
@@ -105,6 +107,7 @@ class DashboardController extends Controller
             ->orderBy('start_time')
             ->get(['id', 'name', 'date', 'start_time', 'end_time', 'description', 'location', 'banner_image', 'is_finished', 'is_ongoing'])
             ->map(function($event) use ($user) {
+                $attendee = $event->attendees()->where('user_id', $user->id)->first();
                 return [
                     'id' => $event->id,
                     'name' => $event->name,
@@ -116,7 +119,8 @@ class DashboardController extends Controller
                     'banner_image' => $event->banner_image,
                     'is_finished' => $event->is_finished,
                     'is_ongoing' => $event->is_ongoing,
-                    'has_rsvp' => $event->attendees()->where('user_id', $user->id)->exists(),
+                    'has_rsvp' => $attendee !== null,
+                    'is_attended' => $attendee?->is_attended ?? false,
                 ];
             });
 

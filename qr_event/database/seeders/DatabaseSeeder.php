@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             [
                 'first_name' => 'Admin',
                 'last_name' => 'Coordinator',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('P@ssw0rd'),
             ]
         );
 

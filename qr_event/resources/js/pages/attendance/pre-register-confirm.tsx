@@ -27,6 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfirmProps) {
     const { data, setData, post, processing } = useForm({
         confirm_rsvp: false,
+        is_first_time: null as boolean | null,
         qr_token: qrToken ?? '',
     });
 
@@ -58,15 +59,43 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                     </div>
 
                     <div className="space-y-4">
-                        <div className="rounded-lg border border-border bg-card p-6">
-                            <h3 className="font-semibold text-foreground mb-4">Account Created</h3>
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Your account has been successfully created. Now please confirm your RSVP for this event.
-                            </p>
-                        </div>
-
                         <form onSubmit={handleConfirmRsvp} className="space-y-4">
                             <div className="rounded-lg border border-border bg-card p-6">
+                                <div className="mb-6">
+                                    <p className="text-sm font-medium text-foreground mb-3">
+                                        Is this your first time joining such an event?
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('is_first_time', true)}
+                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                data.is_first_time === true
+                                                    ? 'bg-primary border-primary text-primary-foreground'
+                                                    : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                            }`}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('is_first_time', false)}
+                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                data.is_first_time === false
+                                                    ? 'bg-primary border-primary text-primary-foreground'
+                                                    : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                            }`}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <h3 className="font-semibold text-foreground mb-4">Account Created</h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Your account has been successfully created. Now please confirm your RSVP for this event.
+                                </p>
+
                                 <label className="flex items-start gap-3 cursor-pointer relative">
                                     <div className="mt-1 relative flex-shrink-0">
                                         <input
@@ -86,10 +115,10 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                     </span>
                                 </label>
                             </div>
-                            
+
                             <Button
                                 type="submit"
-                                disabled={processing || !data.confirm_rsvp}
+                                disabled={processing || !data.confirm_rsvp || data.is_first_time === null}
                                 className="w-full"
                                 size="lg"
                             >

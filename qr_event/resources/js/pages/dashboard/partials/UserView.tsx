@@ -9,7 +9,7 @@ interface UserViewProps {
 
 export default function UserView({ events = [], onScanClick }: UserViewProps) {
     const isEventOngoing = (event: any) => event?.is_ongoing ?? false;
-    
+
     const upcomingEvents = events.filter((event) => !event.is_finished && !isEventOngoing(event));
     const ongoingEvents = events.filter((event) => !event.is_finished && isEventOngoing(event));
     const defaultBanner = '/images/default-event.png';
@@ -53,7 +53,11 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
                                         <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
                                             ● Ongoing
                                         </span>
-                                        {event.has_rsvp && (
+                                        {event.is_attended ? (
+                                            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                                ● Attended
+                                            </span>
+                                        ) : event.has_rsvp && (
                                             <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground dark:bg-white/10 dark:text-white">
                                                 RSVP'd
                                             </span>
@@ -82,7 +86,7 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
 
 
 
-            
+
 
             {/* Upcoming Events Section */}
             <div className="mt-4">
@@ -115,7 +119,11 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
                                     </div>
                                     <div className="p-3">
                                         <div className="flex items-center gap-2 mb-2">
-                                            {event.has_rsvp && (
+                                            {event.is_attended ? (
+                                                <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                                    ● Attended
+                                                </span>
+                                            ) : event.has_rsvp && (
                                                 <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground dark:bg-white/10 dark:text-white">
                                                     RSVP'd
                                                 </span>

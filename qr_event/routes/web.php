@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
+use App\Http\Controllers\Admin\ImportController as AdminImportController;
 use App\Http\Controllers\Admin\LogController as AdminLogController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AttendanceController;
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('users/import', [AdminImportController::class, 'importUsers'])->name('users.import');
 
     Route::get('attendees', [AdminAttendeeController::class, 'index'])->name('attendees');
     Route::post('attendees', [AdminAttendeeController::class, 'store'])->name('attendees.store');
@@ -40,10 +42,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('qr/{qrCode}/view', [QrCodeController::class, 'adminView'])->name('qr.view');
 
     Route::get('reports', [ReportController::class, 'index'])->name('reports');
-    
+
     // Extract logs logic to a controller
     Route::get('logs', [AdminLogController::class, 'index'])->name('logs');
-    
+
     Route::get('reports/export/events', [ReportController::class, 'exportEvents'])->name('reports.export.events');
     Route::get('reports/export/attendees', [ReportController::class, 'exportAttendees'])->name('reports.export.attendees');
     Route::get('reports/export/attendance-details', [ReportController::class, 'exportAttendanceDetails'])->name('reports.export.attendance-details');

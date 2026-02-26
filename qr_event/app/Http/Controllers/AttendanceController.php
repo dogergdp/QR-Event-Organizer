@@ -20,10 +20,10 @@ class AttendanceController extends Controller
     public function scan(Request $request): Response|RedirectResponse
     {
         $token = $request->get('token');
-        
+
         // Validate token and get event ID
         $eventId = QRCodeService::validateToken($token);
-        
+
         if (!$eventId) {
             return redirect()->route('dashboard')
                 ->with('error', 'Invalid or expired QR code. Please try again.');
@@ -51,6 +51,8 @@ class AttendanceController extends Controller
             'token' => $token,
             'isAlreadyRegistered' => $attendance !== null,
             'isAlreadyAttended' => $attendance?->is_attended ?? false,
+            'isFirstTime' => $attendance?->is_first_time ?? false,
+            'hasAnsweredFirstTime' => $attendance !== null,
         ]);
     }
 
@@ -63,11 +65,12 @@ class AttendanceController extends Controller
             'token' => ['required', 'string'],
             'event_id' => ['required', 'integer', 'exists:events,id'],
             'confirm_attendance' => ['required', 'boolean'],
+            'is_first_time' => ['nullable', 'boolean'],
         ]);
 
         // Validate token
         $eventId = QRCodeService::validateToken($validated['token']);
-        
+
         if (!$eventId || $eventId !== $validated['event_id']) {
             return back()->with('error', 'Invalid QR code. Please try again.');
         }
@@ -87,6 +90,7 @@ class AttendanceController extends Controller
             ],
             [
                 'is_attended' => true,
+                'is_first_time' => $request->boolean('is_first_time'),
                 'attended_time' => now(),
             ]
         );
@@ -113,7 +117,7 @@ class AttendanceController extends Controller
     /**
      * Mark attendance for an event
      */
-    public function markAttendance(Event $event): RedirectResponse
+    public function markAttendance(Request $request, Event $event): RedirectResponse
     {
         $user = request()->user();
 
@@ -125,6 +129,7 @@ class AttendanceController extends Controller
             ],
             [
                 'is_attended' => true,
+                'is_first_time' => $request->boolean('is_first_time'),
                 'attended_time' => now(),
             ]
         );
@@ -157,7 +162,7 @@ class AttendanceController extends Controller
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             abort(403);
         }
-        
+
         return [
             'url' => QRCodeService::generateQRUrl($event->getKey()),
             'eventId' => $event->getKey(),

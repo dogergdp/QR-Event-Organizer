@@ -28,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: PreRegisterProps) {
     const { data, setData, post, processing } = useForm({
         confirm_rsvp: false,
+        is_first_time: null as boolean | null,
     });
     const hasDescription = Boolean(event.description && event.description.trim());
 
@@ -106,6 +107,36 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                                 </>
                             ) : (
                                 <>
+                                    <div className="mb-6">
+                                        <p className="text-sm font-medium text-foreground mb-3">
+                                            Is this your first time joining such an event?
+                                        </p>
+                                        <div className="flex gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setData('is_first_time', true)}
+                                                className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                    data.is_first_time === true
+                                                        ? 'bg-primary border-primary text-primary-foreground'
+                                                        : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                Yes
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setData('is_first_time', false)}
+                                                className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                    data.is_first_time === false
+                                                        ? 'bg-primary border-primary text-primary-foreground'
+                                                        : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                No
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <p className="text-foreground mb-4">
                                         {fromQr
                                             ? 'You scanned the QR code for this event. Would you like to register your attendance?'
@@ -134,7 +165,7 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
                                     <div className="flex gap-4">
                                         <button
                                             type="submit"
-                                            disabled={processing || !data.confirm_rsvp}
+                                            disabled={processing || !data.confirm_rsvp || data.is_first_time === null}
                                             className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:bg-gray-400 transition font-medium"
                                         >
                                             {processing ? 'Registering...' : 'Yes, RSVP Now'}

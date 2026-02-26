@@ -21,7 +21,7 @@ class ReportController extends Controller
         $finishedEvents = Event::where('is_finished', true)->count();
         $totalAttendees = User::count();
         $totalAttendances = Attendee::where('is_attended', true)->count();
-        
+
         // Get events with attendance counts
         $events = Event::withCount([
             'attendees',
@@ -60,7 +60,7 @@ class ReportController extends Controller
             'finished_events' => $finishedEvents,
             'total_attendees' => $totalAttendees,
             'total_attendances' => $totalAttendances,
-            'average_attendance_rate' => $totalAttendees > 0 
+            'average_attendance_rate' => $totalAttendees > 0
                 ? round(($totalAttendances / $totalAttendees), 2)
                 : 0,
         ];
@@ -79,7 +79,7 @@ class ReportController extends Controller
     {
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
-            
+
             // Write headers
             fputcsv($handle, [
                 'ID',
@@ -130,7 +130,7 @@ class ReportController extends Controller
     {
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
-            
+
             // Write headers
             fputcsv($handle, [
                 'ID',
@@ -180,7 +180,7 @@ class ReportController extends Controller
     {
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
-            
+
             // Write headers
             fputcsv($handle, [
                 'Event Name',
@@ -205,7 +205,7 @@ class ReportController extends Controller
                     $attendee->user->contact_number,
                     $attendee->is_attended ? 'Yes' : 'No',
                     $attendee->attended_time,
-                    $attendee->user->is_first_time ? 'Yes' : 'No',
+                    $attendee->is_first_time ? 'Yes' : 'No',
                 ]);
             }
 

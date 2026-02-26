@@ -31,7 +31,7 @@ class AttendeeController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10, ['id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'created_at'])
+            ->paginate(10, ['id', 'user_id', 'event_id', 'is_attended', 'is_first_time', 'attended_time', 'created_at'])
             ->withQueryString();
 
         return Inertia::render('admin/attendees', [

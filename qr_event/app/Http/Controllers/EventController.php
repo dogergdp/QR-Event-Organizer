@@ -47,7 +47,7 @@ class EventController extends Controller
     public function show(Event $event): Response
     {
         $user = request()->user();
-        
+
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
@@ -59,12 +59,13 @@ class EventController extends Controller
                     'id' => $attendee->id,
                     'user_id' => $attendee->user_id,
                     'is_attended' => $attendee->is_attended,
+                    'is_first_time' => (bool) $attendee->is_first_time,
                     'attended_time' => $attendee->attended_time,
                     'user' => [
                         'first_name' => $attendee->user->first_name,
                         'last_name' => $attendee->user->last_name,
                         'contact_number' => $attendee->user->contact_number,
-                        'is_first_time' => $attendee->user->is_first_time,
+                        'is_first_time' => (bool) $attendee->user->is_first_time,
                         'remarks' => $attendee->user->remarks,
                     ],
                 ]),
@@ -137,7 +138,7 @@ class EventController extends Controller
         // Auto-generate QR codes for pre-registration and attendance
         $preRegExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
         $attendanceExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['end_time']);
-        
+
         // Pre-registration QR Code
         $preRegToken = Str::random(32);
         QrCode::create([
@@ -282,12 +283,18 @@ class EventController extends Controller
             return redirect()->route('login');
         }
 
+        $validated = $request->validate([
+            'confirm_rsvp' => ['required', 'boolean'],
+            'is_first_time' => ['nullable', 'boolean'],
+        ]);
+
         // Get or create attendee record
         $attendee = $event->attendees()
-            ->where('user_id', $user->id)
-            ->firstOrCreate([
+            ->updateOrCreate([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
+            ], [
+                'is_first_time' => $request->boolean('is_first_time'),
             ]);
 
         ActivityLog::create([

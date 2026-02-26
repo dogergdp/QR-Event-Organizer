@@ -18,6 +18,8 @@ interface QrCode {
 type MarkAttendanceProps = {
     event: Event;
     qrCode: QrCode;
+    isFirstTime: boolean;
+    hasAnsweredFirstTime?: boolean;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -27,9 +29,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
+export default function MarkAttendance({ event, qrCode, isFirstTime: initialIsFirstTime, hasAnsweredFirstTime = false }: MarkAttendanceProps) {
     const { data, setData, post, processing } = useForm({
         confirm_attendance: false,
+        is_first_time: (hasAnsweredFirstTime ? initialIsFirstTime : null) as boolean | null,
     });
 
     const handleMarkAttendance = (e: React.FormEvent) => {
@@ -62,6 +65,38 @@ export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
 
                     <form onSubmit={handleMarkAttendance} className="space-y-4">
                         <div className="bg-background border-2 border-sidebar-border/100 rounded-lg p-6">
+                            {!hasAnsweredFirstTime && (
+                                <div className="mb-6">
+                                    <p className="text-sm font-medium text-foreground mb-3">
+                                        Is this your first time joining such an event?
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('is_first_time', true)}
+                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                data.is_first_time === true
+                                                    ? 'bg-primary border-primary text-primary-foreground'
+                                                    : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                            }`}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('is_first_time', false)}
+                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                data.is_first_time === false
+                                                    ? 'bg-primary border-primary text-primary-foreground'
+                                                    : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                            }`}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <p className="text-foreground mb-4">
                                 Confirm your attendance at this event.
                             </p>
@@ -87,7 +122,7 @@ export default function MarkAttendance({ event, qrCode }: MarkAttendanceProps) {
 
                             <button
                                 type="submit"
-                                disabled={processing || !data.confirm_attendance}
+                                disabled={processing || !data.confirm_attendance || (data.is_first_time === null && !hasAnsweredFirstTime)}
                                 className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:bg-gray-400 transition font-medium"
                             >
                                 {processing ? 'Marking...' : 'Confirm Attendance'}

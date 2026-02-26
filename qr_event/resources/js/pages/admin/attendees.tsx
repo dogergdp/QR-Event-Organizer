@@ -9,7 +9,7 @@ import { calculateAge } from '@/utils/dateUtils';
 export default function AdminAttendees() {
     const [userSearch, setUserSearch] = useState('');
     const [selectedUser, setSelectedUser] = useState<any>(null);
-    
+
     const { attendees, users, events, filters } = usePage<any>().props as {
         attendees: {
             data: Array<{
@@ -17,6 +17,7 @@ export default function AdminAttendees() {
                 user_id: number;
                 event_id: number;
                 is_attended: boolean;
+                is_first_time: boolean;
                 attended_time: string | null;
                 created_at: string;
                 user: {
