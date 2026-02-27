@@ -47,7 +47,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -60,6 +60,18 @@ class User extends Authenticatable
             'is_first_time' => 'boolean',
         ];
     }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    protected $appends = ['is_admin'];
 
     /**
      * Events the user has joined.
