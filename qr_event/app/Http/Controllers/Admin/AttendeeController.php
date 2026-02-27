@@ -54,39 +54,44 @@ class AttendeeController extends Controller
     {
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
-            'event_id' => [
-                'required',
-                'exists:events,id',
-                Rule::unique('attendees')->where(function ($query) use ($request) {
-                    return $query->where('user_id', $request->input('user_id'));
-                }),
-            ],
+            'event_id' => ['required', 'exists:events,id'],
             'is_attended' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['is_attended'] = (bool) ($validated['is_attended'] ?? false);
-        $validated['attended_time'] = $validated['is_attended'] ? now() : null;
+        $isAttended = (bool) ($validated['is_attended'] ?? false);
+        $attendedTime = $isAttended ? now() : null;
 
-        $attendee = Attendee::create($validated);
+        $attendee = Attendee::updateOrCreate(
+            [
+                'user_id' => $validated['user_id'],
+                'event_id' => $validated['event_id'],
+            ],
+            [
+                'is_attended' => $isAttended,
+                'attended_time' => $attendedTime,
+            ]
+        );
+
         $user = User::find($attendee->user_id);
         $event = Event::find($attendee->event_id);
 
+        $action = $attendee->wasRecentlyCreated ? 'create_attendee' : 'update_attendee';
+        $description = $attendee->wasRecentlyCreated
+            ? sprintf('Added attendee %s %s to event %s', $user?->first_name ?? 'Unknown', $user?->last_name ?? 'User', $event?->name ?? 'Unknown event')
+            : sprintf('Updated attendance status for %s %s at event %s', $user?->first_name ?? 'Unknown', $user?->last_name ?? 'User', $event?->name ?? 'Unknown event');
+
         ActivityLog::create([
             'user_id' => $request->user()?->id,
-            'action' => 'create_attendee',
+            'action' => $action,
             'target_type' => 'Attendee',
             'target_id' => $attendee->id,
-            'description' => sprintf(
-                'Added attendee %s %s to event %s',
-                $user?->first_name ?? 'Unknown',
-                $user?->last_name ?? 'User',
-                $event?->name ?? 'Unknown event'
-            ),
+            'description' => $description,
         ]);
 
-        LiveDashboardService::notify('attendee_created', $attendee->event_id);
+        LiveDashboardService::notify($attendee->wasRecentlyCreated ? 'attendee_created' : 'attendance_confirmed', $attendee->event_id);
 
-        return redirect()->route('admin.attendees')->with('success', 'Attendee added successfully.');
+        $message = $attendee->wasRecentlyCreated ? 'Attendee added successfully.' : 'Attendee status updated successfully.';
+        return redirect()->route('admin.attendees')->with('success', $message);
     }
 
     public function destroy(Request $request, Attendee $attendee): RedirectResponse
