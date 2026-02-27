@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Form, Head, Link, usePage, router, useForm } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ export default function EditUser() {
         password_confirmation: '',
     });
 
-    const { data, setData, processing, errors } = form;
+    const { data, setData, processing } = form;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },

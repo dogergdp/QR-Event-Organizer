@@ -29,7 +29,7 @@ type RegisterFromQRProps = {
     isAttendanceQr?: boolean;
 };
 
-export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false }: RegisterFromQRProps) {
+export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) {
     const today = new Date().toISOString().split('T')[0];
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
