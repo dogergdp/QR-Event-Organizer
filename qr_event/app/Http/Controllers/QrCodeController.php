@@ -134,7 +134,7 @@ class QrCodeController extends Controller
                     'id' => $qrCode->id,
                     'name' => $qrCode->name,
                     'type' => $qrCode->expires_at ? 'timed' : 'static',
-                    'is_active' => $qrCode->is_active,
+                    'is_active' => false,
                     'expires_at' => $qrCode->expires_at?->toIso8601String(),
                     'valid' => false,
                     'event' => [
