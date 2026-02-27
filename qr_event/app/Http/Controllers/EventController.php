@@ -65,11 +65,14 @@ class EventController extends Controller
                 'is_first_time' => (bool) $attendee->is_first_time,
                 'attended_time' => $attendee->attended_time,
                 'user' => [
+                    'id' => $attendee->user->id,
                     'first_name' => $attendee->user->first_name,
                     'last_name' => $attendee->user->last_name,
                     'contact_number' => $attendee->user->contact_number,
+                    'birthdate' => $attendee->user->birthdate,
                     'is_first_time' => (bool) $attendee->user->is_first_time,
                     'remarks' => $attendee->user->remarks,
+                    'want_to_join_dg' => $attendee->user->want_to_join_dg,
                 ],
             ])
             ->withQueryString();

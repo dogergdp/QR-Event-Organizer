@@ -1,9 +1,12 @@
 export interface AttendeeUser {
+    id: number;
     first_name: string;
     last_name: string;
     contact_number: string;
+    birthdate: string | null;
     is_first_time: boolean;
     remarks: string | null;
+    want_to_join_dg: string | null;
 }
 
 export interface Attendee {

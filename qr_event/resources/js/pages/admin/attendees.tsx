@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { calculateAge } from '@/utils/dateUtils';
+import { calculateAge, formatDate } from '@/utils/dateUtils';
 
 
 export default function AdminAttendees() {
@@ -354,10 +354,28 @@ export default function AdminAttendees() {
                                         <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
                                         <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
                                     </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Age</p>
+                                            <p className="text-sm text-foreground">
+                                                {calculateAge(selectedUser.birthdate)} years old
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Birthday</p>
+                                            <p className="text-sm text-foreground">
+                                                {formatDate(selectedUser.birthdate)}
+                                            </p>
+                                        </div>
+                                    </div>
                                     <div>
-                                        <p className="text-xs font-medium text-muted-foreground">Age</p>
-                                        <p className="text-sm text-foreground">
-                                            {calculateAge(selectedUser.birthdate)}
+                                        <p className="text-xs font-medium text-muted-foreground">DG Leader</p>
+                                        <p className="text-sm text-foreground">{selectedUser.dg_leader_name || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Wants to join a DG group?</p>
+                                        <p className="text-sm text-foreground capitalize">
+                                            {selectedUser.want_to_join_dg === 'yes' ? 'Yes' : selectedUser.want_to_join_dg === 'no' ? 'No' : 'Not specified'}
                                         </p>
                                     </div>
                                 </div>

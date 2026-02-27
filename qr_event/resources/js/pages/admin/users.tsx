@@ -3,7 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, UserPlus, Eye, Upload, Download, AlertCircle } from 'lucide-react';
-import { calculateAge } from '@/utils/dateUtils';
+import { calculateAge, formatDate } from '@/utils/dateUtils';
 
 
 
@@ -333,20 +333,30 @@ export default function AdminUsers() {
                                         <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
                                         <p className="text-sm text-foreground">{selectedUser.contact_number}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground">Age</p>
-                                        <p className="text-sm text-foreground">{calculateAge(selectedUser.birthdate)}</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Age</p>
+                                            <p className="text-sm text-foreground">
+                                                {calculateAge(selectedUser.birthdate)} years old
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Birthday</p>
+                                            <p className="text-sm text-foreground">
+                                                {formatDate(selectedUser.birthdate)}
+                                            </p>
+                                        </div>
                                     </div>
                                     <div>
                                         <p className="text-xs font-medium text-muted-foreground">DG Leader</p>
                                         <p className="text-sm text-foreground">{selectedUser.dg_leader_name || 'N/A'}</p>
                                     </div>
-                                    {selectedUser.has_dg_leader === 'no' && (
-                                        <div>
-                                            <p className="text-xs font-medium text-muted-foreground">Wants to join a DG group?</p>
-                                            <p className="text-sm text-foreground capitalize">{selectedUser.want_to_join_dg || 'Not specified'}</p>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">Wants to join a DG group?</p>
+                                        <p className="text-sm text-foreground capitalize">
+                                            {selectedUser.want_to_join_dg === 'yes' ? 'Yes' : selectedUser.want_to_join_dg === 'no' ? 'No' : 'Not specified'}
+                                        </p>
+                                    </div>
                                     <div>
                                         <p className="text-xs font-medium text-muted-foreground">Registration Date</p>
                                         <p className="text-sm text-foreground">{new Date(selectedUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>

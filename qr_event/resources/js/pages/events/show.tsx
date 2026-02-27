@@ -4,7 +4,7 @@ import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
 import { useMemo, useState } from 'react';
 import { Pencil } from 'lucide-react';
-import {formatTime12Hour, formatDateTime12Hour} from '@/utils/dateUtils';
+import {formatTime12Hour, formatDateTime12Hour, calculateAge, formatDate} from '@/utils/dateUtils';
 import { show as showRoute } from '@/routes/events';
 
 
@@ -581,6 +581,34 @@ export default function ShowEvent() {
                                     </p>
                                     <p className="text-sm text-foreground">
                                         {selectedAttendee.user.contact_number}
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Age
+                                        </p>
+                                        <p className="text-sm text-foreground">
+                                            {calculateAge(selectedAttendee.user.birthdate)} years old
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Birthday
+                                        </p>
+                                        <p className="text-sm text-foreground">
+                                            {formatDate(selectedAttendee.user.birthdate)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Wants to join a DG group?
+                                    </p>
+                                    <p className="text-sm text-foreground capitalize">
+                                        {selectedAttendee.user.want_to_join_dg === 'yes' ? 'Yes' : selectedAttendee.user.want_to_join_dg === 'no' ? 'No' : 'Not specified'}
                                     </p>
                                 </div>
 

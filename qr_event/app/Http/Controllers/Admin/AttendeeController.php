@@ -21,7 +21,7 @@ class AttendeeController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $attendees = Attendee::query()
-            ->with(['user:id,first_name,last_name,contact_number,birthdate', 'event:id,name'])
+            ->with(['user:id,first_name,last_name,contact_number,birthdate,want_to_join_dg,dg_leader_name', 'event:id,name'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->whereHas('user', function ($userQuery) use ($search) {
                     $userQuery
