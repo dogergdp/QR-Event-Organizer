@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\ProfileValidationRules;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\User;
@@ -13,6 +14,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
+    use ProfileValidationRules;
     public function create(): Response
     {
         return Inertia::render('admin/users/create');
@@ -21,15 +23,15 @@ class UserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')],
-            'birthdate' => ['required', 'date', 'before_or_equal:today'],
-            'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
-            'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
-            'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'first_name' => $this->firstNameRules(),
+            'last_name' => $this->lastNameRules(),
+            'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')]),
+            'birthdate' => $this->birthdateRules(),
+            'marital_status' => $this->maritalStatusRules(),
+            'has_dg_leader' => $this->hasDgLeaderRules(),
+            'dg_leader_name' => array_merge($this->dgLeaderNameRules(), [Rule::requiredIf($request->input('has_dg_leader') === 'yes')]),
             'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($request->input('has_dg_leader') === 'no')],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:1', 'confirmed'],
         ]);
 
         $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
@@ -41,6 +43,7 @@ class UserController extends Controller
             : null;
 
         $user = User::create($validated);
+        $user->assignRole('user');
 
         ActivityLog::create([
             'user_id' => $request->user()?->id,
@@ -118,15 +121,16 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($user->id)],
-            'birthdate' => ['required', 'date', 'before_or_equal:today'],
-            'marital_status' => ['required', Rule::in(['single', 'married', 'separated', 'widowed'])],
-            'has_dg_leader' => ['required', Rule::in(['yes', 'no'])],
-            'dg_leader_name' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('has_dg_leader') === 'yes')],
+            'first_name' => $this->firstNameRules(),
+            'last_name' => $this->lastNameRules(),
+            'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')->ignore($user->id)]),
+            'birthdate' => $this->birthdateRules(),
+            'marital_status' => $this->maritalStatusRules(),
+            'has_dg_leader' => $this->hasDgLeaderRules(),
+            'dg_leader_name' => array_merge($this->dgLeaderNameRules(), [Rule::requiredIf($request->input('has_dg_leader') === 'yes')]),
             'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($request->input('has_dg_leader') === 'no')],
             'remarks' => ['nullable', 'string'],
+            'password' => ['nullable', 'string', 'min:1', 'confirmed'],
         ]);
 
         $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
@@ -136,6 +140,10 @@ class UserController extends Controller
         $validated['want_to_join_dg'] = $validated['has_dg_leader'] === 'no'
             ? $validated['want_to_join_dg']
             : null;
+
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        }
 
         $user->update($validated);
 

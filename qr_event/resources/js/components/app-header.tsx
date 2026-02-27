@@ -26,7 +26,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
         .trim() || auth.user.name || auth.user.contact_number || 'User';
     return (
         <>
-            <div className="bg-white dark:bg-slate-900 border-b border-sidebar-border/80">
+            <div className="bg-black border-b border-white/10">
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     <div className="flex items-center space-x-2">
                         <AppLogo />
@@ -37,14 +37,14 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10 rounded-full p-1"
+                                    className="size-10 rounded-full p-1 hover:bg-white/10 text-white"
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage
                                             src={auth.user.avatar}
                                             alt={displayName}
                                         />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        <AvatarFallback className="rounded-lg bg-neutral-800 text-white">
                                             {getInitials(displayName)}
                                         </AvatarFallback>
                                     </Avatar>
@@ -58,8 +58,8 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div className="flex w-full bg-white dark:bg-slate-900 border-b border-sidebar-border/70">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-gray-900 dark:text-white md:max-w-7xl">
+                <div className="flex w-full bg-black border-b border-white/10">
+                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-white md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>

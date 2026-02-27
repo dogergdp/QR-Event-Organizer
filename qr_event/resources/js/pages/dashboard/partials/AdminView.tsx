@@ -12,7 +12,7 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
         : 'all';
 
     const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | 'all'>(latestEventId);
-    const [activePerformanceTab, setActivePerformanceTab] = useState<'rsvp' | 'attendees'>('rsvp');
+    const [activePerformanceTab, setActivePerformanceTab] = useState<'rsvp' | 'attendees' | 'first_timers'>('rsvp');
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const selectedPerformanceEvent = performanceEvents.find((e) => e.id === selectedPerformanceId);
@@ -22,6 +22,16 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
         ? [...selectedPerformanceEvent.rsvp].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
     const sortedAttendees = selectedPerformanceEvent?.attendees
         ? [...selectedPerformanceEvent.attendees].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
+    const sortedFirstTimers = selectedPerformanceEvent?.attendees
+        ? [...selectedPerformanceEvent.attendees].filter(a => a.is_first_time).sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
+
+    const getActiveListData = () => {
+        if (activePerformanceTab === 'rsvp') return sortedRSVP;
+        if (activePerformanceTab === 'attendees') return sortedAttendees;
+        return sortedFirstTimers;
+    };
+
+    const activeListData = getActiveListData();
 
     const registeredCount = selectedPerformanceEvent?.total_registered ?? 0;
     const attendedCount = selectedPerformanceEvent?.total_attended ?? 0;
@@ -162,21 +172,37 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                     <Link href={`/events/${selectedPerformanceEvent.id}`} className="text-sm font-semibold text-primary hover:underline">{selectedPerformanceEvent.name}</Link>
                                 </div>
                                 <div className="border-b border-sidebar-border/70">
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2">
                                         <button onClick={() => setActivePerformanceTab('rsvp')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'rsvp' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                                             RSVP ({selectedPerformanceEvent.rsvp.length})
                                         </button>
                                         <button onClick={() => setActivePerformanceTab('attendees')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'attendees' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                                             Attendees ({selectedPerformanceEvent.attendees.length})
                                         </button>
+                                        <button onClick={() => setActivePerformanceTab('first_timers')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'first_timers' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                            First Timers ({sortedFirstTimers.length})
+                                        </button>
                                     </div>
                                 </div>
+                                <div className="mt-3 flex items-center justify-between">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        {activePerformanceTab === 'rsvp' ? 'Pre-registered' : activePerformanceTab === 'attendees' ? 'Checked-in' : 'New Members'}
+                                    </p>
+                                    <a
+                                        href={`/admin/reports/export/event/${selectedPerformanceEvent.id}/attendees?type=${activePerformanceTab === 'first_timers' ? 'first_time' : activePerformanceTab === 'attendees' ? 'attendance' : 'rsvp'}`}
+                                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                                        download
+                                    >
+                                        <Download className="h-3 w-3" />
+                                        Export {activePerformanceTab === 'rsvp' ? 'RSVP' : activePerformanceTab === 'attendees' ? 'Attendance' : 'First Timers'}
+                                    </a>
+                                </div>
                                 <div className="mt-3 h-80 overflow-y-auto">
-                                    {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).length === 0 ? (
-                                        <div className="flex h-full items-center justify-center rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">No {activePerformanceTab === 'rsvp' ? 'RSVPs' : 'attendees'} yet</div>
+                                    {activeListData.length === 0 ? (
+                                        <div className="flex h-full items-center justify-center rounded-md border border-dashed border-sidebar-border/70 p-4 text-center text-sm text-muted-foreground">No data for this tab yet</div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            {(activePerformanceTab === 'rsvp' ? sortedRSVP : sortedAttendees).slice(0, 12).map((person: any) => (
+                                            {activeListData.slice(0, 50).map((person: any) => (
                                                 <div key={person.id} className="rounded-md border border-sidebar-border/70 bg-muted/20 px-3 py-2 relative overflow-hidden">
                                                     {person.is_first_time && (
                                                         <div className="absolute top-0 right-0">
@@ -187,7 +213,9 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                                     )}
                                                     <p className="text-sm font-medium text-foreground">{person.name}</p>
                                                     <p className="text-xs text-muted-foreground">{person.contact_number}</p>
-                                                    {activePerformanceTab === 'attendees' && person.attended_time && <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>}
+                                                    {(activePerformanceTab === 'attendees' || activePerformanceTab === 'first_timers') && person.attended_time && (
+                                                        <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

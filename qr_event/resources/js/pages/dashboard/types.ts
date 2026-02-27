@@ -45,12 +45,14 @@ export interface DashboardProps {
             name: string;
             contact_number: string;
             attended_time: string | null;
+            is_first_time: boolean;
         }>;
         attendees: Array<{
             id: number;
             name: string;
             contact_number: string;
             attended_time: string | null;
+            is_first_time: boolean;
         }>;
     }>;
     topAttendees?: Array<{

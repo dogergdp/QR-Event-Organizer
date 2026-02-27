@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -265,9 +266,11 @@ class ReportController extends Controller
     /**
      * Export attendees for a specific event to CSV.
      */
-    public function exportEventAttendees(Event $event): StreamedResponse
+    public function exportEventAttendees(Event $event, Request $request): StreamedResponse
     {
-        return response()->streamDownload(function () use ($event) {
+        $type = $request->query('type', 'all');
+
+        return response()->streamDownload(function () use ($event, $type) {
             $handle = fopen('php://output', 'w');
 
             $headers = [
@@ -284,41 +287,51 @@ class ReportController extends Controller
                 'Remarks',
             ];
 
-            $attendees = Attendee::with('user')
-                ->where('event_id', $event->id)
-                ->get();
+            $query = Attendee::with('user')
+                ->where('event_id', $event->id);
 
-            $writeRows = function ($title, $rows) use ($handle, $headers) {
-                fputcsv($handle, [$title]);
-                fputcsv($handle, $headers);
+            if ($type === 'rsvp') {
+                $query->where('is_attended', false);
+            } elseif ($type === 'attendance') {
+                $query->where('is_attended', true);
+            } elseif ($type === 'first_time') {
+                $query->where('is_first_time', true);
+            }
 
-                foreach ($rows as $attendee) {
-                    fputcsv($handle, [
-                        $attendee->user->first_name,
-                        $attendee->user->last_name,
-                        $attendee->user->contact_number,
-                        $attendee->user->birthdate,
-                        $attendee->user->marital_status,
-                        $attendee->user->has_dg_leader ? 'Yes' : 'No',
-                        $attendee->user->dg_leader_name ?? 'N/A',
-                        $attendee->is_attended ? 'Yes' : 'No',
-                        $attendee->attended_time,
-                        $attendee->user->is_first_time ? 'Yes' : 'No',
-                        $attendee->user->remarks ?? 'N/A',
-                    ]);
-                }
+            $attendees = $query->get();
 
-                fputcsv($handle, []);
+            $title = match($type) {
+                'rsvp' => 'RSVP List',
+                'attendance' => 'Attendance List',
+                'first_time' => 'First Timers List',
+                default => 'All Event Participants'
             };
 
-            $writeRows('RSVP', $attendees->where('is_attended', false));
-            $writeRows('Attended', $attendees->where('is_attended', true));
+            fputcsv($handle, [$title . ' for ' . $event->name . ' (' . $event->date . ')']);
+            fputcsv($handle, []);
+            fputcsv($handle, $headers);
+
+            foreach ($attendees as $attendee) {
+                fputcsv($handle, [
+                    $attendee->user->first_name,
+                    $attendee->user->last_name,
+                    $attendee->user->contact_number,
+                    $attendee->user->birthdate,
+                    $attendee->user->marital_status,
+                    $attendee->user->has_dg_leader ? 'Yes' : 'No',
+                    $attendee->user->dg_leader_name ?? 'N/A',
+                    $attendee->is_attended ? 'Yes' : 'No',
+                    $attendee->attended_time,
+                    $attendee->is_first_time ? 'Yes' : 'No',
+                    $attendee->user->remarks ?? 'N/A',
+                ]);
+            }
 
             // Add blank row and timestamp
             fputcsv($handle, []);
             fputcsv($handle, ['Report Generated:', now()->format('Y-m-d H:i:s')]);
 
             fclose($handle);
-        }, "attendees-{$event->name}-{$event->date}.csv");
+        }, "event-{$type}-{$event->name}-{$event->date}.csv");
     }
 }

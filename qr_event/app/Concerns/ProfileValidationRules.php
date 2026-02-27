@@ -52,7 +52,7 @@ trait ProfileValidationRules
      */
     protected function contactNumberRules(): array
     {
-        return ['required', 'string', 'max:20'];
+        return ['required', 'string', 'size:11', 'regex:/^09\d{9}$/'];
     }
 
     /**
