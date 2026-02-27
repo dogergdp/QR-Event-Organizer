@@ -13,6 +13,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Validation\ValidationException;
@@ -31,7 +32,7 @@ class AuthController extends Controller
         ]);
 
         // Validate basic profile info and uniqueness of contact number
-        $this->validate($request, [
+        $request->validate([
             ...$this->profileRules(),
             'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')]),
         ]);

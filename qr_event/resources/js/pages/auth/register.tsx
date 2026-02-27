@@ -11,7 +11,6 @@ import { store } from '@/routes/register';
 import { useState } from 'react';
 
 export default function Register() {
-    const [hasDgLeader, setHasDgLeader] = useState('');
     const today = new Date().toISOString().split('T')[0];
 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,8 +146,8 @@ export default function Register() {
                                     name="has_dg_leader"
                                     required
                                     tabIndex={8}
-                                    value={hasDgLeader}
-                                    onChange={(e) => setHasDgLeader(e.target.value)}
+                                    value={data.has_dg_leader}
+                                    onChange={(e) => setData('has_dg_leader', e.target.value)}
                                     className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">Select an option</option>
@@ -158,7 +157,7 @@ export default function Register() {
                                 <InputError message={errors.has_dg_leader} />
                             </div>
 
-                            {hasDgLeader === 'no' && (
+                            {data.has_dg_leader === 'no' && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="want_to_join_dg">Do you want to join a DG group?</Label>
                                     <select
@@ -166,6 +165,8 @@ export default function Register() {
                                         name="want_to_join_dg"
                                         required
                                         tabIndex={8.5}
+                                        value={data.want_to_join_dg}
+                                        onChange={(e) => setData('want_to_join_dg', e.target.value)}
                                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">Select an option</option>
@@ -176,7 +177,7 @@ export default function Register() {
                                 </div>
                             )}
 
-                            {hasDgLeader === 'yes' && (
+                            {data.has_dg_leader === 'yes' && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="dg_leader_name">DG Leader Name</Label>
                                     <Input
@@ -186,6 +187,8 @@ export default function Register() {
                                         tabIndex={9}
                                         autoComplete="off"
                                         name="dg_leader_name"
+                                        value={data.dg_leader_name}
+                                        onChange={(e) => setData('dg_leader_name', e.target.value)}
                                         placeholder="Enter your DG Leader's name"
                                     />
                                     <InputError message={errors.dg_leader_name} />
