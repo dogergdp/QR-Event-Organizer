@@ -76,48 +76,13 @@ export default function QRViewer() {
             image.src = src;
         });
 
-    const drawImageCover = (
-        context: CanvasRenderingContext2D,
-        image: HTMLImageElement,
-        x: number,
-        y: number,
-        width: number,
-        height: number
-    ) => {
-        const imageRatio = image.width / image.height;
-        const targetRatio = width / height;
-
-        let sourceWidth = image.width;
-        let sourceHeight = image.height;
-        let sourceX = 0;
-        let sourceY = 0;
-
-        if (imageRatio > targetRatio) {
-            sourceWidth = image.height * targetRatio;
-            sourceX = (image.width - sourceWidth) / 2;
-        } else {
-            sourceHeight = image.width / targetRatio;
-            sourceY = (image.height - sourceHeight) / 2;
-        }
-
-        context.drawImage(
-            image,
-            sourceX,
-            sourceY,
-            sourceWidth,
-            sourceHeight,
-            x,
-            y,
-            width,
-            height
-        );
-    };
 
     const downloadQRImage = async (withBanner: boolean) => {
         setIsDownloading(true);
         try {
             if (!qrCanvasRef.current) {
-                throw new Error('QR canvas not ready');
+                toast.error('QR canvas not ready');
+                return;
             }
 
             const sourceCanvas = qrCanvasRef.current;
@@ -126,40 +91,68 @@ export default function QRViewer() {
                 const outputSize = 1200;
                 const exportCanvas = document.createElement('canvas');
                 exportCanvas.width = outputSize;
-                exportCanvas.height = outputSize;
+                exportCanvas.height = outputSize; // Square export
 
                 const context = exportCanvas.getContext('2d');
                 if (!context) {
-                    throw new Error('Unable to create image context');
+                    toast.error('Unable to create image context');
+                    return;
                 }
 
+                // 1. Solid White Background
                 context.fillStyle = '#ffffff';
                 context.fillRect(0, 0, outputSize, outputSize);
 
-                if (canUseBanner && bannerUrl) {
-                    try {
-                        const banner = await loadImage(bannerUrl);
-                        context.globalAlpha = 0.9;
-                        drawImageCover(context, banner, 0, 0, outputSize, outputSize);
-                        context.globalAlpha = 1;
-                    } catch {
-                        setBannerLoadFailed(true);
-                    }
+                // --- NEW DYNAMIC LAYOUT ---
+
+                // A. Define QR and Text areas first to know how much room is left for image
+                const qrSize = 650;
+                const qrX = (outputSize - qrSize) / 2;
+                const qrY = (outputSize - qrSize) / 2 - 40; // Shifted up slightly to allow more space below for text
+
+                const textPadding = 120; // Increased padding from 80
+                const titleFontSize = 50;
+                const eventFontSize = 32;
+
+                const titleY = qrY + qrSize + textPadding;
+                const eventY = titleY + 60;
+                const tokenIdY = outputSize - 30;
+
+                // B. Calculate Banner Area
+                // The banner area starts from top (0) and ends at the top of the QR plate
+                const bannerPadding = 40;
+                const qrPlatePadding = 60;
+                const qrPlateY = qrY - qrPlatePadding / 2;
+                const bannerMaxHeight = qrPlateY - bannerPadding;
+
+                // 2. Draw Banner with Black Row filling
+                context.fillStyle = '#000000';
+                context.fillRect(0, 0, outputSize, bannerMaxHeight);
+
+                const bannerUrlToUse = "/images/default-event.png";
+                try {
+                    const banner = await loadImage(bannerUrlToUse);
+
+                    // Center the image within the black bar
+                    const targetHeight = bannerMaxHeight * 0.8; // Use 80% of available height
+                    const bannerAspect = banner.width / banner.height;
+                    const targetWidth = targetHeight * bannerAspect;
+
+                    const drawX = (outputSize - targetWidth) / 2;
+                    const drawY = (bannerMaxHeight - targetHeight) / 2;
+
+                    context.drawImage(banner, drawX, drawY, targetWidth, targetHeight);
+                } catch (err) {
+                    console.error("Banner load failed", err);
                 }
 
-                const qrSize = 640;
-                const qrX = (outputSize - qrSize) / 2;
-                const qrY = (outputSize - qrSize) / 2 + 60; // Moved down to add more space from title
+                // 3. Draw QR Code (Dead Center)
+                const bgX = qrX - qrPlatePadding / 2;
+                const bgY = qrPlateY;
+                const bgSize = qrSize + qrPlatePadding;
+                const radius = 40;
 
-                // Draw background for QR (rounded rectangle)
-                const padding = 60; // Increased padding
-                const bgX = qrX - padding / 2;
-                const bgY = qrY - padding / 2;
-                const bgSize = qrSize + padding;
-                const radius = 40; // Increased radius for smoother look
-
-                context.fillStyle = '#ffffff';
-                // Function to draw rounded rect for the white background
+                context.fillStyle = '#f3f4f6';
                 const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, r: number) => {
                     ctx.beginPath();
                     ctx.moveTo(x + r, y);
@@ -176,26 +169,21 @@ export default function QRViewer() {
                 };
 
                 drawRoundedRect(context, bgX, bgY, bgSize, bgSize, radius);
-
                 context.drawImage(sourceCanvas, qrX, qrY, qrSize, qrSize);
 
-                context.fillStyle = '#FFFF00';
-                context.font = 'bold 54px sans-serif'; // Slightly larger
+                // 4. Draw Text (Black text below QR)
+                context.fillStyle = '#000000';
                 context.textAlign = 'center';
-                context.shadowColor = 'rgba(0, 0, 0, 0.7)'; // Stronger shadow
-                context.shadowBlur = 12;
-                context.fillText(qrCode.name, outputSize / 2, qrY - 140); // Increased spacing
+                context.font = `bold ${titleFontSize}px sans-serif`;
+                context.fillText(qrCode.name, outputSize / 2, titleY);
 
-                context.fillStyle = '#FFFF00';
-                context.font = '38px sans-serif';
-                context.fillText(qrCode.event.name, outputSize / 2, qrY - 80); // Increased spacing
+                context.font = `${eventFontSize}px sans-serif`;
+                context.fillText(qrCode.event.name, outputSize / 2, eventY);
 
-                context.fillStyle = '#FFFF00';
-                context.font = '24px monospace';
-                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, qrY + qrSize + 70);
-
-                // Reset shadow
-                context.shadowBlur = 0;
+                // 5. Tiny ID at the absolute bottom
+                context.fillStyle = '#9ca3af';
+                context.font = '18px monospace';
+                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, tokenIdY);
 
                 downloadCanvas(exportCanvas, createFilename());
             } else {
@@ -206,7 +194,8 @@ export default function QRViewer() {
 
                 const context = qrOnlyCanvas.getContext('2d');
                 if (!context) {
-                    throw new Error('Unable to create image context');
+                    toast.error('Unable to create image context');
+                    return;
                 }
 
                 context.fillStyle = '#ffffff';
@@ -273,15 +262,15 @@ export default function QRViewer() {
                                 value={qrValue}
                                 size={256}
                                 level="H"
-                                includeMargin={true}
+                                marginSize={3}
                             />
                             <QRCodeCanvas
                                 value={qrValue}
                                 size={256}
                                 level="H"
-                                includeMargin={true}
                                 className="hidden"
                                 ref={qrCanvasRef}
+                                marginSize={3}
                             />
                         </div>
 
