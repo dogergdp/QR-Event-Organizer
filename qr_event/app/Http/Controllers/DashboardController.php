@@ -31,6 +31,7 @@ class DashboardController extends Controller
         $reportEvents = Event::with([
             'attendees' => fn($query) => $query
                 ->with('user:id,first_name,last_name,contact_number')
+                ->latest('updated_at')
                 ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'is_first_time'),
         ])
         ->withCount([

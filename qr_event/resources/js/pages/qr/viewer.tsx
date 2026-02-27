@@ -149,24 +149,53 @@ export default function QRViewer() {
 
                 const qrSize = 640;
                 const qrX = (outputSize - qrSize) / 2;
-                const qrY = 180;
+                const qrY = (outputSize - qrSize) / 2 + 60; // Moved down to add more space from title
+
+                // Draw background for QR (rounded rectangle)
+                const padding = 60; // Increased padding
+                const bgX = qrX - padding / 2;
+                const bgY = qrY - padding / 2;
+                const bgSize = qrSize + padding;
+                const radius = 40; // Increased radius for smoother look
 
                 context.fillStyle = '#ffffff';
-                context.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+                // Function to draw rounded rect for the white background
+                const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, r: number) => {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + width - r, y);
+                    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+                    ctx.lineTo(x + width, y + height - r);
+                    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+                    ctx.lineTo(x + r, y + height);
+                    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+                    ctx.lineTo(x, y + r);
+                    ctx.quadraticCurveTo(x, y, x + r, y);
+                    ctx.closePath();
+                    ctx.fill();
+                };
+
+                drawRoundedRect(context, bgX, bgY, bgSize, bgSize, radius);
+
                 context.drawImage(sourceCanvas, qrX, qrY, qrSize, qrSize);
 
                 context.fillStyle = '#FFFF00';
-                context.font = 'bold 46px sans-serif';
+                context.font = 'bold 54px sans-serif'; // Slightly larger
                 context.textAlign = 'center';
-                context.fillText(qrCode.name, outputSize / 2, 70);
+                context.shadowColor = 'rgba(0, 0, 0, 0.7)'; // Stronger shadow
+                context.shadowBlur = 12;
+                context.fillText(qrCode.name, outputSize / 2, qrY - 140); // Increased spacing
 
                 context.fillStyle = '#FFFF00';
-                context.font = '34px sans-serif';
-                context.fillText(qrCode.event.name, outputSize / 2, 120);
+                context.font = '38px sans-serif';
+                context.fillText(qrCode.event.name, outputSize / 2, qrY - 80); // Increased spacing
 
                 context.fillStyle = '#FFFF00';
-                context.font = '22px monospace';
-                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, 900);
+                context.font = '24px monospace';
+                context.fillText(qrCode.token.substring(0, 8), outputSize / 2, qrY + qrSize + 70);
+
+                // Reset shadow
+                context.shadowBlur = 0;
 
                 downloadCanvas(exportCanvas, createFilename());
             } else {
@@ -239,7 +268,7 @@ export default function QRViewer() {
                     {/* QR Code Container */}
                     <div className="relative p-8 flex flex-col items-center justify-center">
                         {/* QR Code using qrcode.react */}
-                        <div className="rounded-lg bg-background/90 p-4 border-4 border-sidebar-border/50 shadow-lg">
+                        <div className="rounded-2xl bg-background/90 p-4 border-4 border-sidebar-border/50 shadow-lg">
                             <QRCodeSVG
                                 value={qrValue}
                                 size={256}
