@@ -23,9 +23,10 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             ...$this->profileRules(),
+            'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')]),
             'password' => $this->passwordRules(),
-            'dg_leader_name' => Rule::requiredIf($input['has_dg_leader'] === 'yes'),
-            'want_to_join_dg' => Rule::requiredIf($input['has_dg_leader'] === 'no'),
+            'dg_leader_name' => Rule::requiredIf(($input['has_dg_leader'] ?? '') === 'yes'),
+            'want_to_join_dg' => Rule::requiredIf(($input['has_dg_leader'] ?? '') === 'no'),
         ])->validate();
 
         $user = User::create([

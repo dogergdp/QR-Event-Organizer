@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProfileValidationRules;
 use App\Actions\Fortify\CreateNewUser;
 use App\Models\ActivityLog;
 use App\Models\Attendee;
@@ -18,18 +19,25 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use ProfileValidationRules;
     /**
      * Register a new user from QR code
      */
     public function registerFromQR(Request $request, CreateNewUser $creator): RedirectResponse
     {
-        // Let CreateNewUser handle all validation including password confirmation
-        $input = $request->all();
-
         // Basic QR token validation
         $request->validate([
             'qr_token' => 'required|string|exists:qr_codes,token',
         ]);
+
+        // Validate basic profile info and uniqueness of contact number
+        $this->validate($request, [
+            ...$this->profileRules(),
+            'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')]),
+        ]);
+
+        // Let CreateNewUser handle all validation including password confirmation
+        $input = $request->all();
 
         // Let the CreateNewUser action handle validation of user data and password
         $user = $creator->create($input);

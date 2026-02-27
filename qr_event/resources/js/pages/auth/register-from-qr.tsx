@@ -54,7 +54,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input
         const value = e.target.value.replace(/\D/g, '');
-        
+
         // Format as YYYY-MM-DD
         let formatted = value;
         if (value.length >= 4) {
@@ -70,7 +70,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
         if (formatted.length === 10 && formatted > today) {
             formatted = today;
         }
-        
+
         setData('birthdate', formatted);
     };
 
@@ -82,12 +82,12 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
     const formatPhoneNumber = (value: string): string => {
         // Remove all non-digit characters
         const cleaned = value.replace(/\D/g, '');
-        
+
         // Allow 10-11 digits for Philippine numbers (09XX-XXX-XXXX or 09XX-XXXX-XXXX)
         if (cleaned.length > 11) {
             return cleaned.slice(0, 11);
         }
-        
+
         return cleaned;
     };
 
@@ -296,6 +296,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
                                             maxLength={11}
                                             required
                                         />
+                                        <p className="text-[10px] text-muted-foreground italic">Format: 11 digits starting with 09 (e.g., 09123456789)</p>
                                         <InputError message={errors.contact_number} />
                                     </div>
 
@@ -313,6 +314,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
                                             title="Use format YYYY-MM-DD"
                                             required
                                         />
+                                        <p className="text-[10px] text-muted-foreground italic">Format: YYYY-MM-DD (e.g., 1990-01-31)</p>
                                         <InputError message={errors.birthdate} />
                                     </div>
 

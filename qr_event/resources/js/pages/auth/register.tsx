@@ -99,6 +99,7 @@ export default function Register() {
                                     name="contact_number"
                                     placeholder="e.g. 09152872043"
                                 />
+                                <p className="text-[10px] text-muted-foreground italic">Format: 11 digits starting with 09 (e.g., 09123456789)</p>
                                 <InputError message={errors.contact_number} />
                             </div>
 
@@ -117,6 +118,7 @@ export default function Register() {
                                     title="Use format YYYY-MM-DD"
                                     onChange={handleBirthdateChange}
                                 />
+                                <p className="text-[10px] text-muted-foreground italic">Format: YYYY-MM-DD (e.g., 1990-01-31)</p>
                                 <InputError message={errors.birthdate} />
                             </div>
 
