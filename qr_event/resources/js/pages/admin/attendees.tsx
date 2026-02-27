@@ -4,6 +4,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { calculateAge, formatDate } from '@/utils/dateUtils';
+import AttendeeController from '@/actions/App/Http/Controllers/Admin/AttendeeController';
 
 
 export default function AdminAttendees() {
@@ -78,7 +79,10 @@ export default function AdminAttendees() {
                     <div className="rounded-xl border border-sidebar-border/70 bg-background p-4 shadow-sm">
                         <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
                         <p className="text-xs text-muted-foreground mt-1 mb-3">Automatically marks user as registered and attended</p>
-                        <Form method="post" action="/admin/attendees" className="mt-3 grid gap-3">
+                        <Form
+                            {...AttendeeController.store.form()}
+                            className="mt-3 grid gap-3"
+                        >
                             {({ processing, errors }) => {
                                 const filteredUsers = users.filter((user: any) => {
                                     const searchLower = userSearch.toLowerCase();

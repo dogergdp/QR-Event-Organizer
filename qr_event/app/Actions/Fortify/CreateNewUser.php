@@ -41,6 +41,9 @@ class CreateNewUser implements CreatesNewUsers
             'want_to_join_dg' => $input['want_to_join_dg'] ?? null,
         ]);
 
+        $role = \App\Models\Role::firstOrCreate(['name' => 'user']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
         ActivityLog::create([
             'user_id' => $user->id,
             'action' => 'user_registration',

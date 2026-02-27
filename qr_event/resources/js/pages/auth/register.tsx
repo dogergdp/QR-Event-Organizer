@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, useForm } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,11 @@ import { useState } from 'react';
 
 export default function Register() {
     const today = new Date().toISOString().split('T')[0];
+    const { data, setData } = useForm({
+        has_dg_leader: '',
+        want_to_join_dg: '',
+        dg_leader_name: '',
+    });
 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input

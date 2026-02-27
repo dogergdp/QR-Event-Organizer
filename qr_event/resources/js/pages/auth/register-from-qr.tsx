@@ -46,6 +46,7 @@ export default function RegisterFromQR({ event, qrToken, isAttendanceQr = false 
         marital_status: '',
         has_dg_leader: '',
         dg_leader_name: '',
+        want_to_join_dg: '',
         password: '',
         password_confirmation: '',
         qr_token: qrToken,

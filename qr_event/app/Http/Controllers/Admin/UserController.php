@@ -34,16 +34,17 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:1', 'confirmed'],
         ]);
 
-        $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
-            ? $validated['dg_leader_name']
+        $validated['dg_leader_name'] = ($validated['has_dg_leader'] ?? $request->input('has_dg_leader')) === 'yes'
+            ? ($validated['dg_leader_name'] ?? $request->input('dg_leader_name'))
             : null;
 
-        $validated['want_to_join_dg'] = $validated['has_dg_leader'] === 'no'
-            ? $validated['want_to_join_dg']
+        $validated['want_to_join_dg'] = ($validated['has_dg_leader'] ?? $request->input('has_dg_leader')) === 'no'
+            ? ($validated['want_to_join_dg'] ?? $request->input('want_to_join_dg'))
             : null;
 
         $user = User::create($validated);
-        $user->assignRole('user');
+        $role = \App\Models\Role::firstOrCreate(['name' => 'user']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
 
         ActivityLog::create([
             'user_id' => $request->user()?->id,
@@ -134,12 +135,12 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:1', 'confirmed'],
         ]);
 
-        $validated['dg_leader_name'] = $validated['has_dg_leader'] === 'yes'
-            ? $validated['dg_leader_name']
+        $validated['dg_leader_name'] = ($validated['has_dg_leader'] ?? $request->input('has_dg_leader')) === 'yes'
+            ? ($validated['dg_leader_name'] ?? $request->input('dg_leader_name'))
             : null;
 
-        $validated['want_to_join_dg'] = $validated['has_dg_leader'] === 'no'
-            ? $validated['want_to_join_dg']
+        $validated['want_to_join_dg'] = ($validated['has_dg_leader'] ?? $request->input('has_dg_leader')) === 'no'
+            ? ($validated['want_to_join_dg'] ?? $request->input('want_to_join_dg'))
             : null;
 
         if (empty($validated['password'])) {
@@ -147,6 +148,8 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        $role = \App\Models\Role::firstOrCreate(['name' => 'user']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
 
         ActivityLog::create([
             'user_id' => $request->user()?->id,
