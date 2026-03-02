@@ -17,13 +17,42 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
 
     const selectedPerformanceEvent = performanceEvents.find((e) => e.id === selectedPerformanceId);
 
+    const getPeopleCount = (list: Array<{ plus_ones?: Array<unknown> }>) => {
+        return list.reduce((total, person) => total + 1 + (person.plus_ones?.length ?? 0), 0);
+    };
+
+    const getRsvpCount = (list: Array<{ is_attended: boolean; plus_ones?: Array<unknown> }>) => {
+        return list.reduce((total, person) => {
+            const primaryNotAttended = person.is_attended ? 0 : 1;
+            const plusOnesNotAttended = person.plus_ones?.length ?? 0;
+
+            return total + primaryNotAttended + plusOnesNotAttended;
+        }, 0);
+    };
+
+    const getFirstTimerCount = (list: Array<{ is_first_time: boolean; plus_ones?: Array<{ is_first_time: boolean }> }>) => {
+        return list.reduce((total, person) => {
+            const primaryFirstTimer = person.is_first_time ? 1 : 0;
+            const plusOnesFirstTimer = (person.plus_ones ?? []).filter((member) => member.is_first_time).length;
+
+            return total + primaryFirstTimer + plusOnesFirstTimer;
+        }, 0);
+    };
+
     // Derived Data
     const sortedRSVP = selectedPerformanceEvent?.rsvp
         ? [...selectedPerformanceEvent.rsvp].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
     const sortedAttendees = selectedPerformanceEvent?.attendees
         ? [...selectedPerformanceEvent.attendees].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
     const sortedFirstTimers = selectedPerformanceEvent?.attendees
-        ? [...selectedPerformanceEvent.attendees].filter(a => a.is_first_time).sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
+        ? [...selectedPerformanceEvent.attendees]
+            .filter((person) => person.is_first_time || person.plus_ones?.some((member) => member.is_first_time))
+            .map((person) => ({
+                ...person,
+                plus_ones: (person.plus_ones ?? []).filter((member) => member.is_first_time),
+            }))
+            .sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || ''))
+        : [];
 
     const getActiveListData = () => {
         if (activePerformanceTab === 'rsvp') return sortedRSVP;
@@ -174,13 +203,13 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                 <div className="border-b border-sidebar-border/70">
                                     <div className="flex flex-wrap gap-2">
                                         <button onClick={() => setActivePerformanceTab('rsvp')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'rsvp' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                            RSVP ({selectedPerformanceEvent.rsvp.length})
+                                            RSVP ({getRsvpCount(selectedPerformanceEvent.rsvp)})
                                         </button>
                                         <button onClick={() => setActivePerformanceTab('attendees')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'attendees' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                            Attendees ({selectedPerformanceEvent.attendees.length})
+                                            Attendees ({getPeopleCount(selectedPerformanceEvent.attendees)})
                                         </button>
                                         <button onClick={() => setActivePerformanceTab('first_timers')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'first_timers' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                            First Timers ({sortedFirstTimers.length})
+                                            First Timers ({getFirstTimerCount(sortedFirstTimers)})
                                         </button>
                                     </div>
                                 </div>
@@ -215,6 +244,27 @@ export default function AdminView({ stats, reportEvents, activityLogs, events }:
                                                     <p className="text-xs text-muted-foreground">{person.contact_number}</p>
                                                     {(activePerformanceTab === 'attendees' || activePerformanceTab === 'first_timers') && person.attended_time && (
                                                         <p className="mt-1 text-xs text-muted-foreground">Checked in: {person.attended_time}</p>
+                                                    )}
+
+                                                    {Array.isArray(person.plus_ones) && person.plus_ones.length > 0 && (
+                                                        <div className="mt-2 border-t border-sidebar-border/70 pt-2">
+                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Plus Ones</p>
+                                                            {activePerformanceTab === 'rsvp' && (
+                                                                <p className="text-[10px] text-muted-foreground">Not attended</p>
+                                                            )}
+                                                            <div className="mt-1 space-y-1">
+                                                                {person.plus_ones.map((member: any) => (
+                                                                    <div key={member.id || member.full_name} className="rounded bg-background/60 px-2 py-1">
+                                                                        <p className="text-xs font-medium text-foreground">
+                                                                            {member.full_name}
+                                                                            {member.is_first_time && (
+                                                                                <span className="ml-1 rounded bg-primary/15 px-1 py-0.5 text-[9px] font-semibold text-primary">FIRST TIME</span>
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
                                             ))}

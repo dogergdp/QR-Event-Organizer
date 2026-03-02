@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,15 +22,15 @@ class QrCodeController extends Controller
     {
         $showFinished = $request->query('show_finished', '0') === '1';
 
-        $qrCodes = QrCode::with('event')
-            ->when(!$showFinished, function ($query) {
-                $query->whereHas('event', function ($eventQuery) {
+        $qrCodes = QrCode::query()->with('event')
+            ->when(!$showFinished, function (Builder $query) {
+                $query->whereHas('event', function (Builder $eventQuery) {
                     $eventQuery->where('is_finished', false);
                 });
             })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($qr) => [
+            ->map(fn(QrCode $qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
                 'purpose' => $qr->purpose,
@@ -45,7 +46,7 @@ class QrCodeController extends Controller
                 ],
             ]);
 
-        $events = Event::orderBy('name')->get(['id', 'name']);
+        $events = Event::query()->orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('qr/index', [
             'qrCodes' => $qrCodes,
@@ -62,7 +63,7 @@ class QrCodeController extends Controller
         $qrCodes = $event->qrCodes()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($qr) => [
+            ->map(fn(QrCode $qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
                 'purpose' => $qr->purpose,
@@ -95,7 +96,7 @@ class QrCodeController extends Controller
         $eventName = $qrCode->event?->name ?? 'Unknown event';
         $qrName = $qrCode->name ?? 'QR Code';
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $request->user()?->id,
             'action' => $action,
             'target_type' => 'QrCode',
@@ -121,7 +122,7 @@ class QrCodeController extends Controller
      */
     public function view(string $token, Request $request): Response|RedirectResponse
     {
-        $qrCode = QrCode::where('token', $token)->firstOrFail();
+        $qrCode = QrCode::query()->where('token', $token)->firstOrFail();
 
         // If viewing the QR code for download/display purposes
         if ($request->query('view') === '1') {
@@ -242,6 +243,8 @@ class QrCodeController extends Controller
                 return Inertia::render('attendance/mark', [
                     'event' => $event,
                     'qrCode' => $qrCode,
+                    'primaryUserName' => trim($user->first_name . ' ' . $user->last_name),
+                    'plusOnes' => $attendee->plus_ones ?? [],
                     'isFirstTime' => $attendee->is_first_time,
                     'hasAnsweredFirstTime' => true,
                 ]);
@@ -277,7 +280,7 @@ class QrCodeController extends Controller
         $eventId = $request->input('event_id');
 
         // Find user with this contact number
-        $user = User::where('contact_number', $contact)->first();
+        $user = User::query()->where('contact_number', $contact)->first();
 
         if (!$user) {
             return response()->json(['found' => false]);
@@ -311,6 +314,23 @@ class QrCodeController extends Controller
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'user_id' => $user->id,
+            ],
+        ]);
+    }
+
+    private function showQRViewer(QrCode $qrCode): Response
+    {
+        return Inertia::render('qr/viewer', [
+            'qrCode' => [
+                'id' => $qrCode->id,
+                'name' => $qrCode->name,
+                'token' => $qrCode->token,
+                'code' => $qrCode->code,
+                'event' => [
+                    'id' => $qrCode->event->id,
+                    'name' => $qrCode->event->name,
+                    'banner_image' => $qrCode->event->banner_image,
+                ],
             ],
         ]);
     }

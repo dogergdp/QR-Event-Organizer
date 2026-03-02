@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use App\Http\Responses\CustomLoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -43,6 +45,42 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::authenticateUsing(function (Request $request) {
+            $isAdminLogin = $request->boolean('admin_login');
+
+            $request->validate([
+                'contact_number' => ['required', 'string'],
+                'password' => $isAdminLogin ? ['required', 'string'] : ['required', 'date_format:Y-m-d'],
+            ]);
+
+            $user = User::where('contact_number', $request->string('contact_number')->toString())->first();
+
+            if (! $user) {
+                return null;
+            }
+
+            if ($isAdminLogin && ! $user->isAdmin()) {
+                return null;
+            }
+
+            if (! $isAdminLogin && $user->isAdmin()) {
+                return null;
+            }
+
+            if ($isAdminLogin) {
+                return Hash::check($request->string('password')->toString(), $user->password)
+                    ? $user
+                    : null;
+            }
+
+            if (! $user->birthdate) {
+                return null;
+            }
+
+            return $user->birthdate->format('Y-m-d') === $request->string('password')->toString()
+                ? $user
+                : null;
+        });
     }
 
     /**
@@ -57,7 +95,7 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
-            'email' => $request->email,
+            'email' => (string) $request->input('email', ''),
             'token' => $request->route('token'),
         ]));
 

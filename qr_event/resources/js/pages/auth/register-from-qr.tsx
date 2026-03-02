@@ -1,5 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,12 +31,17 @@ type RegisterFromQRProps = {
 
 export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) {
     const today = new Date().toISOString().split('T')[0];
+    const currentYear = new Date().getFullYear();
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
     const [matchedAttendee, setMatchedAttendee] = useState<AttendeeMatch | null>(null);
     const [lookupLoading, setLookupLoading] = useState(false);
     const [lookupError, setLookupError] = useState('');
+    const [identityError, setIdentityError] = useState('');
     const [hasDgLeader, setHasDgLeader] = useState('');
+    const [birthYear, setBirthYear] = useState('');
+    const [birthMonth, setBirthMonth] = useState('');
+    const [birthDay, setBirthDay] = useState('');
 
     const { data, setData, post, processing, errors } = useForm({
         first_name: '',
@@ -51,6 +56,47 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
         password_confirmation: '',
         qr_token: qrToken,
     });
+
+    const [loginProcessing, setLoginProcessing] = useState(false);
+    const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
+
+    const years = useMemo(
+        () => Array.from({ length: currentYear - 1899 }, (_, index) => String(currentYear - index)),
+        [currentYear],
+    );
+
+    const months = useMemo(
+        () => [
+            { value: '01', label: 'Jan' },
+            { value: '02', label: 'Feb' },
+            { value: '03', label: 'Mar' },
+            { value: '04', label: 'Apr' },
+            { value: '05', label: 'May' },
+            { value: '06', label: 'Jun' },
+            { value: '07', label: 'Jul' },
+            { value: '08', label: 'Aug' },
+            { value: '09', label: 'Sep' },
+            { value: '10', label: 'Oct' },
+            { value: '11', label: 'Nov' },
+            { value: '12', label: 'Dec' },
+        ],
+        [],
+    );
+
+    const maxDays = useMemo(() => {
+        if (!birthYear || !birthMonth) return 31;
+        return new Date(Number(birthYear), Number(birthMonth), 0).getDate();
+    }, [birthYear, birthMonth]);
+
+    const days = useMemo(
+        () => Array.from({ length: maxDays }, (_, index) => String(index + 1).padStart(2, '0')),
+        [maxDays],
+    );
+
+    const birthdatePassword =
+        birthYear && birthMonth && birthDay
+            ? `${birthYear}-${birthMonth}-${birthDay}`
+            : '';
 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input
@@ -112,6 +158,10 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
                     ...result.attendee,
                     type: result.type,
                 });
+                setIdentityError('');
+                setBirthYear('');
+                setBirthMonth('');
+                setBirthDay('');
                 setStep('confirm-identity');
             } else {
                 // User doesn't exist - show registration form
@@ -126,19 +176,39 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
         }
     };
 
-    const handleConfirmIdentity = (isConfirmed: boolean) => {
-        if (isConfirmed && matchedAttendee?.user_id) {
-            // Redirect to login with contact number pre-filled, then back to QR scan so RSVP form shows automatically
-            const params = new URLSearchParams();
-            params.set('redirect_url', `/qr/${qrToken}`);
-            params.set('contact_number', contactNumber);
-            window.location.href = `/login?${params.toString()}`;
-        } else {
-            // User chose not to login, proceed to create new account
-            setMatchedAttendee(null);
-            setData('contact_number', contactNumber);
-            setStep('register');
+    const handleIdentityLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!birthdatePassword) {
+            setIdentityError('Please select your birthdate.');
+            return;
         }
+
+        setIdentityError('');
+        setLoginErrors({});
+        setLoginProcessing(true);
+
+        router.post('/login', {
+            contact_number: contactNumber,
+            password: birthdatePassword,
+            redirect_url: `/qr/${qrToken}`,
+        }, {
+            preserveScroll: true,
+            onError: (errors) => {
+                setLoginErrors(errors as Record<string, string>);
+                setLoginProcessing(false);
+            },
+            onFinish: () => {
+                setLoginProcessing(false);
+            },
+        });
+    };
+
+    const handleNotYou = () => {
+        setMatchedAttendee(null);
+        setIdentityError('');
+        setData('contact_number', contactNumber);
+        setStep('register');
     };
 
     const handleFormContactNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,46 +275,91 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
                         <div className="space-y-6">
                             <div className="text-center">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                                    {matchedAttendee.type === 'already-registered'
-                                        ? 'You\'re Already Registered'
-                                        : 'Is this you?'}
+                                    Is this you?
                                 </h2>
                                 <div className="bg-blue-50 dark:bg-[#444a4e] rounded-lg p-6 mb-6 border border-blue-200 dark:border-[#555c63]">
                                     <p className="text-xl font-bold text-gray-900 dark:text-white">
                                         {matchedAttendee.first_name} {matchedAttendee.last_name}
                                     </p>
                                 </div>
-                                {matchedAttendee.type === 'already-registered' && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                                        You've already registered for this event. Please log in to continue.
-                                    </p>
-                                )}
-                                {matchedAttendee.type === 'existing-user' && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                                        We found your account. Would you like to log in?
-                                    </p>
-                                )}
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                                    Confirm your birthdate to continue with attendance.
+                                </p>
                             </div>
 
-                            <div className="flex gap-3">
+                            <form onSubmit={handleIdentityLogin} className="space-y-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="birth_year">Birthdate</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <select
+                                            id="birth_year"
+                                            required
+                                            value={birthYear}
+                                            onChange={(e) => setBirthYear(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                        >
+                                            <option value="">Year</option>
+                                            {years.map((year) => (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            id="birth_month"
+                                            required
+                                            value={birthMonth}
+                                            onChange={(e) => setBirthMonth(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                        >
+                                            <option value="">Month</option>
+                                            {months.map((month) => (
+                                                <option key={month.value} value={month.value}>
+                                                    {month.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            id="birth_day"
+                                            required
+                                            value={birthDay}
+                                            onChange={(e) => setBirthDay(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                        >
+                                            <option value="">Day</option>
+                                            {days.map((day) => (
+                                                <option key={day} value={day}>
+                                                    {day}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {(identityError || loginErrors.contact_number || loginErrors.password) && (
+                                        <p className="text-red-500 text-sm">
+                                            {identityError || loginErrors.contact_number || loginErrors.password}
+                                        </p>
+                                    )}
+                                </div>
+
                                 <Button
-                                    onClick={() => handleConfirmIdentity(true)}
-                                    className="flex-1 bg-green-600 hover:bg-green-700"
+                                    type="submit"
+                                    disabled={loginProcessing || !birthdatePassword}
+                                    className="w-full bg-green-600 hover:bg-green-700"
                                 >
-                                    {matchedAttendee.type === 'already-registered'
-                                        ? 'Log in'
-                                        : 'Yes, log me in'}
+                                    {loginProcessing ? 'Verifying...' : 'Confirm and Continue'}
                                 </Button>
+
                                 {matchedAttendee.type !== 'already-registered' && (
                                     <Button
-                                        onClick={() => handleConfirmIdentity(false)}
+                                        type="button"
+                                        onClick={handleNotYou}
                                         variant="outline"
-                                        className="flex-1"
+                                        className="w-full"
                                     >
-                                        No, I'm new
+                                        This is not me
                                     </Button>
                                 )}
-                            </div>
+                            </form>
                         </div>
                     )}
 

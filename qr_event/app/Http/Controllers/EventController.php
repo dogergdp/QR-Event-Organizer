@@ -8,6 +8,7 @@ use App\Models\QrCode;
 use App\Services\LiveDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -142,9 +143,9 @@ class EventController extends Controller
         $validated['is_finished'] = $validated['is_finished'] ?? false;
         $validated['is_ongoing'] = $validated['is_ongoing'] ?? false;
 
-        $event = Event::create($validated);
+        $event = Event::query()->create($validated);
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $request->user()?->id,
             'action' => 'create_event',
             'target_type' => 'Event',
@@ -158,7 +159,7 @@ class EventController extends Controller
 
         // Pre-registration QR Code
         $preRegToken = Str::random(32);
-        QrCode::create([
+        QrCode::query()->create([
             'event_id' => $event->id,
             'name' => 'Pre-Registration',
             'purpose' => 'pre-registration',
@@ -170,7 +171,7 @@ class EventController extends Controller
 
         // Attendance Check-in QR Code
         $attendanceToken = Str::random(32);
-        QrCode::create([
+        QrCode::query()->create([
             'event_id' => $event->id,
             'name' => 'Attendance Check-in',
             'purpose' => 'attendance',
@@ -236,7 +237,7 @@ class EventController extends Controller
 
         $event->update($validated);
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $request->user()?->id,
             'action' => 'update_event',
             'target_type' => 'Event',
@@ -254,7 +255,7 @@ class EventController extends Controller
      */
     public function destroy(Event $event): RedirectResponse
     {
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => request()->user()?->id,
             'action' => 'delete_event',
             'target_type' => 'Event',
@@ -303,18 +304,54 @@ class EventController extends Controller
         $validated = $request->validate([
             'confirm_rsvp' => ['required', 'boolean'],
             'is_first_time' => ['nullable', 'boolean'],
+            'has_plus_ones' => ['nullable', 'boolean'],
+            'plus_ones' => ['nullable', 'array'],
+            'plus_ones.*.full_name' => ['required_with:plus_ones', 'string', 'max:255'],
+            'plus_ones.*.age' => ['required_with:plus_ones', 'integer', 'min:0', 'max:120'],
+            'plus_ones.*.gender' => ['required_with:plus_ones', 'in:male,female,other,prefer_not_to_say'],
+            'plus_ones.*.is_first_time' => ['required_with:plus_ones', 'boolean'],
+            'plus_ones.*.remarks' => ['nullable', 'string', 'max:255'],
+            'data_privacy_consent' => ['accepted'],
         ]);
+
+        if ($request->boolean('has_plus_ones') && empty($validated['plus_ones'])) {
+            return back()->withErrors([
+                'plus_ones' => 'Please add at least one family member / plus one.',
+            ])->withInput();
+        }
+
+        $plusOnes = collect($validated['plus_ones'] ?? [])->map(function (array $member) {
+            return [
+                'id' => (string) Str::uuid(),
+                'full_name' => trim($member['full_name']),
+                'age' => (int) $member['age'],
+                'gender' => $member['gender'],
+                'is_first_time' => (bool) $member['is_first_time'],
+                'remarks' => trim((string) ($member['remarks'] ?? '')),
+                'is_attended' => false,
+            ];
+        })->values()->all();
+
+        $attendeePayload = [
+            'is_first_time' => $request->boolean('is_first_time'),
+        ];
+
+        if (Schema::hasColumn('attendees', 'plus_ones')) {
+            $attendeePayload['plus_ones'] = $plusOnes;
+        }
+
+        if (Schema::hasColumn('attendees', 'data_privacy_consent')) {
+            $attendeePayload['data_privacy_consent'] = true;
+        }
 
         // Get or create attendee record
         $attendee = $event->attendees()
             ->updateOrCreate([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
-            ], [
-                'is_first_time' => $request->boolean('is_first_time'),
-            ]);
+            ], $attendeePayload);
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $user->id,
             'action' => 'user_rsvp',
             'target_type' => 'Event',
