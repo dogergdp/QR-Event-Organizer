@@ -38,7 +38,7 @@ export default function BackgroundSlideshow({
     if (images.length === 0) return null;
 
     return (
-        <div className="absolute inset-0 z-0 h-full w-full overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-0 w-full h-full min-h-screen overflow-hidden pointer-events-none" style={{minHeight: '100vh', height: '100%'}}>
             {images.map((image, index) => {
                 // Only render current and previous for animation
                 if (index !== currentImageIndex && index !== prevImageIndex) return null;
@@ -46,13 +46,14 @@ export default function BackgroundSlideshow({
                 return (
                     <div
                         key={image}
-                        className={`absolute top-0 left-0 h-full w-full bg-cover bg-center transition-opacity duration-1000 ease-in-out z-0
+                        className={`absolute top-0 left-0 w-full h-full min-h-screen bg-cover bg-center transition-opacity duration-1000 ease-in-out z-0
                             ${isCurrent ? 'opacity-100 animate-zoomfadein' : 'opacity-0 animate-zoomfadeout'}
                         `}
                         style={{
                             backgroundImage: `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('${image}')`,
                             width: '100vw',
-                            height: '100vh',
+                            minHeight: '100vh',
+                            height: '100%'
                         }}
                     />
                 );

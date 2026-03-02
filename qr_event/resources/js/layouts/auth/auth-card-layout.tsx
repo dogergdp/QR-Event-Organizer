@@ -25,15 +25,12 @@ export default function AuthCardLayout({
     return (
         <>
             <BackgroundSlideshow />
-            <div className="absolute inset-0 bg-black/40 pointer-events-none z-0" />
-            <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 p-4 md:p-8 z-10">
+            <div className="fixed inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/40 pointer-events-none z-10" />
+            <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 p-4 md:p-8 z-20">
                 <div className="flex w-full max-w-2xl flex-col gap-10">
                     <div className="relative w-full">
-                                                <div
-                                                    className="absolute inset-0 bg-white/50 dark:bg-black/40 rounded-2xl shadow-2xl backdrop-blur-lg pointer-events-none"
-                                                    style={{ zIndex: 1 }}
-                                                />
-                        <Card className="rounded-2xl relative shadow-2xl" style={{zIndex:2}}>
+                        <Card className="rounded-2xl relative shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40">
                             {onClose && (
                                 <button
                                     type="button"
