@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
+import AuthCardLayout from '@/layouts/auth/auth-card-layout';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { useState } from 'react';
+import BackgroundSlideshow from '@/components/background-slideshow';
 
 export default function Register() {
     const today = new Date().toISOString().split('T')[0];
@@ -41,10 +42,12 @@ export default function Register() {
         e.target.value = formatted;
     };
     return (
-        <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account for Movement"
-        >
+        <>
+            <BackgroundSlideshow />
+            <AuthCardLayout
+                title="Create an account"
+                description="Enter your details below to create your account for Movement"
+            >
             <Head title="Register" />
             <Form
                 {...store.form()}
@@ -256,6 +259,7 @@ export default function Register() {
                     </>
                 )}
             </Form>
-        </AuthLayout>
+        </AuthCardLayout>
+        </>
     );
 }

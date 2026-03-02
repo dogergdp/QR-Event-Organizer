@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
+import BackgroundSlideshow from '@/components/background-slideshow';
 
 export default function Welcome({
     canRegister = true,
@@ -17,73 +18,60 @@ export default function Welcome({
                     rel="stylesheet"
                 />
             </Head>
-            <div className="flex min-h-screen flex-col bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#313638] dark:text-[#EDEDEC]">
-                {/* Main Content */}
-                <div className="flex flex-1 flex-col items-center justify-center p-6 lg:p-8">
-                    <main className="w-full max-w-83.75 lg:max-w-5xl">
-                        <div className="flex flex-col-reverse gap-0 overflow-hidden rounded-lg shadow-lg lg:flex-row lg:gap-0">
-                            {/* Content Section */}
-                            <div className="flex flex-1 flex-col justify-between rounded-br-lg rounded-bl-lg bg-[#000000] p-8 lg:rounded-tl-lg lg:rounded-tr-none lg:rounded-bl-none lg:p-12 dark:bg-[#000000]">
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="mb-4">
-                                        <img
-                                            src="/images/default-event.png"
-                                            alt="Event Banner"
-                                            className="h-auto w-full object-contain"
-                                        />
-                                    </div>
-                                    <p className="mb-8 text-sm leading-relaxed text-gray-300">
-                                        Join our community of engaged members.
-                                        Register to participate in events,
-                                        connect with others, and stay updated
-                                        with the latest.
-                                    </p>
-                                </div>
-
-                                {/* Navigation Links */}
-                                <nav className="flex flex-col justify-center gap-3 sm:flex-row">
-                                    {auth.user ? (
+            <BackgroundSlideshow />
+            <div className="relative min-h-screen flex items-center justify-start z-10">
+                <main className="w-full max-w-4xl mx-auto p-8 lg:p-20 flex items-center justify-start lg:ml-24">
+                    <div className="relative w-full">
+                        <div
+                            className="absolute inset-0 bg-white/80 dark:bg-black/70 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-none"
+                            style={{
+                                WebkitMaskImage:
+                                    'linear-gradient(to top left, transparent 0%, transparent 15%, black 40%, black 100%)',
+                                maskImage:
+                                    'linear-gradient(to top left, transparent 0%, transparent 15%, black 40%, black 100%)',
+                                zIndex: 1,
+                            }}
+                        />
+                        <div className="relative z-10 p-12 w-full flex flex-col items-center lg:items-start lg:text-left">
+                            <img
+                                src="/images/logo-movement.png"
+                                alt="Organization Banner"
+                                className="h-[12rem] object-contain rounded-lg shadow mx-auto lg:mx-0 lg:self-start"
+                            />
+                            <h1 className="text-3xl font-bold mb-2 text-center lg:text-left">Join our community of engaged members.</h1>
+                            <p className="mb-8 text-base leading-relaxed text-gray-700 dark:text-gray-300 text-center lg:text-left">
+                                Register to participate in events, connect with others, and stay updated with the latest.
+                            </p>
+                            <nav className="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start">
+                                {auth.user ? (
+                                    <Link
+                                        href={dashboard()}
+                                        className="rounded-md bg-blue-600 px-6 py-2.5 text-center text-base font-medium text-white transition hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 shadow"
+                                    >
+                                        Go to Dashboard
+                                    </Link>
+                                ) : (
+                                    <>
                                         <Link
-                                            href={dashboard()}
-                                            className="rounded-md bg-blue-600 px-6 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                            href={login.url()}
+                                            className="rounded-md border dark:bg-black/70 px-6 py-2.5 text-center text-base font-medium bg-white transition hover:bg-white transition shadow"
                                         >
-                                            Go to Dashboard
+                                            Log In
                                         </Link>
-                                    ) : (
-                                        <>
+                                        {canRegister && (
                                             <Link
-                                                href={login()}
-                                                className="inline-block rounded-md border border-white/20 px-6 py-2.5 text-center text-sm font-medium text-white transition hover:bg-white/10"
+                                                href={register.url()}
+                                                className="rounded-md bg-yellow-300 px-6 py-2.5 text-center text-yellow-900 font-medium text-white transition hover:bg-yellow-600 shadow"
                                             >
-                                                Log In
+                                                Register Now
                                             </Link>
-                                            {canRegister && (
-                                                <Link
-                                                    href={register()}
-                                                    className="rounded-md bg-white px-6 py-2.5 text-center text-sm font-medium text-black transition hover:bg-gray-200"
-                                                >
-                                                    Register Now
-                                                </Link>
-                                            )}
-                                        </>
-                                    )}
-                                </nav>
-                            </div>
-
-                            {/* Image Section */}
-                            <div className="flex-1 overflow-hidden rounded-tl-lg rounded-tr-lg bg-[#000000] lg:rounded-tl-none lg:rounded-tr-lg">
-                                <img
-                                    src="/images/dove.png"
-                                    alt="Movement Event"
-                                    className="h-64 w-full object-contain lg:h-full lg:min-h-100"
-                                />
-                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </nav>
                         </div>
-                    </main>
-                </div>
-
-                {/* Footer spacing */}
-                <div className="hidden h-14 lg:block"></div>
+                    </div>
+                </main>
             </div>
         </>
     );

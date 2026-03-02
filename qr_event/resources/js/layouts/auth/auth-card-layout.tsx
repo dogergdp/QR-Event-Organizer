@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import BackgroundSlideshow from '@/components/background-slideshow';
 import {
     Card,
     CardContent,
@@ -14,35 +15,53 @@ export default function AuthCardLayout({
     children,
     title,
     description,
+    onClose,
 }: PropsWithChildren<{
     name?: string;
     title?: string;
     description?: string;
+    onClose?: () => void;
 }>) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-            <div className="flex w-full max-w-md flex-col gap-6">
-                <Link
-                    href={home()}
-                    className="flex items-center gap-2 self-center font-medium"
-                >
-                    <div className="flex h-9 w-9 items-center justify-center">
-                        <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
+        <>
+            <BackgroundSlideshow />
+            <div className="absolute inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 p-4 md:p-8 z-10">
+                <div className="flex w-full max-w-2xl flex-col gap-10">
+                    <div className="relative w-full">
+                                                <div
+                                                    className="absolute inset-0 bg-white/50 dark:bg-black/40 rounded-2xl shadow-2xl backdrop-blur-lg pointer-events-none"
+                                                    style={{ zIndex: 1 }}
+                                                />
+                        <Card className="rounded-2xl relative shadow-2xl" style={{zIndex:2}}>
+                            {onClose && (
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="absolute right-4 top-4 text-2xl text-muted-foreground hover:text-foreground focus:outline-none"
+                                    aria-label="Close"
+                                >
+                                    &times;
+                                </button>
+                            )}
+                            <div className="flex flex-col items-center gap-2">
+                            <img
+                                src="/images/logo-movement.png"
+                                alt="Event Banner"
+                                className="h-38 w-auto px-32  object-contain rounded-lg mx-auto lg:mx-0 lg:self-start"
+                            />
+                            </div>
+                            <CardHeader className="px-16 pt-6 pb-0 text-center">
+                                <CardTitle className="text-xl">{title}</CardTitle>
+                                <CardDescription>{description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-16 py-10">
+                                {children}
+                            </CardContent>
+                        </Card>
                     </div>
-                </Link>
-
-                <div className="flex flex-col gap-6">
-                    <Card className="rounded-xl">
-                        <CardHeader className="px-10 pt-8 pb-0 text-center">
-                            <CardTitle className="text-xl">{title}</CardTitle>
-                            <CardDescription>{description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="px-10 py-8">
-                            {children}
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

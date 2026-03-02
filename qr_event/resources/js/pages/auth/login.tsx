@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
+import AuthCardLayout from '@/layouts/auth/auth-card-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 
@@ -36,7 +36,7 @@ export default function Login({
     }, [preFilledContactNumber]);
 
     return (
-        <AuthLayout
+        <AuthCardLayout
             title="Log in to your account"
             description="Enter your contact number and password below to log in"
         >
@@ -68,7 +68,7 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="tel"
-                                    placeholder="09123456789"
+                                    placeholder="e.g. 09123456789"
                                 />
                                 <InputError message={errors.contact_number} />
                             </div>
@@ -85,7 +85,7 @@ export default function Login({
                                         required
                                         tabIndex={2}
                                         autoComplete="current-password"
-                                        placeholder="Password"
+                                        placeholder="Enter Password"
                                     />
                                     <button
                                         type="button"
@@ -138,6 +138,6 @@ export default function Login({
                     {status}
                 </div>
             )}
-        </AuthLayout>
+        </AuthCardLayout>
     );
 }
