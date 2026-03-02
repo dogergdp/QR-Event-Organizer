@@ -36,7 +36,7 @@ export default function Welcome({
                             <img
                                 src="/images/logo-movement.png"
                                 alt="Organization Banner"
-                                className="h-[12rem] object-contain rounded-lg shadow mx-auto lg:mx-0 lg:self-start"
+                                className="h-[12rem] object-contain rounded-lg mx-auto lg:mx-0 lg:self-start"
                             />
                             <h1 className="text-3xl font-bold mb-2 text-center lg:text-left">Join our community of engaged members.</h1>
                             <p className="mb-8 text-base leading-relaxed text-gray-700 dark:text-gray-300 text-center lg:text-left">

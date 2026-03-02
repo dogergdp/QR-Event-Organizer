@@ -65,7 +65,7 @@ export default function EventsIndex() {
                     </p>
 
                     {ongoingEvents.length === 0 ? (
-                        <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-sm text-muted-foreground">
+                        <div className="mt-4 rounded-md border border-dashed p-6 text-sm text-muted-foreground">
                             No ongoing events at the moment.
                         </div>
                     ) : (
@@ -127,7 +127,7 @@ export default function EventsIndex() {
                     </p>
 
                     {upcomingEvents.length === 0 ? (
-                        <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-sm text-muted-foreground">
+                        <div className="mt-4 rounded-md border border-dashed p-6 text-sm text-muted-foreground">
                             No upcoming events yet.
                         </div>
                     ) : (
@@ -186,7 +186,7 @@ export default function EventsIndex() {
                     </p>
 
                     {finishedEvents.length === 0 ? (
-                        <div className="mt-4 rounded-md border border-dashed border-sidebar-border/70 p-6 text-sm text-muted-foreground">
+                        <div className="mt-4 rounded-md border border-dashed p-6 text-sm text-muted-foreground">
                             No finished events yet.
                         </div>
                     ) : (
