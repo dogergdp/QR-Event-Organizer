@@ -17,7 +17,10 @@ export default function Register() {
         has_dg_leader: '',
         want_to_join_dg: '',
         dg_leader_name: '',
+        contact_number: '',
+        data_privacy: false,
     });
+    const [contactValid, setContactValid] = useState(false);
 
     const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Get only digits from the input
@@ -51,7 +54,7 @@ export default function Register() {
             <Head title="Register" />
             <Form
                 {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
+                resetOnSuccess={[]}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
             >
@@ -95,19 +98,39 @@ export default function Register() {
                                 </div>
                             </div>
 
-                                                       <div className="grid gap-2">
-                                <Label htmlFor="contact_number">Contact Number</Label>
-                                <Input
-                                    id="contact_number"
-                                    type="tel"
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="contact_number">Contact Number</Label>
+                                                        <Input
+                                                            id="contact_number"
+                                                            type="tel"
+                                                            required
+                                                            tabIndex={5}
+                                                            autoComplete="tel"
+                                                            name="contact_number"
+                                                            placeholder="e.g. 09123456789"
+                                                            value={data.contact_number}
+                                                            inputMode="numeric"
+                                                            pattern="09[0-9]{9}"
+                                                            maxLength={11}
+                                                            onChange={e => {
+                                                                const val = e.target.value.replace(/\D/g, '');
+                                                                setData('contact_number', val);
+                                                                setContactValid(/^09\d{9}$/.test(val));
+                                                            }}
+                                                        />
+                                                        <p className="text-[10px] text-muted-foreground italic">Format: 11 digits starting with 09 (e.g., 09123456789)</p>
+                                                        <InputError message={errors.contact_number} />
+                                                    </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="data_privacy"
+                                    name="data_privacy"
+                                    checked={data.data_privacy}
+                                    onChange={e => setData('data_privacy', e.target.checked)}
                                     required
-                                    tabIndex={5}
-                                    autoComplete="tel"
-                                    name="contact_number"
-                                    placeholder="e.g. 09152872043"
                                 />
-                                <p className="text-[10px] text-muted-foreground italic">Format: 11 digits starting with 09 (e.g., 09123456789)</p>
-                                <InputError message={errors.contact_number} />
+                                <Label htmlFor="data_privacy" className="text-xs">I agree to the data privacy policy</Label>
                             </div>
 
                             <div className="grid gap-2">
@@ -203,39 +226,7 @@ export default function Register() {
                                 </div>
                             )}
 
-                            <div>Enter a Password</div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    tabIndex={3}
-                                    autoComplete="new-password"
-                                    name="password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    required
-                                    tabIndex={4}
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder="Confirm password"
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
 
 
 
@@ -244,6 +235,7 @@ export default function Register() {
                                 className="mt-2 w-full"
                                 tabIndex={10}
                                 data-test="register-user-button"
+                                disabled={!contactValid || !data.data_privacy || processing}
                             >
                                 {processing && <Spinner />}
                                 Create account

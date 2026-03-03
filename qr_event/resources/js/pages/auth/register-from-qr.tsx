@@ -52,10 +52,10 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
         has_dg_leader: '',
         dg_leader_name: '',
         want_to_join_dg: '',
-        password: '',
-        password_confirmation: '',
         qr_token: qrToken,
+        data_privacy: false,
     });
+    const [contactValid, setContactValid] = useState(false);
 
     const [loginProcessing, setLoginProcessing] = useState(false);
     const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -212,8 +212,9 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
     };
 
     const handleFormContactNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const formatted = formatPhoneNumber(e.target.value);
-        setData('contact_number', formatted);
+        const val = e.target.value.replace(/\D/g, '');
+        setData('contact_number', val);
+        setContactValid(/^09\d{9}$/.test(val));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -407,13 +408,24 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
                                             type="tel"
                                             value={data.contact_number}
                                             onChange={handleFormContactNumberChange}
-                                            placeholder="e.g. 09152872043"
+                                            placeholder="e.g. 09123456789"
                                             inputMode="numeric"
                                             maxLength={11}
                                             required
                                         />
                                         <p className="text-[10px] text-muted-foreground italic">Format: 11 digits starting with 09 (e.g., 09123456789)</p>
                                         <InputError message={errors.contact_number} />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="data_privacy"
+                                            name="data_privacy"
+                                            checked={data.data_privacy}
+                                            onChange={e => setData('data_privacy', e.target.checked)}
+                                            required
+                                        />
+                                        <Label htmlFor="data_privacy" className="text-xs">I agree to the data privacy policy</Label>
                                     </div>
 
                                     <div className="grid gap-2">
@@ -507,44 +519,11 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
                                 </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Enter a Password</h2>
-                                <div className="space-y-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input
-                                            id="password"
-                                            name="password"
-                                            type="password"
-                                            autoComplete="new-password"
-                                            value={data.password}
-                                            onChange={(e) => setData('password', e.target.value)}
-                                            placeholder="Password"
-                                            required
-                                        />
-                                        <InputError message={errors.password} />
-                                    </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="password_confirmation">Confirm Password</Label>
-                                        <Input
-                                            id="password_confirmation"
-                                            name="password_confirmation"
-                                            type="password"
-                                            autoComplete="new-password"
-                                            value={data.password_confirmation}
-                                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                                            placeholder="Confirm password"
-                                            required
-                                        />
-                                        <InputError message={errors.password_confirmation} />
-                                    </div>
-                                </div>
-                            </div>
 
                             <Button
                                 type="submit"
-                                disabled={processing}
+                                disabled={processing || !contactValid || !data.data_privacy}
                                 className="w-full mt-2"
                             >
                                 {processing ? 'Creating account...' : 'Create account'}
