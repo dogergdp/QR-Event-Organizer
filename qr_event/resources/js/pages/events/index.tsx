@@ -32,7 +32,7 @@ export default function EventsIndex() {
     const ongoingEvents = eventList.filter((event) => !!event.is_ongoing && !event.is_finished);
     const upcomingEvents = eventList.filter((event) => !event.is_finished && !event.is_ongoing);
     const finishedEvents = eventList.filter((event) => event.is_finished);
-    const defaultBanner = '/images/default-event.png';
+    const defaultBanner = '/images/default-event.jpg';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

@@ -24,7 +24,7 @@ type EventData = {
 
 export default function EditEvent({ event }: { event: EventData }) {
     const today = new Date().toISOString().split('T')[0];
-    const defaultBanner = '/images/default-event.png';
+    const defaultBanner = '/images/default-event.jpg';
     const [data, setData] = useState({
         name: event.name,
         date: event.date,

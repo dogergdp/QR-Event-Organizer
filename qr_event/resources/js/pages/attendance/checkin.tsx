@@ -69,7 +69,7 @@ export default function CheckIn({
         }
     };
 
-    const defaultBanner = '/images/default-event.png';
+    const defaultBanner = '/images/default-event.jpg';
     const hasDescription = Boolean(event.description && event.description.trim());
 
     return (

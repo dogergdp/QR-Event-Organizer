@@ -58,7 +58,7 @@ export default function QRDisplay() {
         <div
             className="flex h-screen w-full flex-col items-center justify-center p-8 relative overflow-hidden"
             style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${event.banner_image ? `/storage/${event.banner_image}` : '/images/default-event.png'}')`,
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${event.banner_image ? `/storage/${event.banner_image}` : '/images/default-event.jpg'}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}

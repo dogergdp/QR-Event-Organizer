@@ -47,7 +47,7 @@ export default function ShowEvent() {
 
     const filteredAttendees = allAttendees;
 
-    const defaultBanner = '/images/default-event.png';
+    const defaultBanner = '/images/default-event.jpg';
     const hasDescription = Boolean(
         event.description && event.description.trim(),
     );

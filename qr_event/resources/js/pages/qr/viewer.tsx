@@ -26,7 +26,7 @@ export default function QRViewer() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [bannerLoadFailed, setBannerLoadFailed] = useState(false);
     const qrCanvasRef = useRef<HTMLCanvasElement>(null);
-    const defaultBannerUrl = '/images/default-event.png';
+    const defaultBannerUrl = '/images/default-event.jpg';
 
     const qrValue = `${window.location.origin}/qr/${qrCode.token}`;
 
@@ -129,7 +129,7 @@ export default function QRViewer() {
                 context.fillStyle = '#000000';
                 context.fillRect(0, 0, outputSize, bannerMaxHeight);
 
-                const bannerUrlToUse = "/images/default-event.png";
+                const bannerUrlToUse = "/images/default-event.jpg";
                 try {
                     const banner = await loadImage(bannerUrlToUse);
 

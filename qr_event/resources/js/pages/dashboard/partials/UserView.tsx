@@ -12,7 +12,7 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
 
     const upcomingEvents = events.filter((event) => !event.is_finished && !isEventOngoing(event));
     const ongoingEvents = events.filter((event) => !event.is_finished && isEventOngoing(event));
-    const defaultBanner = '/images/default-event.png';
+    const defaultBanner = '/images/default-event.jpg';
 
     return (
         <div className="space-y-4">
