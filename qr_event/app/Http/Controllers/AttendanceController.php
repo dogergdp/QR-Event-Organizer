@@ -9,6 +9,7 @@ use App\Services\LiveDashboardService;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,11 +30,11 @@ class AttendanceController extends Controller
                 ->with('error', 'Invalid or expired QR code. Please try again.');
         }
 
-        $event = Event::findOrFail($eventId);
+        $event = Event::query()->findOrFail($eventId);
         $user = request()->user();
 
         // Check if user is already registered for this event
-        $attendance = Attendee::where('user_id', $user->id)
+        $attendance = Attendee::query()->where('user_id', $user->id)
             ->where('event_id', $event->id)
             ->first();
 
@@ -66,6 +67,7 @@ class AttendanceController extends Controller
             'event_id' => ['required', 'integer', 'exists:events,id'],
             'confirm_attendance' => ['required', 'boolean'],
             'is_first_time' => ['nullable', 'boolean'],
+            'data_privacy_consent' => ['accepted'],
         ]);
 
         // Validate token
@@ -80,22 +82,28 @@ class AttendanceController extends Controller
         }
 
         $user = request()->user();
-        $event = Event::findOrFail($validated['event_id']);
+        $event = Event::query()->findOrFail($validated['event_id']);
+
+        $confirmPayload = [
+            'is_attended' => true,
+            'is_first_time' => $request->boolean('is_first_time'),
+            'attended_time' => now(),
+        ];
+
+        if (Schema::hasColumn('attendees', 'data_privacy_consent')) {
+            $confirmPayload['data_privacy_consent'] = true;
+        }
 
         // Create or update attendance record
-        Attendee::updateOrCreate(
+        Attendee::query()->updateOrCreate(
             [
                 'user_id' => $user->id,
                 'event_id' => $event->id,
             ],
-            [
-                'is_attended' => true,
-                'is_first_time' => $request->boolean('is_first_time'),
-                'attended_time' => now(),
-            ]
+            $confirmPayload
         );
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $user->id,
             'action' => 'user_attendance',
             'target_type' => 'Event',
@@ -121,20 +129,62 @@ class AttendanceController extends Controller
     {
         $user = request()->user();
 
+        $validated = $request->validate([
+            'is_first_time' => ['nullable', 'boolean'],
+            'confirm_attendance' => ['required', 'boolean'],
+            'attending_member_ids' => ['nullable', 'array'],
+            'attending_member_ids.*' => ['string'],
+            'data_privacy_consent' => ['accepted'],
+        ]);
+
+        if (! $request->boolean('confirm_attendance')) {
+            return back()->withErrors([
+                'confirm_attendance' => 'Please confirm your attendance and that of the selected attendees to continue.',
+            ]);
+        }
+
+        $selectedMemberIds = collect($validated['attending_member_ids'] ?? []);
+
+        if (! $selectedMemberIds->contains('primary')) {
+            return back()->withErrors([
+                'attending_member_ids' => 'Primary attendee must be present to proceed.',
+            ]);
+        }
+
+        $attendee = Attendee::query()->firstOrNew([
+            'user_id' => $user->id,
+            'event_id' => $event->id,
+        ]);
+
+        $updatedPlusOnes = collect($attendee->plus_ones ?? [])->map(function (array $member) use ($selectedMemberIds) {
+            $member['is_attended'] = $selectedMemberIds->contains($member['id'] ?? '');
+            return $member;
+        })->values()->all();
+
+        $attendancePayload = [
+            'is_attended' => true,
+            'is_first_time' => $request->boolean('is_first_time'),
+            'attended_time' => now(),
+        ];
+
+        if (Schema::hasColumn('attendees', 'plus_ones')) {
+            $attendancePayload['plus_ones'] = $updatedPlusOnes;
+        }
+
+        if (Schema::hasColumn('attendees', 'data_privacy_consent')) {
+            $attendancePayload['data_privacy_consent'] = true;
+        }
+
         // Create or update attendance record
-        Attendee::updateOrCreate(
+        Attendee::query()->updateOrCreate(
             [
                 'user_id' => $user->id,
                 'event_id' => $event->id,
             ],
-            [
-                'is_attended' => true,
-                'is_first_time' => $request->boolean('is_first_time'),
-                'attended_time' => now(),
-            ]
+            $attendancePayload
         );
 
-        ActivityLog::create([
+        ActivityLog::query()->create([
             'user_id' => $user->id,
             'action' => 'user_attendance',
             'target_type' => 'Event',

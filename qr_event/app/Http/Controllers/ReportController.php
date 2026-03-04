@@ -295,7 +295,8 @@ class ReportController extends Controller
             } elseif ($type === 'attendance') {
                 $query->where('is_attended', true);
             } elseif ($type === 'first_time') {
-                $query->where('is_first_time', true);
+                $query->where('is_attended', true)
+                    ->where('is_first_time', true);
             }
 
             $attendees = $query->get();

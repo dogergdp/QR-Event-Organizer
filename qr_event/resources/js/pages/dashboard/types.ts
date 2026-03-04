@@ -45,14 +45,28 @@ export interface DashboardProps {
             name: string;
             contact_number: string;
             attended_time: string | null;
+            is_attended: boolean;
             is_first_time: boolean;
+            plus_ones: Array<{
+                id: string;
+                full_name: string;
+                is_first_time: boolean;
+                is_attended: boolean;
+            }>;
         }>;
         attendees: Array<{
             id: number;
             name: string;
             contact_number: string;
             attended_time: string | null;
+            is_attended: boolean;
             is_first_time: boolean;
+            plus_ones: Array<{
+                id: string;
+                full_name: string;
+                is_first_time: boolean;
+                is_attended: boolean;
+            }>;
         }>;
     }>;
     topAttendees?: Array<{

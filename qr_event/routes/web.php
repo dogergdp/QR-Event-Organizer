@@ -20,6 +20,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::middleware('guest')->group(function () {
+    Route::get('admin/login', fn () => Inertia::render('auth/admin-login'))->name('admin.login');
+});
+
 // Extract dashboard logic to a controller
 Route::get('dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])

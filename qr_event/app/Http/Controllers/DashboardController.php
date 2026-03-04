@@ -26,44 +26,86 @@ class DashboardController extends Controller
     {
         $totalEvents = Event::count();
         $totalAttendees = User::count();
-        $totalAttendances = Attendee::where('is_attended', true)->count();
+        $totalAttendances = Attendee::query()
+            ->get(['is_attended', 'plus_ones'])
+            ->sum(function (Attendee $attendee) {
+                $primaryAttended = $attendee->is_attended ? 1 : 0;
+                $plusOnesAttended = collect($attendee->plus_ones ?? [])->where('is_attended', true)->count();
+
+                return $primaryAttended + $plusOnesAttended;
+            });
 
         $reportEvents = Event::with([
             'attendees' => fn($query) => $query
                 ->with('user:id,first_name,last_name,contact_number')
                 ->latest('updated_at')
-                ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'is_first_time'),
-        ])
-        ->withCount([
-            'attendees',
-            'attendees as attended_count' => fn($q) => $q->where('is_attended', true)
+                ->select('id', 'user_id', 'event_id', 'is_attended', 'attended_time', 'is_first_time', 'plus_ones'),
         ])
         ->orderBy('date', 'desc')
         ->limit(10)
         ->get()
-        ->map(fn($event) => [
-            'id' => $event->id,
-            'name' => $event->name,
-            'date' => $event->date,
-            'start_time' => $event->start_time,
-            'location' => $event->location,
-            'total_registered' => $event->attendees_count,
-            'total_attended' => $event->attended_count,
-            'rsvp' => $event->attendees->where('is_attended', false)->values()->map(fn($attendee) => [
-                'id' => $attendee->id,
-                'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
-                'contact_number' => $attendee->user->contact_number ?? '',
-                'attended_time' => null,
-                'is_first_time' => $attendee->is_first_time,
-            ]),
-            'attendees' => $event->attendees->where('is_attended', true)->values()->map(fn($attendee) => [
-                'id' => $attendee->id,
-                'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
-                'contact_number' => $attendee->user->contact_number ?? '',
-                'attended_time' => optional($attendee->attended_time)?->format('M d, Y h:i A'),
-                'is_first_time' => $attendee->is_first_time,
-            ]),
-        ]);
+        ->map(function ($event) {
+            $totalRegistered = $event->attendees->sum(function (Attendee $attendee) {
+                return 1 + count($attendee->plus_ones ?? []);
+            });
+
+            $totalAttended = $event->attendees->sum(function (Attendee $attendee) {
+                $primaryAttended = $attendee->is_attended ? 1 : 0;
+                $plusOnesAttended = collect($attendee->plus_ones ?? [])->where('is_attended', true)->count();
+
+                return $primaryAttended + $plusOnesAttended;
+            });
+
+            return [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date,
+                'start_time' => $event->start_time,
+                'location' => $event->location,
+                'total_registered' => $totalRegistered,
+                'total_attended' => $totalAttended,
+                'rsvp' => $event->attendees
+                    ->filter(function (Attendee $attendee) {
+                        $primaryNotAttended = ! $attendee->is_attended;
+                        $plusOneNotAttended = collect($attendee->plus_ones ?? [])->contains(
+                            fn(array $member) => ! (bool) ($member['is_attended'] ?? false)
+                        );
+
+                        return $primaryNotAttended || $plusOneNotAttended;
+                    })
+                    ->values()
+                    ->map(fn($attendee) => [
+                        'id' => $attendee->id,
+                        'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                        'contact_number' => $attendee->user->contact_number ?? '',
+                        'attended_time' => null,
+                        'is_attended' => (bool) $attendee->is_attended,
+                        'is_first_time' => $attendee->is_first_time,
+                        'plus_ones' => collect($attendee->plus_ones ?? [])->filter(
+                            fn(array $member) => ! (bool) ($member['is_attended'] ?? false)
+                        )->map(fn(array $member) => [
+                            'id' => (string) ($member['id'] ?? ''),
+                            'full_name' => (string) ($member['full_name'] ?? ''),
+                            'is_first_time' => (bool) ($member['is_first_time'] ?? false),
+                            'is_attended' => (bool) ($member['is_attended'] ?? false),
+                        ])->values(),
+                    ]),
+                'attendees' => $event->attendees->where('is_attended', true)->values()->map(fn($attendee) => [
+                    'id' => $attendee->id,
+                    'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                    'contact_number' => $attendee->user->contact_number ?? '',
+                    'attended_time' => optional($attendee->attended_time)?->format('M d, Y h:i A'),
+                    'is_attended' => true,
+                    'is_first_time' => $attendee->is_first_time,
+                    'plus_ones' => collect($attendee->plus_ones ?? [])->where('is_attended', true)->map(fn(array $member) => [
+                        'id' => (string) ($member['id'] ?? ''),
+                        'full_name' => (string) ($member['full_name'] ?? ''),
+                        'is_first_time' => (bool) ($member['is_first_time'] ?? false),
+                        'is_attended' => (bool) ($member['is_attended'] ?? false),
+                    ])->values(),
+                ]),
+            ];
+        });
 
         $topAttendees = User::withCount([
             'attendances as attended_events' => fn($q) => $q->where('is_attended', true)
@@ -107,7 +149,7 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->orderBy('start_time')
             ->get(['id', 'name', 'date', 'start_time', 'end_time', 'description', 'location', 'banner_image', 'is_finished', 'is_ongoing'])
-            ->map(function($event) use ($user) {
+            ->map(function (Event $event) use ($user) {
                 $attendee = $event->attendees()->where('user_id', $user->id)->first();
                 return [
                     'id' => $event->id,

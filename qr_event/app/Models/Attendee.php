@@ -10,14 +10,18 @@ class Attendee extends Model
     protected $fillable = [
         'user_id',
         'event_id',
+        'data_privacy_consent',
         'is_attended',
         'is_first_time',
+        'plus_ones',
         'attended_time',
     ];
 
     protected $casts = [
+        'data_privacy_consent' => 'boolean',
         'is_attended' => 'boolean',
         'is_first_time' => 'boolean',
+        'plus_ones' => 'array',
         'attended_time' => 'datetime',
     ];
 
