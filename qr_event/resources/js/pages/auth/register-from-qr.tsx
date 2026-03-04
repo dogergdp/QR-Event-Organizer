@@ -27,10 +27,10 @@ type RegisterFromQRProps = {
     event: Event;
     qrToken: string;
     isAttendanceQr?: boolean;
+    shareImage?: string;
 };
 
-export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) {
-    const today = new Date().toISOString().split('T')[0];
+export default function RegisterFromQR({ event, qrToken, shareImage }: RegisterFromQRProps) {    const absoluteShareImage = shareImage ? `${window.location.origin}${shareImage}` : undefined;    const today = new Date().toISOString().split('T')[0];
     const currentYear = new Date().getFullYear();
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
@@ -269,7 +269,18 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
 
     return (
         <>
-            <Head title={`Register - ${event.name}`} />
+            <Head title={`Register - ${event.name}`}>
+                <meta property="og:title" content={`RSVP for ${event.name}`} />
+                <meta property="og:description" content={`Join us for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="og:image" content={absoluteShareImage} />}
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:type" content="website" />
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:title" content={`RSVP for ${event.name}`} />
+                <meta property="twitter:description" content={`Join us for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="twitter:image" content={absoluteShareImage} />}
+            </Head>
 
             <div className="min-h-screen bg-white dark:bg-[#313638] flex items-center justify-center p-4">
                 <div className="w-full max-w-md">

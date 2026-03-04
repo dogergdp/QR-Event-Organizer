@@ -185,6 +185,7 @@ class QrCodeController extends Controller
     {
         $user = auth()->user();
         $event = $qrCode->event;
+        $shareImage = $event->banner_image ? "/storage/{$event->banner_image}" : '/images/default-event.png';
 
         // If logged in, check if already RSVP'd
         if ($user) {
@@ -198,6 +199,7 @@ class QrCodeController extends Controller
                     'event' => $event,
                     'fromQr' => true,
                     'alreadyRsvpd' => true,
+                    'shareImage' => $shareImage,
                 ]);
             }
 
@@ -206,6 +208,7 @@ class QrCodeController extends Controller
                 'event' => $event,
                 'fromQr' => true,
                 'alreadyRsvpd' => false,
+                'shareImage' => $shareImage,
             ]);
         }
 
@@ -213,6 +216,7 @@ class QrCodeController extends Controller
         return Inertia::render('auth/register-from-qr', [
             'event' => $event,
             'qrToken' => $token,
+            'shareImage' => $shareImage,
         ]);
     }
 

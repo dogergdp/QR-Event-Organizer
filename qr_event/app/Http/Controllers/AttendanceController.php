@@ -139,7 +139,7 @@ class AttendanceController extends Controller
 
         if (! $request->boolean('confirm_attendance')) {
             return back()->withErrors([
-                'confirm_attendance' => 'Please confirm attendance to continue.',
+                'confirm_attendance' => 'Please confirm your attendance and that of the selected attendees to continue.',
             ]);
         }
 
