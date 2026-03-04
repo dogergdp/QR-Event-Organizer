@@ -24,7 +24,10 @@ test('two factor challenge can be rendered', function () {
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'contact_number' => '09123456783',
+        'birthdate' => '1990-01-01',
+    ]);
 
     $user->forceFill([
         'two_factor_secret' => encrypt('test-secret'),
@@ -33,8 +36,8 @@ test('two factor challenge can be rendered', function () {
     ])->save();
 
     $this->post(route('login'), [
-        'email' => $user->email,
-        'password' => 'password',
+        'contact_number' => $user->contact_number,
+        'password' => '1990-01-01',
     ]);
 
     $this->get(route('two-factor.login'))

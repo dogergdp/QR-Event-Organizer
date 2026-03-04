@@ -40,10 +40,11 @@ export default function CheckIn({
 }: CheckInProps) {
     const [confirmed, setConfirmed] = useState(false);
     const [isFirstTime, setIsFirstTime] = useState(initialIsFirstTime);
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         token,
         event_id: event.id,
         confirm_attendance: false,
+        data_privacy_consent: false,
         is_first_time: (hasAnsweredFirstTime ? initialIsFirstTime : null) as boolean | null,
     });
 
@@ -218,9 +219,32 @@ export default function CheckIn({
                                 </span>
                             </label>
 
+                            <label className="flex items-start gap-3 cursor-pointer mb-6 relative">
+                                <div className="mt-1 relative flex-shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.data_privacy_consent}
+                                        onChange={(e) => setData('data_privacy_consent', e.target.checked)}
+                                        className="appearance-none h-6 w-6 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
+                                    />
+                                    {data.data_privacy_consent && (
+                                        <svg className="absolute top-0 left-0 w-6 h-6 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <span className="text-sm text-foreground">
+                                    I consent to data privacy collection for attendance processing.
+                                </span>
+                            </label>
+
+                            {errors.data_privacy_consent && (
+                                <p className="-mt-4 mb-4 text-sm text-red-600">{errors.data_privacy_consent}</p>
+                            )}
+
                             <button
                                 type="submit"
-                                disabled={!confirmed || processing || (data.is_first_time === null && !hasAnsweredFirstTime)}
+                                disabled={!confirmed || !data.data_privacy_consent || processing || (data.is_first_time === null && !hasAnsweredFirstTime)}
                                 className="inline-flex items-center rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
                             >
                                 {processing
