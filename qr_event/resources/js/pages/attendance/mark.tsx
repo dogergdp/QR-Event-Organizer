@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Check, X } from 'lucide-react';
 import type { BreadcrumbItem } from '@/types';
 
 interface Event {
@@ -135,29 +135,47 @@ export default function MarkAttendance({ event, qrCode, primaryUserName, plusOne
                             <div className="mb-6 rounded-lg border border-sidebar-border/70 p-4">
                                 <p className="text-sm font-semibold text-foreground mb-3">Who is attending today?</p>
 
-                                <label className="flex items-center gap-3 py-2">
+                                <div className={`flex items-center gap-3 py-3 px-3 rounded-lg border-2 transition ${
+                                    data.attending_member_ids.includes('primary')
+                                        ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400'
+                                        : 'bg-red-500/10 border-red-500 text-red-700 dark:text-red-400'
+                                }`}>
                                     <input
                                         type="checkbox"
                                         checked={data.attending_member_ids.includes('primary')}
                                         onChange={() => toggleAttendingMember('primary')}
                                         className="h-4 w-4"
                                     />
-                                    <span className="text-sm text-foreground">{primaryUserName} (Main RSVP)</span>
-                                </label>
+                                    {data.attending_member_ids.includes('primary') ? (
+                                        <Check className="w-5 h-5 flex-shrink-0" />
+                                    ) : (
+                                        <X className="w-5 h-5 flex-shrink-0" />
+                                    )}
+                                    <span className="text-sm font-medium">{primaryUserName} (Main RSVP)</span>
+                                </div>
 
                                 {plusOnes.map((member) => (
-                                    <label key={member.id} className="flex items-center gap-3 py-2">
+                                    <div key={member.id} className={`flex items-center gap-3 py-3 px-3 rounded-lg border-2 transition mt-2 ${
+                                        data.attending_member_ids.includes(member.id)
+                                            ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400'
+                                            : 'bg-red-500/10 border-red-500 text-red-700 dark:text-red-400'
+                                    }`}>
                                         <input
                                             type="checkbox"
                                             checked={data.attending_member_ids.includes(member.id)}
                                             onChange={() => toggleAttendingMember(member.id)}
                                             className="h-4 w-4"
                                         />
-                                        <span className="text-sm text-foreground">
+                                        {data.attending_member_ids.includes(member.id) ? (
+                                            <Check className="w-5 h-5 flex-shrink-0" />
+                                        ) : (
+                                            <X className="w-5 h-5 flex-shrink-0" />
+                                        )}
+                                        <span className="text-sm font-medium">
                                             {member.full_name}
-                                            <span className="ml-1 text-xs text-muted-foreground">({member.age}, {member.gender})</span>
+                                            <span className="ml-1 text-xs opacity-75">({member.age}, {member.gender})</span>
                                         </span>
-                                    </label>
+                                    </div>
                                 ))}
 
                                 {plusOnes.length === 0 && (

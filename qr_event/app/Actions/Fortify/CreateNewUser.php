@@ -6,7 +6,9 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -24,15 +26,17 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'contact_number' => array_merge($this->contactNumberRules(), [Rule::unique('users', 'contact_number')]),
-            'password' => $this->passwordRules(),
             'dg_leader_name' => Rule::requiredIf(($input['has_dg_leader'] ?? '') === 'yes'),
             'want_to_join_dg' => Rule::requiredIf(($input['has_dg_leader'] ?? '') === 'no'),
         ])->validate();
 
+        // Generate a random password if not provided (for QR registration)
+        $password = $input['password'] ?? Str::random(16);
+
         $user = User::create([
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'],
-            'password' => $input['password'],
+            'password' => Hash::make($password),
             'contact_number' => $input['contact_number'],
             'birthdate' => $input['birthdate'],
             'marital_status' => $input['marital_status'],

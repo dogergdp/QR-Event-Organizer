@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,9 +56,15 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
         data_privacy: false,
     });
     const [contactValid, setContactValid] = useState(false);
+    const [submissionError, setSubmissionError] = useState('');
 
     const [loginProcessing, setLoginProcessing] = useState(false);
     const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
+
+    // Auto-validate contact number when it changes
+    useEffect(() => {
+        setContactValid(/^09\d{9}$/.test(data.contact_number));
+    }, [data.contact_number]);
 
     const years = useMemo(
         () => Array.from({ length: currentYear - 1899 }, (_, index) => String(currentYear - index)),
@@ -219,9 +225,44 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmissionError('');
+        
+        // Validate all required fields before submission
+        if (!data.first_name || !data.last_name || !data.contact_number || 
+            !data.birthdate || !data.marital_status || !data.has_dg_leader || !data.data_privacy) {
+            setSubmissionError('Please fill in all required fields');
+            console.error('Missing required fields:', {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                contact_number: data.contact_number,
+                birthdate: data.birthdate,
+                marital_status: data.marital_status,
+                has_dg_leader: data.has_dg_leader,
+                data_privacy: data.data_privacy,
+            });
+            return;
+        }
+        
+        // Validate conditional fields
+        if (data.has_dg_leader === 'yes' && !data.dg_leader_name) {
+            setSubmissionError('Please enter your DG leader name');
+            console.error('DG leader name is required when in a DG group');
+            return;
+        }
+        
+        if (data.has_dg_leader === 'no' && !data.want_to_join_dg) {
+            setSubmissionError('Please answer if you want to join a DG group');
+            console.error('Want to join DG field is required');
+            return;
+        }
+        
         post('/qr-register', {
             onSuccess: () => {
                 // Registration successful, user will be redirected by the server
+            },
+            onError: (errors) => {
+                setSubmissionError('Failed to create account. Please check your details and try again.');
+                console.error('Registration error:', errors);
             },
         });
     };
@@ -367,6 +408,11 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
                     {/* Step 3: Registration Form */}
                     {step === 'register' && (
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {submissionError && (
+                                <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4">
+                                    <p className="text-sm text-red-700 dark:text-red-300">{submissionError}</p>
+                                </div>
+                            )}
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Details</h2>
                                 <div className="space-y-4">
@@ -523,7 +569,18 @@ export default function RegisterFromQR({ event, qrToken }: RegisterFromQRProps) 
 
                             <Button
                                 type="submit"
-                                disabled={processing || !contactValid || !data.data_privacy}
+                                disabled={
+                                    processing || 
+                                    !contactValid || 
+                                    !data.data_privacy ||
+                                    !data.first_name ||
+                                    !data.last_name ||
+                                    !data.birthdate ||
+                                    !data.marital_status ||
+                                    !data.has_dg_leader ||
+                                    (data.has_dg_leader === 'yes' && !data.dg_leader_name) ||
+                                    (data.has_dg_leader === 'no' && !data.want_to_join_dg)
+                                }
                                 className="w-full mt-2"
                             >
                                 {processing ? 'Creating account...' : 'Create account'}
