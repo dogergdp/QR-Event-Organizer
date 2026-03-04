@@ -1,11 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
 import { CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { BreadcrumbItem } from '@/types';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import {
+    Card,
+    CardContent,
+} from '@/components/ui/card';
 
 interface Event {
     id: number;
@@ -18,16 +20,11 @@ interface Event {
 type PreRegisterConfirmProps = {
     event: Event;
     qrToken?: string | null;
+    shareImage?: string;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Events',
-        href: '/dashboard',
-    },
-];
-
-export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfirmProps) {
+export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRegisterConfirmProps) {
+    const absoluteShareImage = shareImage ? `${window.location.origin}${shareImage}` : undefined;
     const [hasPlusOnes, setHasPlusOnes] = useState(false);
     const [plusOnesData, setPlusOnesData] = useState<Array<{
         full_name: string;
@@ -45,6 +42,9 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
         data_privacy_consent: false,
         qr_token: qrToken ?? '',
     });
+
+    const confirmRef = useRef<HTMLInputElement | null>(null);
+    const consentRef = useRef<HTMLInputElement | null>(null);
 
     const addPlusOne = () => {
         setPlusOnesData([...plusOnesData, {
@@ -68,7 +68,10 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
 
     const handleConfirmRsvp = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!rsvpForm.data.confirm_rsvp || !rsvpForm.data.data_privacy_consent || rsvpForm.data.is_first_time === null) {
+        const confirmChecked = confirmRef.current ? confirmRef.current.checked : rsvpForm.data.confirm_rsvp;
+        const consentChecked = consentRef.current ? consentRef.current.checked : rsvpForm.data.data_privacy_consent;
+
+        if (!confirmChecked || !consentChecked || rsvpForm.data.is_first_time === null) {
             return;
         }
 
@@ -82,11 +85,11 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
         })) : [];
 
         rsvpForm.setData({
-            confirm_rsvp: rsvpForm.data.confirm_rsvp,
+            confirm_rsvp: confirmChecked,
             is_first_time: rsvpForm.data.is_first_time,
             has_plus_ones: hasPlusOnes,
             plus_ones: formattedPlusOnes,
-            data_privacy_consent: true,
+            data_privacy_consent: consentChecked,
             qr_token: rsvpForm.data.qr_token,
         });
 
@@ -94,36 +97,61 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`RSVP Confirmation - ${event.name}`} />
+        <>
+            <Head title={`RSVP Confirmation - ${event.name}`}>
+                <meta property="og:title" content={`RSVP for ${event.name}`} />
+                <meta property="og:description" content={`Confirm your attendance for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="og:image" content={absoluteShareImage} />}
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:type" content="website" />
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:title" content={`RSVP for ${event.name}`} />
+                <meta property="twitter:description" content={`Confirm your attendance for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="twitter:image" content={absoluteShareImage} />}
+            </Head>
+            <div 
+                className="fixed inset-0 z-0 w-full h-full min-h-screen overflow-hidden pointer-events-none"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("/images/slideshow/slide1.jpg")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    width: '100vw',
+                    minHeight: '100vh',
+                    height: '100%'
+                }}
+            />
+            <div className="fixed inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/40 pointer-events-none z-10" />
+            <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 p-4 md:p-8 z-20">
+                <div className="flex w-full max-w-2xl flex-col gap-10">
+                    <Card className="rounded-2xl relative shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40">
+                        <CardContent className="px-8 py-10">
+                            <h1 className="text-xl font-bold text-foreground mb-3">RSVP Confirmation</h1>
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="max-w-2xl">
-                    <h1 className="text-2xl font-bold text-foreground mb-2">RSVP Confirmation</h1>
-
-                    <div className="rounded-lg border-2 border-green-500/50 bg-green-500/10 p-6 mb-6">
-                        <div className="flex items-start gap-4">
-                            <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
-                            <div>
-                                <h2 className="text-lg font-semibold text-foreground mb-2">{event.name}</h2>
-                                <p className="text-sm text-muted-foreground mb-1">{event.location}</p>
-                                <p className="text-sm text-muted-foreground">{event.date} {event.start_time && `at ${event.start_time}`}</p>
+                            <div className="rounded-lg border-2 border-green-500/50 bg-green-500/10 p-4 mb-4">
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                    <div className="text-sm">
+                                        <h2 className="font-semibold text-foreground mb-1">{event.name}</h2>
+                                        <p className="text-xs text-muted-foreground mb-1">{event.location}</p>
+                                        <p className="text-xs text-muted-foreground">{event.date} {event.start_time && `at ${event.start_time}`}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="space-y-4">
-                        <form onSubmit={handleConfirmRsvp} className="space-y-4">
-                            <div className="rounded-lg border border-border bg-card p-6">
-                                <div className="mb-6">
-                                    <p className="text-sm font-medium text-foreground mb-3">
+                            <div className="space-y-3">
+                                <form onSubmit={handleConfirmRsvp} className="space-y-3">
+                            <div className="rounded-lg border border-border bg-card/40 p-4">
+                                <div className="mb-4">
+                                    <p className="text-xs font-medium text-foreground mb-2">
                                         Is this your first time joining such an event?
                                     </p>
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-2">
                                         <button
                                             type="button"
                                             onClick={() => rsvpForm.setData('is_first_time', true)}
-                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-xs ${
                                                 rsvpForm.data.is_first_time === true
                                                     ? 'bg-primary border-primary text-primary-foreground'
                                                     : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
@@ -134,7 +162,7 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                         <button
                                             type="button"
                                             onClick={() => rsvpForm.setData('is_first_time', false)}
-                                            className={`flex-1 px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-xs ${
                                                 rsvpForm.data.is_first_time === false
                                                     ? 'bg-primary border-primary text-primary-foreground'
                                                     : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
@@ -145,13 +173,13 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                     </div>
                                 </div>
 
-                                <h3 className="font-semibold text-foreground mb-4">Account Created</h3>
-                                <p className="text-sm text-muted-foreground mb-6">
+                                <h3 className="font-semibold text-foreground mb-2 text-sm">Account Created</h3>
+                                <p className="text-xs text-muted-foreground mb-3">
                                     Your account has been successfully created. Now please confirm your RSVP for this event.
                                 </p>
 
-                                <div className="mb-6">
-                                    <label className="flex items-start gap-3 cursor-pointer relative mb-4">
+                                <div className="mb-3">
+                                    <label className="flex items-start gap-2 cursor-pointer relative mb-3">
                                         <div className="mt-1 relative flex-shrink-0">
                                             <input
                                                 type="checkbox"
@@ -163,42 +191,43 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                                         setPlusOnesData([]);
                                                     }
                                                 }}
-                                                className="appearance-none h-6 w-6 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
+                                                className="appearance-none h-4 w-4 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
                                             />
                                             {hasPlusOnes && (
-                                                <svg className="absolute top-0 left-0 w-6 h-6 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg className="absolute top-0 left-0 w-4 h-4 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
                                             )}
                                         </div>
-                                        <span className="text-sm text-foreground">Do you have family members/plus ones attending?</span>
+                                        <span className="text-xs text-foreground">Do you have family members/plus ones attending?</span>
                                     </label>
 
                                     {hasPlusOnes && (
-                                        <div className="space-y-4 bg-muted/20 p-4 rounded-lg">
+                                        <div className="space-y-3 bg-muted/20 p-3 rounded-lg">
                                             {plusOnesData.map((member, index) => (
-                                                <div key={index} className="space-y-3 p-4 border border-border rounded-lg relative">
+                                                <div key={index} className="space-y-2 p-3 border border-border rounded-lg relative">
                                                     <button
                                                         type="button"
                                                         onClick={() => removePlusOne(index)}
                                                         className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 p-1 rounded"
                                                     >
-                                                        <X className="w-5 h-5" />
+                                                        <X className="w-4 h-4" />
                                                     </button>
 
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="grid gap-2">
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div className="grid gap-1">
                                                             <Label htmlFor={`name-${index}`} className="text-xs font-medium">Full Name *</Label>
                                                             <Input
                                                                 id={`name-${index}`}
                                                                 value={member.full_name}
                                                                 onChange={(e) => updatePlusOne(index, 'full_name', e.target.value)}
                                                                 placeholder="e.g. Juan Dela Cruz"
+                                                                className="text-xs h-8"
                                                                 required
                                                             />
                                                         </div>
 
-                                                        <div className="grid gap-2">
+                                                        <div className="grid gap-1">
                                                             <Label htmlFor={`age-${index}`} className="text-xs font-medium">Age *</Label>
                                                             <Input
                                                                 id={`age-${index}`}
@@ -208,18 +237,19 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                                                 value={member.age}
                                                                 onChange={(e) => updatePlusOne(index, 'age', e.target.value)}
                                                                 placeholder="e.g. 25"
+                                                                className="text-xs h-8"
                                                                 required
                                                             />
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid gap-2">
+                                                    <div className="grid gap-1">
                                                         <Label htmlFor={`gender-${index}`} className="text-xs font-medium">Gender *</Label>
                                                         <select
                                                             id={`gender-${index}`}
                                                             value={member.gender}
                                                             onChange={(e) => updatePlusOne(index, 'gender', e.target.value)}
-                                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                                            className="flex h-8 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                                                             required
                                                         >
                                                             <option value="">Select gender</option>
@@ -230,13 +260,14 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                                         </select>
                                                     </div>
 
-                                                    <div className="grid gap-2">
+                                                    <div className="grid gap-1">
                                                         <Label htmlFor={`remarks-${index}`} className="text-xs font-medium">Remarks</Label>
                                                         <Input
                                                             id={`remarks-${index}`}
                                                             value={member.remarks}
                                                             onChange={(e) => updatePlusOne(index, 'remarks', e.target.value)}
-                                                            placeholder="Any special needs or remarks"
+                                                            placeholder="Any special needs"
+                                                            className="text-xs h-8"
                                                         />
                                                     </div>
 
@@ -245,9 +276,9 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                                             type="checkbox"
                                                             checked={member.is_first_time}
                                                             onChange={(e) => updatePlusOne(index, 'is_first_time', e.target.checked)}
-                                                            className="h-4 w-4"
+                                                            className="h-3 w-3"
                                                         />
-                                                        <span className="text-xs text-foreground">First time attending such an event</span>
+                                                        <span className="text-xs text-foreground">First time attending</span>
                                                     </label>
                                                 </div>
                                             ))}
@@ -256,7 +287,7 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                                 type="button"
                                                 onClick={addPlusOne}
                                                 variant="outline"
-                                                className="w-full"
+                                                className="w-full text-xs h-8"
                                             >
                                                 Add Another Plus One
                                             </Button>
@@ -264,41 +295,43 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                                     )}
                                 </div>
 
-                                <label className="flex items-start gap-3 cursor-pointer relative mb-6">
+                                <label className="flex items-start gap-2 cursor-pointer relative mb-3">
                                     <div className="mt-1 relative flex-shrink-0">
                                         <input
+                                            ref={consentRef}
                                             type="checkbox"
                                             checked={rsvpForm.data.data_privacy_consent}
                                             onChange={(e) => rsvpForm.setData('data_privacy_consent', e.target.checked)}
-                                            className="appearance-none h-6 w-6 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
+                                            className="appearance-none h-4 w-4 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
                                         />
                                         {rsvpForm.data.data_privacy_consent && (
-                                            <svg className="absolute top-0 left-0 w-6 h-6 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg className="absolute top-0 left-0 w-4 h-4 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
                                         )}
                                     </div>
-                                    <span className="text-sm text-foreground">
+                                    <span className="text-xs text-foreground">
                                         I consent to data privacy collection for attendance processing.
                                     </span>
                                 </label>
 
-                                <label className="flex items-start gap-3 cursor-pointer relative">
+                                <label className="flex items-start gap-2 cursor-pointer relative">
                                     <div className="mt-1 relative flex-shrink-0">
                                         <input
+                                            ref={confirmRef}
                                             type="checkbox"
                                             checked={rsvpForm.data.confirm_rsvp}
                                             onChange={(e) => rsvpForm.setData('confirm_rsvp', e.target.checked)}
-                                            className="appearance-none h-6 w-6 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
+                                            className="appearance-none h-4 w-4 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
                                         />
                                         {rsvpForm.data.confirm_rsvp && (
-                                            <svg className="absolute top-0 left-0 w-6 h-6 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg className="absolute top-0 left-0 w-4 h-4 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
                                         )}
                                     </div>
-                                    <span className="text-sm text-foreground">
-                                        I confirm that I will attend this event and understand that this RSVP is a commitment to participate.
+                                    <span className="text-xs text-foreground">
+                                        I confirm that I will attend this event and understand that this RSVP is a commitment.
                                     </span>
                                 </label>
                             </div>
@@ -306,21 +339,23 @@ export default function PreRegisterConfirm({ event, qrToken }: PreRegisterConfir
                             <Button
                                 type="submit"
                                 disabled={rsvpForm.processing || !rsvpForm.data.confirm_rsvp || rsvpForm.data.is_first_time === null || !rsvpForm.data.data_privacy_consent}
-                                className="w-full"
-                                size="lg"
+                                className="w-full mt-4 text-sm"
+                                size="sm"
                             >
                                 {rsvpForm.processing ? 'Confirming RSVP...' : 'Confirm RSVP'}
                             </Button>
                         </form>
                     </div>
 
-                    <p className="mt-6 text-sm text-muted-foreground text-center">
+                    <p className="mt-4 text-xs text-muted-foreground text-center">
                         {qrToken
                             ? "After confirming your RSVP, you'll confirm your attendance."
                             : "You'll be able to mark your attendance at the event."}
                     </p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }

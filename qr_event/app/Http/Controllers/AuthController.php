@@ -75,6 +75,8 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
+        $shareImage = $event->banner_image ? "/storage/{$event->banner_image}" : '/images/default-event.png';
+
         return Inertia::render('attendance/pre-register-confirm', [
             'event' => [
                 'id' => $event->id,
@@ -85,6 +87,7 @@ class AuthController extends Controller
             ],
             'qrToken' => $request->query('qr_token'),
             'hasAnsweredFirstTime' => (bool) $request->query('hasAnsweredFirstTime', false),
+            'shareImage' => $shareImage,
         ]);
     }
 }

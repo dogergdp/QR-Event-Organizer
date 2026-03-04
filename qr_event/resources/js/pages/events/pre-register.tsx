@@ -16,6 +16,7 @@ type PreRegisterProps = {
     event: Event;
     fromQr?: boolean;
     alreadyRsvpd?: boolean;
+    shareImage?: string;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,7 +26,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: PreRegisterProps) {
+export default function PreRegister({ event, fromQr, alreadyRsvpd = false, shareImage }: PreRegisterProps) {
+    const absoluteShareImage = shareImage ? `${window.location.origin}${shareImage}` : undefined;
     const { data, setData, post, processing, errors } = useForm({
         confirm_rsvp: false,
         is_first_time: null as boolean | null,
@@ -101,7 +103,18 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false }: Pre
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`RSVP - ${event.name}`} />
+            <Head title={`RSVP - ${event.name}`}>
+                <meta property="og:title" content={`RSVP for ${event.name}`} />
+                <meta property="og:description" content={`Join us for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="og:image" content={absoluteShareImage} />}
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:type" content="website" />
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:title" content={`RSVP for ${event.name}`} />
+                <meta property="twitter:description" content={`Join us for ${event.name} on ${event.date}. Location: ${event.location}`} />
+                {absoluteShareImage && <meta property="twitter:image" content={absoluteShareImage} />}
+            </Head>
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="max-w-2xl">
