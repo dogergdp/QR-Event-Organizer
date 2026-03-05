@@ -57,6 +57,11 @@ class AuthController extends Controller
 
         $isAttendanceQr = $qrCode->purpose === 'attendance';
 
+        $request->session()->put(
+            sprintf('walk_in_event_%d_user_%d', $event->id, $user->id),
+            true
+        );
+
         // Redirect to the confirmation page
         return redirect()->route('qr.register-confirm', [
             'event' => $event->id,

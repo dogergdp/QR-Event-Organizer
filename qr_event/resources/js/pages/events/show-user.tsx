@@ -224,6 +224,13 @@ export default function ShowEventUser() {
                                         mark your attendance.
                                     </p>
                                 )}
+
+                                {typeof userAttendance.is_paid !== 'undefined' && (
+                                    <p className={`mt-2 text-sm ${userAttendance.is_paid ? 'text-green-600' : 'text-amber-600'}`}>
+                                        Payment: {userAttendance.is_paid ? 'Paid' : 'Unpaid'}
+                                        {userAttendance.amount_paid ? ` (Amount: ${userAttendance.amount_paid})` : ''}
+                                    </p>
+                                )}
                             </div>
 
                             {!userAttendance.is_attended && (

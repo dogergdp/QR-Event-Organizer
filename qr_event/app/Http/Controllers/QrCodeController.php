@@ -244,6 +244,22 @@ class QrCodeController extends Controller
                     ]);
                 }
 
+                if (! $attendee->is_paid) {
+                    return Inertia::render('attendance/payment-required', [
+                        'event' => [
+                            'id' => $event->id,
+                            'name' => $event->name,
+                            'location' => $event->location,
+                            'date' => $event->date,
+                        ],
+                        'attendee' => [
+                            'is_paid' => (bool) $attendee->is_paid,
+                            'amount_paid' => $attendee->amount_paid,
+                            'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
+                        ],
+                    ]);
+                }
+
                 // RSVP'd but not yet attended - go to mark attendance
                 return Inertia::render('attendance/mark', [
                     'event' => $event,
@@ -252,6 +268,8 @@ class QrCodeController extends Controller
                     'plusOnes' => $attendee->plus_ones ?? [],
                     'isFirstTime' => $attendee->is_first_time,
                     'hasAnsweredFirstTime' => true,
+                    'isPaid' => (bool) $attendee->is_paid,
+                    'amountPaid' => $attendee->amount_paid,
                 ]);
             }
 

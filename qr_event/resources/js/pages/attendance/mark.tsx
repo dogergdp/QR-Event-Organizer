@@ -34,9 +34,11 @@ type MarkAttendanceProps = {
     plusOnes: PlusOne[];
     isFirstTime: boolean;
     hasAnsweredFirstTime?: boolean;
+    isPaid?: boolean;
+    amountPaid?: string | number | null;
 };
 
-export default function MarkAttendance({ event, qrCode, primaryUserName, plusOnes, isFirstTime: initialIsFirstTime, hasAnsweredFirstTime = false }: MarkAttendanceProps) {
+export default function MarkAttendance({ event, qrCode, primaryUserName, plusOnes, isFirstTime: initialIsFirstTime, hasAnsweredFirstTime = false, isPaid = false, amountPaid = null }: MarkAttendanceProps) {
     const defaultAttendingIds = ['primary', ...plusOnes.map((member) => member.id)];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -101,6 +103,11 @@ export default function MarkAttendance({ event, qrCode, primaryUserName, plusOne
                                 <p className="text-xs text-muted-foreground mt-1">Check-in: {qrCode.name}</p>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="mb-4 rounded-lg border border-sidebar-border/70 p-3 text-xs text-foreground">
+                        <p><span className="font-semibold">Payment Status:</span> {isPaid ? 'Paid' : 'Unpaid'}</p>
+                        <p><span className="font-semibold">Amount Paid:</span> {amountPaid ?? '—'}</p>
                     </div>
 
                     <form onSubmit={handleMarkAttendance} className="space-y-3">

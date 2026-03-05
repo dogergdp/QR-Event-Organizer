@@ -156,6 +156,10 @@ class AttendanceController extends Controller
             'event_id' => $event->id,
         ]);
 
+        if (! $attendee->exists || ! $attendee->is_paid) {
+            return back()->with('error', 'Payment is required before check-in. Please proceed to the payment area.');
+        }
+
         $updatedPlusOnes = collect($attendee->plus_ones ?? [])->map(function (array $member) use ($selectedMemberIds) {
             $member['is_attended'] = $selectedMemberIds->contains($member['id'] ?? '');
             return $member;

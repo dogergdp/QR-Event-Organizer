@@ -65,6 +65,8 @@ class EventController extends Controller
                 'is_attended' => $attendee->is_attended,
                 'is_first_time' => (bool) $attendee->is_first_time,
                 'is_paid' => (bool) $attendee->is_paid,
+                'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
+                'amount_paid' => $attendee->amount_paid,
                 'attended_time' => $attendee->attended_time,
                 'user' => [
                     'id' => $attendee->user->id,
@@ -361,6 +363,13 @@ class EventController extends Controller
         $attendeePayload = [
             'is_first_time' => $request->boolean('is_first_time'),
         ];
+
+        $walkInSessionKey = sprintf('walk_in_event_%d_user_%d', $event->id, $user->id);
+        $isWalkIn = (bool) $request->session()->pull($walkInSessionKey, false);
+
+        if (Schema::hasColumn('attendees', 'is_walk_in')) {
+            $attendeePayload['is_walk_in'] = $isWalkIn;
+        }
 
         if (Schema::hasColumn('attendees', 'plus_ones')) {
             $attendeePayload['plus_ones'] = $plusOnes;

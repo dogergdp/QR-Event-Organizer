@@ -122,6 +122,7 @@ class AttendeeController extends Controller
     {
         $validated = $request->validate([
             'is_paid' => ['required', 'boolean'],
+            'amount_paid' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if ($attendee->is_attended) {
@@ -131,6 +132,9 @@ class AttendeeController extends Controller
         $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
         $attendee->update([
             'is_paid' => (bool) $validated['is_paid'],
+            'amount_paid' => (bool) $validated['is_paid']
+                ? ($validated['amount_paid'] ?? $attendee->amount_paid)
+                : null,
         ]);
 
         ActivityLog::create([

@@ -316,7 +316,17 @@ export default function ShowEventAdmin() {
                                     </th>
                                     {activeAdminTab === 'rsvp' && (
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Walk-in
+                                        </th>
+                                    )}
+                                    {activeAdminTab === 'rsvp' && (
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
                                             Paid
+                                        </th>
+                                    )}
+                                    {activeAdminTab === 'rsvp' && (
+                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
+                                            Amount Paid
                                         </th>
                                     )}
                                     <th className="px-4 py-2 text-left font-semibold text-foreground">
@@ -360,12 +370,27 @@ export default function ShowEventAdmin() {
 
                                         {activeAdminTab === 'rsvp' && (
                                             <td className="px-4 py-3 text-muted-foreground">
+                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                    attendee.is_walk_in
+                                                        ? 'bg-purple-100 text-purple-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
+                                                </span>
+                                            </td>
+                                        )}
+
+                                        {activeAdminTab === 'rsvp' && (
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         router.patch(
                                                             `/admin/attendees/${attendee.id}/payment`,
-                                                            { is_paid: !attendee.is_paid },
+                                                            {
+                                                                is_paid: !attendee.is_paid,
+                                                                amount_paid: !attendee.is_paid ? attendee.amount_paid : null,
+                                                            },
                                                             {
                                                                 preserveScroll: true,
                                                                 preserveState: true,
@@ -379,6 +404,47 @@ export default function ShowEventAdmin() {
                                                     }`}
                                                 >
                                                     {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                </button>
+                                            </td>
+                                        )}
+
+                                        {activeAdminTab === 'rsvp' && (
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const inputValue = window.prompt(
+                                                            'Enter amount paid (leave blank to clear):',
+                                                            attendee.amount_paid ?? '',
+                                                        );
+
+                                                        if (inputValue === null) {
+                                                            return;
+                                                        }
+
+                                                        const trimmed = inputValue.trim();
+                                                        const parsed = trimmed === '' ? null : Number(trimmed);
+
+                                                        if (trimmed !== '' && Number.isNaN(parsed)) {
+                                                            window.alert('Please enter a valid number.');
+                                                            return;
+                                                        }
+
+                                                        router.patch(
+                                                            `/admin/attendees/${attendee.id}/payment`,
+                                                            {
+                                                                is_paid: attendee.is_paid,
+                                                                amount_paid: parsed,
+                                                            },
+                                                            {
+                                                                preserveScroll: true,
+                                                                preserveState: true,
+                                                            },
+                                                        );
+                                                    }}
+                                                    className="inline-flex items-center rounded-md border border-sidebar-border/70 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
+                                                >
+                                                    {attendee.amount_paid ?? 'Set Amount'}
                                                 </button>
                                             </td>
                                         )}

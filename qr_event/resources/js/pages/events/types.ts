@@ -15,6 +15,8 @@ export interface Attendee {
     is_attended: boolean;
     is_first_time: boolean; // IMPORTANT: event-specific first-time flag
     is_paid: boolean;
+    is_walk_in: boolean;
+    amount_paid: string | null;
     attended_time: string | null;
     user: AttendeeUser;
 }
@@ -41,6 +43,8 @@ export interface EventShowProps {
         user_id: number;
         event_id: number;
         is_attended: boolean;
+        is_paid?: boolean;
+        amount_paid?: string | null;
         attended_time: string | null;
     } | null;
     attendees?: {

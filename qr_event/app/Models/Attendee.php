@@ -14,6 +14,8 @@ class Attendee extends Model
         'is_attended',
         'is_first_time',
         'is_paid',
+        'is_walk_in',
+        'amount_paid',
         'plus_ones',
         'attended_time',
     ];
@@ -23,6 +25,8 @@ class Attendee extends Model
         'is_attended' => 'boolean',
         'is_first_time' => 'boolean',
         'is_paid' => 'boolean',
+        'is_walk_in' => 'boolean',
+        'amount_paid' => 'decimal:2',
         'plus_ones' => 'array',
         'attended_time' => 'datetime',
     ];
