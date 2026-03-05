@@ -50,6 +50,8 @@ class EventController extends Controller
         $user = $request->user();
         $status = $request->query('status', 'rsvp');
         $isFirstTime = $request->query('first_time');
+        $isWalkIn = $request->query('walk_in');
+        $isPaid = $request->query('paid');
 
         $attendees = $event->attendees()
             ->with('user')
@@ -57,6 +59,10 @@ class EventController extends Controller
             ->when($status === 'attendance', fn($q) => $q->where('is_attended', true))
             ->when($isFirstTime === 'yes', fn($q) => $q->where('is_first_time', true))
             ->when($isFirstTime === 'no', fn($q) => $q->where('is_first_time', false))
+            ->when($isWalkIn === 'yes', fn($q) => $q->where('is_walk_in', true))
+            ->when($isWalkIn === 'no', fn($q) => $q->where('is_walk_in', false))
+            ->when($isPaid === 'yes', fn($q) => $q->where('is_paid', true))
+            ->when($isPaid === 'no', fn($q) => $q->where('is_paid', false))
             ->latest('updated_at')
             ->paginate(10)
             ->through(fn($attendee) => [
@@ -67,6 +73,7 @@ class EventController extends Controller
                 'is_paid' => (bool) $attendee->is_paid,
                 'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
                 'amount_paid' => $attendee->amount_paid,
+                'plus_ones' => $attendee->plus_ones ?? [],
                 'attended_time' => $attendee->attended_time,
                 'user' => [
                     'id' => $attendee->user->id,
@@ -89,6 +96,8 @@ class EventController extends Controller
             'filters' => [
                 'status' => $status,
                 'first_time' => $isFirstTime ?? 'all',
+                'walk_in' => $isWalkIn ?? 'all',
+                'paid' => $isPaid ?? 'all',
             ],
         ]);
     }

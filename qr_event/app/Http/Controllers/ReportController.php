@@ -277,19 +277,15 @@ class ReportController extends Controller
                 'First Name',
                 'Last Name',
                 'Contact Number',
-                'Birthdate',
-                'Marital Status',
-                'Has DG Leader',
-                'DG Leader Name',
-                'Wants to Join DG',
                 'Attended',
                 'Attendance Time',
-                'First Time',
+                'First Time (Event)',
                 'Walk-in',
                 'Paid',
                 'Amount Paid (PHP)',
                 'Plus Ones Count',
-                'Remarks',
+                'Plus Ones Names',
+                'Plus Ones Details',
             ];
 
             $query = Attendee::with('user')
@@ -321,18 +317,36 @@ class ReportController extends Controller
 
             foreach ($attendees as $attendee) {
                 $amountPaid = (float) ($attendee->amount_paid ?? 0);
-                $plusOnesCount = is_array($attendee->plus_ones) ? count($attendee->plus_ones) : 0;
+                $plusOnes = is_array($attendee->plus_ones) ? $attendee->plus_ones : [];
+                $plusOnesCount = count($plusOnes);
+                $plusOnesNames = collect($plusOnes)
+                    ->pluck('full_name')
+                    ->filter()
+                    ->implode(' | ');
+
+                $plusOnesDetails = collect($plusOnes)
+                    ->map(function ($plusOne) {
+                        if (!is_array($plusOne)) {
+                            return null;
+                        }
+
+                        $name = $plusOne['full_name'] ?? 'Unnamed';
+                        $age = $plusOne['age'] ?? '—';
+                        $gender = $plusOne['gender'] ?? '—';
+                        $firstTime = isset($plusOne['is_first_time']) ? ((bool) $plusOne['is_first_time'] ? 'Yes' : 'No') : '—';
+                        $remarks = $plusOne['remarks'] ?? '—';
+
+                        return sprintf('%s (Age: %s, Gender: %s, First Time: %s, Remarks: %s)', $name, $age, $gender, $firstTime, $remarks);
+                    })
+                    ->filter()
+                    ->implode(' | ');
+
                 $totalAmountPaid += $amountPaid;
 
                 fputcsv($handle, [
                     $attendee->user->first_name,
                     $attendee->user->last_name,
                     $attendee->user->contact_number,
-                    $attendee->user->birthdate,
-                    $attendee->user->marital_status,
-                    $attendee->user->has_dg_leader ? 'Yes' : 'No',
-                    $attendee->user->dg_leader_name ?? 'N/A',
-                    $attendee->user->want_to_join_dg ?? 'N/A',
                     $attendee->is_attended ? 'Yes' : 'No',
                     $attendee->attended_time,
                     $attendee->is_first_time ? 'Yes' : 'No',
@@ -340,7 +354,8 @@ class ReportController extends Controller
                     $attendee->is_paid ? 'Yes' : 'No',
                     number_format($amountPaid, 2, '.', ''),
                     $plusOnesCount,
-                    $attendee->user->remarks ?? 'N/A',
+                    $plusOnesNames,
+                    $plusOnesDetails,
                 ]);
             }
 

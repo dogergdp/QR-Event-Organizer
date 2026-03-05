@@ -2,7 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Pencil } from 'lucide-react';
-import {formatTime12Hour, formatDateTime12Hour, calculateAge, formatDate} from '@/utils/dateUtils';
+import {formatTime12Hour, formatDateTime12Hour} from '@/utils/dateUtils';
 import { show as showRoute } from '@/routes/events';
 import { useState } from 'react';
 
@@ -21,6 +21,8 @@ export default function ShowEventAdmin() {
 
     const activeAdminTab = filters?.status ?? 'rsvp';
     const firstTimeFilter = filters?.first_time ?? 'all';
+    const walkInFilter = filters?.walk_in ?? 'all';
+    const paidFilter = filters?.paid ?? 'all';
 
     const setActiveAdminTab = (tab: 'rsvp' | 'attendance') => {
         router.get(
@@ -34,6 +36,22 @@ export default function ShowEventAdmin() {
         router.get(
             showRoute.url(event.id),
             { ...filters, first_time: filter },
+            { preserveState: true, replace: true },
+        );
+    };
+
+    const setWalkInFilter = (filter: 'all' | 'yes' | 'no') => {
+        router.get(
+            showRoute.url(event.id),
+            { ...filters, walk_in: filter },
+            { preserveState: true, replace: true },
+        );
+    };
+
+    const setPaidFilter = (filter: 'all' | 'yes' | 'no') => {
+        router.get(
+            showRoute.url(event.id),
+            { ...filters, paid: filter },
             { preserveState: true, replace: true },
         );
     };
@@ -255,39 +273,42 @@ export default function ShowEventAdmin() {
                     </div>
 
                     <div className="mt-4 border-b border-sidebar-border/70">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setActiveAdminTab('rsvp')
-                                    }
-                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                        activeAdminTab === 'rsvp'
-                                            ? 'bg-muted text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    RSVP {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
-                                </button>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setActiveAdminTab('rsvp')
+                                }
+                                className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeAdminTab === 'rsvp'
+                                        ? 'bg-muted text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                RSVP {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
+                            </button>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setActiveAdminTab('attendance')
-                                    }
-                                    className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                        activeAdminTab === 'attendance'
-                                            ? 'bg-muted text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Attendance {activeAdminTab === 'attendance' && `(${attendees?.total ?? 0})`}
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setActiveAdminTab('attendance')
+                                }
+                                className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeAdminTab === 'attendance'
+                                        ? 'bg-muted text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                Attendance {activeAdminTab === 'attendance' && `(${attendees?.total ?? 0})`}
+                            </button>
+                        </div>
+                    </div>
 
-                            {/* First-time filter toggle */}
-                            <div className="flex items-center gap-2 pb-2 md:pb-0">
+                    {/* Filters Section */}
+                    <div className="mt-4 rounded-lg border border-sidebar-border/70 bg-sidebar p-4">
+                        <div className="flex flex-wrap items-center gap-6">
+                            {/* First-time filter */}
+                            <div className="flex items-center gap-2">
                                 <span className="text-xs font-medium text-muted-foreground">
                                     First time:
                                 </span>
@@ -326,6 +347,104 @@ export default function ShowEventAdmin() {
                                         }
                                         className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                                             firstTimeFilter === 'no'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Walk-in filter */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                    Walk-in:
+                                </span>
+
+                                <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setWalkInFilter('all')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            walkInFilter === 'all'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setWalkInFilter('yes')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            walkInFilter === 'yes'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        Yes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setWalkInFilter('no')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            walkInFilter === 'no'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Paid filter */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                    Paid:
+                                </span>
+
+                                <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setPaidFilter('all')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            paidFilter === 'all'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setPaidFilter('yes')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            paidFilter === 'yes'
+                                                ? 'bg-muted text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        Yes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setPaidFilter('no')
+                                        }
+                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                            paidFilter === 'no'
                                                 ? 'bg-muted text-foreground'
                                                 : 'text-muted-foreground hover:text-foreground'
                                         }`}
@@ -616,7 +735,7 @@ export default function ShowEventAdmin() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="text-xl font-semibold text-foreground">
-                                    User Details
+                                    Event Attendee Details
                                 </h2>
                                 <button
                                     type="button"
@@ -647,54 +766,97 @@ export default function ShowEventAdmin() {
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground">
-                                            Age
-                                        </p>
-                                        <p className="text-sm text-foreground">
-                                            {calculateAge(selectedAttendee.user.birthdate)} years old
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground">
-                                            Birthday
-                                        </p>
-                                        <p className="text-sm text-foreground">
-                                            {formatDate(selectedAttendee.user.birthdate)}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Registration Type
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.is_walk_in ? 'Walk-in' : 'Regular'}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground">
-                                        Wants to join a DG group?
+                                        Payment Status
                                     </p>
-                                    <p className="text-sm text-foreground capitalize">
-                                        {selectedAttendee.user.want_to_join_dg === 'yes' ? 'Yes' : selectedAttendee.user.want_to_join_dg === 'no' ? 'No' : 'Not specified'}
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.is_paid ? 'Paid' : 'Unpaid'}
                                     </p>
                                 </div>
+
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Amount Paid (PHP)
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        ₱{selectedAttendee.amount_paid ?? '0'}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Attendance Status
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                        {selectedAttendee.is_attended ? 'Attended' : 'RSVP Only'}
+                                    </p>
+                                </div>
+
+                                {selectedAttendee.attended_time && (
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Attended Time
+                                        </p>
+                                        <p className="text-sm text-foreground">
+                                            {formatDateTime12Hour(selectedAttendee.attended_time)}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground">
                                         First Time Attendee
                                     </p>
                                     <p className="text-sm text-foreground">
-                                        {selectedAttendee.is_first_time
-                                            ? 'Yes'
-                                            : 'No'}
+                                        {selectedAttendee.is_first_time ? 'Yes' : 'No'}
                                     </p>
                                 </div>
 
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground">
-                                        Remarks
+                                        Plus Ones ({selectedAttendee.plus_ones?.length ?? 0})
                                     </p>
-                                    <p className="text-sm text-foreground">
-                                        {selectedAttendee.user.remarks ||
-                                            'No remarks'}
-                                    </p>
+                                    {selectedAttendee.plus_ones && selectedAttendee.plus_ones.length > 0 ? (
+                                        <ul className="mt-1 space-y-1 text-sm text-foreground">
+                                            {selectedAttendee.plus_ones.map((plusOne, index) => (
+                                                <li key={plusOne.id ?? index}>
+                                                    {plusOne.full_name ?? 'Unnamed'}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-foreground">None</p>
+                                    )}
                                 </div>
+
+                                {selectedAttendee.plus_ones && selectedAttendee.plus_ones.length > 0 && (
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Plus One Details
+                                        </p>
+                                        <div className="mt-1 space-y-2 text-xs text-foreground">
+                                            {selectedAttendee.plus_ones.map((plusOne, index) => (
+                                                <div key={`${plusOne.id ?? 'plus-one'}-${index}`} className="rounded-md border border-sidebar-border/70 p-2">
+                                                    <p><span className="font-medium">Name:</span> {plusOne.full_name ?? '—'}</p>
+                                                    <p><span className="font-medium">Age:</span> {plusOne.age ?? '—'}</p>
+                                                    <p><span className="font-medium">Gender:</span> {plusOne.gender ?? '—'}</p>
+                                                    <p><span className="font-medium">First Time:</span> {plusOne.is_first_time ? 'Yes' : 'No'}</p>
+                                                    <p><span className="font-medium">Remarks:</span> {plusOne.remarks || '—'}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
