@@ -9,7 +9,7 @@ import { useState } from 'react';
 import type { Attendee, EventShowProps } from './types';
 
 export default function ShowEventAdmin() {
-    const { event, attendees, filters, loginRequiresBirthdate } = usePage<any>()
+    const { event, attendees, filters } = usePage<any>()
         .props as EventShowProps;
 
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(
@@ -151,28 +151,47 @@ export default function ShowEventAdmin() {
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-base font-semibold text-foreground">User Login Method</h2>
+                            <h2 className="text-base font-semibold text-foreground">Login Method for This Event</h2>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Enable birthdate login, or keep number-only login.
+                                Choose how attendees log in from this event's QR.
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                router.patch(
-                                    '/admin/settings/login-birthdate',
-                                    { login_with_birthdate: !loginRequiresBirthdate },
-                                    { preserveScroll: true },
-                                );
-                            }}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                loginRequiresBirthdate
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-green-100 text-green-800'
-                            }`}
-                        >
-                            {loginRequiresBirthdate ? 'Birthdate Required' : 'Number Only'}
-                        </button>
+                        <div className="inline-flex rounded-md border border-sidebar-border/70 p-1">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    router.patch(
+                                        `/events/${event.id}/login-method`,
+                                        { login_requires_birthdate: false },
+                                        { preserveScroll: true },
+                                    );
+                                }}
+                                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                                    !event.login_requires_birthdate
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                Use Number Only
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    router.patch(
+                                        `/events/${event.id}/login-method`,
+                                        { login_requires_birthdate: true },
+                                        { preserveScroll: true },
+                                    );
+                                }}
+                                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                                    event.login_requires_birthdate
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                Require Birthdate
+                            </button>
+                        </div>
                     </div>
                 </div>
 

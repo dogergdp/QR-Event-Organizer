@@ -181,6 +181,10 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false, share
                                         </div>
                                     )}
 
+                                    <p className="text-foreground mb-4">
+                                        Would you like to register for this event?
+                                    </p>
+
                                     <div className="mb-6">
                                         <p className="text-sm font-medium text-foreground mb-3">
                                             Is this your first time joining such an event?
@@ -210,12 +214,6 @@ export default function PreRegister({ event, fromQr, alreadyRsvpd = false, share
                                             </button>
                                         </div>
                                     </div>
-
-                                    <p className="text-foreground mb-4">
-                                        {fromQr
-                                            ? 'You scanned the QR code for this event. Would you like to register your attendance?'
-                                            : 'Would you like to register for this event?'}
-                                    </p>
 
                                     <div className="mb-6 rounded-lg border border-sidebar-border/70 p-4">
                                         <p className="text-sm font-medium text-foreground mb-3">

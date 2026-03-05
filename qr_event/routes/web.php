@@ -68,6 +68,7 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');
+    Route::patch('{event}/login-method', [EventController::class, 'updateLoginMethod'])->name('login-method');
     Route::delete('{event}', [EventController::class, 'destroy'])->name('destroy');
     Route::get('{event}/qr', [QrCodeController::class, 'index'])->name('qr.index');
     Route::put('qr/{qrCode}/toggle', [QrCodeController::class, 'toggle'])->name('qr.toggle');

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $banner_image
  * @property bool $is_finished
  * @property bool $is_ongoing
+ * @property bool $login_requires_birthdate
  */
 class Event extends Model
 {
@@ -35,6 +36,13 @@ class Event extends Model
         'banner_image',
         'is_finished',
         'is_ongoing',
+        'login_requires_birthdate',
+    ];
+
+    protected $casts = [
+        'is_finished' => 'boolean',
+        'is_ongoing' => 'boolean',
+        'login_requires_birthdate' => 'boolean',
     ];
 
     /**

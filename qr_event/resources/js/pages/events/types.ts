@@ -31,11 +31,11 @@ export interface EventShowProps {
         banner_image?: string | null;
         is_finished?: boolean;
         is_ongoing?: boolean;
+        login_requires_birthdate?: boolean;
         created_at: string;
         updated_at: string;
     };
     isAdmin: boolean;
-    loginRequiresBirthdate?: boolean;
     userAttendance?: {
         id: number;
         user_id: number;

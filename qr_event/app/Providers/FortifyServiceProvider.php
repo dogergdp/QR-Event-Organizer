@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
-use App\Models\AppSetting;
+use App\Models\QrCode;
 use App\Models\User;
 use App\Http\Responses\CustomLoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -48,7 +48,19 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::authenticateUsing(function (Request $request) {
             $isAdminLogin = $request->boolean('admin_login');
-            $loginWithBirthdate = AppSetting::getBoolean('login_with_birthdate', false);
+            $redirectUrl = (string) $request->input('redirect_url', '');
+            $redirectPath = parse_url($redirectUrl, PHP_URL_PATH) ?: $redirectUrl;
+            $loginWithBirthdate = false;
+
+            if (! $isAdminLogin && Str::startsWith($redirectPath, '/qr/')) {
+                $afterPrefix = Str::after($redirectPath, '/qr/');
+                $token = trim(explode('/', $afterPrefix)[0] ?? '');
+
+                if ($token !== '') {
+                    $qrCode = QrCode::query()->with('event:id,login_requires_birthdate')->where('token', $token)->first();
+                    $loginWithBirthdate = (bool) ($qrCode?->event?->login_requires_birthdate ?? false);
+                }
+            }
             $rawContact = trim($request->string('contact_number')->toString());
             $digitsOnly = preg_replace('/\D+/', '', $rawContact) ?? '';
 
@@ -115,7 +127,7 @@ class FortifyServiceProvider extends ServiceProvider
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
-            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
+            'loginRequiresBirthdate' => false,
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [

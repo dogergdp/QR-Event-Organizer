@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\AppSetting;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Services\LiveDashboardService;
@@ -83,7 +82,6 @@ class EventController extends Controller
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
-            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
             'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
             'attendees' => $attendees,
             'filters' => [
@@ -91,6 +89,31 @@ class EventController extends Controller
                 'first_time' => $isFirstTime ?? 'all',
             ],
         ]);
+    }
+
+    public function updateLoginMethod(Request $request, Event $event): RedirectResponse
+    {
+        $validated = $request->validate([
+            'login_requires_birthdate' => ['required', 'boolean'],
+        ]);
+
+        $event->update([
+            'login_requires_birthdate' => (bool) $validated['login_requires_birthdate'],
+        ]);
+
+        ActivityLog::query()->create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_event_login_method',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf(
+                'Updated login method for event %s to %s',
+                $event->name,
+                $event->login_requires_birthdate ? 'contact + birthdate' : 'number only'
+            ),
+        ]);
+
+        return back()->with('success', 'Event login method updated.');
     }
 
     /**
