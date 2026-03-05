@@ -126,10 +126,10 @@ export default function QRViewer() {
                 const bannerMaxHeight = qrPlateY - bannerPadding;
 
                 // 2. Draw Banner with Black Row filling
-                context.fillStyle = '#000000';
+                context.fillStyle = '#ffffff';
                 context.fillRect(0, 0, outputSize, bannerMaxHeight);
 
-                const bannerUrlToUse = "/images/default-event.jpg";
+                const bannerUrlToUse = "/images/ccf-logo.png";
                 try {
                     const banner = await loadImage(bannerUrlToUse);
 
