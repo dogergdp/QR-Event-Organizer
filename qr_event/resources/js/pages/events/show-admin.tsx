@@ -15,6 +15,9 @@ export default function ShowEventAdmin() {
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(
         null,
     );
+    const [paymentModalAttendee, setPaymentModalAttendee] = useState<Attendee | null>(null);
+    const [paymentIsPaid, setPaymentIsPaid] = useState(false);
+    const [paymentAmount, setPaymentAmount] = useState('0');
 
     const activeAdminTab = filters?.status ?? 'rsvp';
     const firstTimeFilter = filters?.first_time ?? 'all';
@@ -32,6 +35,39 @@ export default function ShowEventAdmin() {
             showRoute.url(event.id),
             { ...filters, first_time: filter },
             { preserveState: true, replace: true },
+        );
+    };
+
+    const openPaymentModal = (attendee: Attendee) => {
+        setPaymentModalAttendee(attendee);
+        setPaymentIsPaid(attendee.is_paid);
+        setPaymentAmount(attendee.amount_paid ?? '0');
+    };
+
+    const savePaymentDetails = () => {
+        if (!paymentModalAttendee) {
+            return;
+        }
+
+        const parsedAmount = Number(paymentAmount);
+        if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
+            window.alert('Please enter a valid amount in pesos.');
+            return;
+        }
+
+        router.patch(
+            `/admin/attendees/${paymentModalAttendee.id}/payment`,
+            {
+                is_paid: paymentIsPaid,
+                amount_paid: paymentIsPaid ? parsedAmount : null,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setPaymentModalAttendee(null);
+                },
+            },
         );
     };
 
@@ -384,19 +420,7 @@ export default function ShowEventAdmin() {
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        router.patch(
-                                                            `/admin/attendees/${attendee.id}/payment`,
-                                                            {
-                                                                is_paid: !attendee.is_paid,
-                                                                amount_paid: !attendee.is_paid ? attendee.amount_paid : null,
-                                                            },
-                                                            {
-                                                                preserveScroll: true,
-                                                                preserveState: true,
-                                                            },
-                                                        );
-                                                    }}
+                                                    onClick={() => openPaymentModal(attendee)}
                                                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                                                         attendee.is_paid
                                                             ? 'bg-green-100 text-green-800'
@@ -410,42 +434,7 @@ export default function ShowEventAdmin() {
 
                                         {activeAdminTab === 'rsvp' && (
                                             <td className="px-4 py-3 text-muted-foreground">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const inputValue = window.prompt(
-                                                            'Enter amount paid (leave blank to clear):',
-                                                            attendee.amount_paid ?? '',
-                                                        );
-
-                                                        if (inputValue === null) {
-                                                            return;
-                                                        }
-
-                                                        const trimmed = inputValue.trim();
-                                                        const parsed = trimmed === '' ? null : Number(trimmed);
-
-                                                        if (trimmed !== '' && Number.isNaN(parsed)) {
-                                                            window.alert('Please enter a valid number.');
-                                                            return;
-                                                        }
-
-                                                        router.patch(
-                                                            `/admin/attendees/${attendee.id}/payment`,
-                                                            {
-                                                                is_paid: attendee.is_paid,
-                                                                amount_paid: parsed,
-                                                            },
-                                                            {
-                                                                preserveScroll: true,
-                                                                preserveState: true,
-                                                            },
-                                                        );
-                                                    }}
-                                                    className="inline-flex items-center rounded-md border border-sidebar-border/70 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
-                                                >
-                                                    {attendee.amount_paid ?? 'Set Amount'}
-                                                </button>
+                                                ₱{attendee.amount_paid ?? '0'}
                                             </td>
                                         )}
 
@@ -538,6 +527,82 @@ export default function ShowEventAdmin() {
                         ← Back to Dashboard
                     </Link>
                 </div>
+
+                {paymentModalAttendee && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                        onClick={() => setPaymentModalAttendee(null)}
+                    >
+                        <div
+                            className="w-full max-w-md rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="mb-4 flex items-center justify-between">
+                                <h2 className="text-xl font-semibold text-foreground">Update Payment</h2>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentModalAttendee(null)}
+                                    className="text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <p className="mb-4 text-sm text-muted-foreground">
+                                {paymentModalAttendee.user.first_name} {paymentModalAttendee.user.last_name}
+                            </p>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Status</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentIsPaid((prev) => !prev)}
+                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                            paymentIsPaid
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-amber-100 text-amber-800'
+                                        }`}
+                                    >
+                                        {paymentIsPaid ? 'Paid' : 'Unpaid'}
+                                    </button>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Amount (PHP)</label>
+                                    <div className="flex items-center rounded-md border border-sidebar-border/70 px-3 py-2">
+                                        <span className="mr-2 text-sm text-muted-foreground">₱</span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={paymentAmount}
+                                            onChange={(e) => setPaymentAmount(e.target.value)}
+                                            className="w-full bg-transparent text-sm text-foreground outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentModalAttendee(null)}
+                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-sidebar/50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={savePaymentDetails}
+                                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* User Details Modal */}
                 {selectedAttendee && (

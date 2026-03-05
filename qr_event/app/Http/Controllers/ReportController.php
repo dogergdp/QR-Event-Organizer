@@ -281,9 +281,14 @@ class ReportController extends Controller
                 'Marital Status',
                 'Has DG Leader',
                 'DG Leader Name',
+                'Wants to Join DG',
                 'Attended',
                 'Attendance Time',
                 'First Time',
+                'Walk-in',
+                'Paid',
+                'Amount Paid (PHP)',
+                'Plus Ones Count',
                 'Remarks',
             ];
 
@@ -312,7 +317,13 @@ class ReportController extends Controller
             fputcsv($handle, []);
             fputcsv($handle, $headers);
 
+            $totalAmountPaid = 0.0;
+
             foreach ($attendees as $attendee) {
+                $amountPaid = (float) ($attendee->amount_paid ?? 0);
+                $plusOnesCount = is_array($attendee->plus_ones) ? count($attendee->plus_ones) : 0;
+                $totalAmountPaid += $amountPaid;
+
                 fputcsv($handle, [
                     $attendee->user->first_name,
                     $attendee->user->last_name,
@@ -321,14 +332,21 @@ class ReportController extends Controller
                     $attendee->user->marital_status,
                     $attendee->user->has_dg_leader ? 'Yes' : 'No',
                     $attendee->user->dg_leader_name ?? 'N/A',
+                    $attendee->user->want_to_join_dg ?? 'N/A',
                     $attendee->is_attended ? 'Yes' : 'No',
                     $attendee->attended_time,
                     $attendee->is_first_time ? 'Yes' : 'No',
+                    $attendee->is_walk_in ? 'Yes' : 'No',
+                    $attendee->is_paid ? 'Yes' : 'No',
+                    number_format($amountPaid, 2, '.', ''),
+                    $plusOnesCount,
                     $attendee->user->remarks ?? 'N/A',
                 ]);
             }
 
-            // Add blank row and timestamp
+            // Add totals and timestamp
+            fputcsv($handle, []);
+            fputcsv($handle, ['Total Amount Paid (PHP)', number_format($totalAmountPaid, 2, '.', '')]);
             fputcsv($handle, []);
             fputcsv($handle, ['Report Generated:', now()->format('Y-m-d H:i:s')]);
 

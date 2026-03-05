@@ -78,7 +78,7 @@ export default function AdminAttendees() {
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
                     <div className="rounded-xl border border-sidebar-border/70 bg-background p-4 shadow-sm">
                         <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
-                        <p className="text-xs text-muted-foreground mt-1 mb-3">Automatically marks user as registered and attended</p>
+                        <p className="text-xs text-muted-foreground mt-1 mb-3">Adds user as RSVP by default so they appear in the event RSVP list</p>
                         <Form
                             {...AttendeeController.store.form()}
                             className="mt-3 grid gap-3"
@@ -139,7 +139,10 @@ export default function AdminAttendees() {
                                             </div>
                                         </div>
 
-                                        <input type="hidden" name="is_attended" value="1" />
+                                        <label className="inline-flex items-center gap-2 text-xs text-foreground">
+                                            <input type="checkbox" name="is_attended" value="1" className="h-4 w-4" />
+                                            Mark as already attended
+                                        </label>
 
                                         <div>
                                             <button
