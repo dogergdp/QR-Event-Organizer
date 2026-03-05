@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\AppSetting;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Models\User;
@@ -216,6 +217,7 @@ class QrCodeController extends Controller
         return Inertia::render('auth/register-from-qr', [
             'event' => $event,
             'qrToken' => $token,
+            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
             'shareImage' => $shareImage,
         ]);
     }
@@ -267,6 +269,7 @@ class QrCodeController extends Controller
             'event' => $event,
             'qrToken' => $token,
             'isAttendanceQr' => true, // Flag to indicate this is from attendance QR
+            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
         ]);
     }
 

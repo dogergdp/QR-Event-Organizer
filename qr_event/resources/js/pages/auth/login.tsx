@@ -15,12 +15,14 @@ type Props = {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    loginRequiresBirthdate: boolean;
 };
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
+    loginRequiresBirthdate,
 }: Props) {
     const currentYear = new Date().getFullYear();
     const contactInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +81,11 @@ export default function Login({
     return (
         <AuthCardLayout
             title="Log in to your account"
-            description="Enter your contact number and birthdate below to log in"
+            description={
+                loginRequiresBirthdate
+                    ? 'Enter your contact number and birthdate below to log in'
+                    : 'Enter your contact number below to log in'
+            }
         >
             <Head title="Log in" />
 
@@ -114,64 +120,71 @@ export default function Login({
                                 <InputError message={errors.contact_number} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="birth_year">Birthdate</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <select
-                                        id="birth_year"
-                                        required
-                                        value={birthYear}
-                                        onChange={(e) => setBirthYear(e.target.value)}
-                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                        tabIndex={2}
-                                    >
-                                        <option value="">Year</option>
-                                        {years.map((year) => (
-                                            <option key={year} value={year}>
-                                                {year}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        id="birth_month"
-                                        required
-                                        value={birthMonth}
-                                        onChange={(e) => setBirthMonth(e.target.value)}
-                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                        tabIndex={3}
-                                    >
-                                        <option value="">Month</option>
-                                        {months.map((month) => (
-                                            <option key={month.value} value={month.value}>
-                                                {month.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        id="birth_day"
-                                        required
-                                        value={birthDay}
-                                        onChange={(e) => setBirthDay(e.target.value)}
-                                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                        tabIndex={4}
-                                    >
-                                        <option value="">Day</option>
-                                        {days.map((day) => (
-                                            <option key={day} value={day}>
-                                                {day}
-                                            </option>
-                                        ))}
-                                    </select>
+                            {loginRequiresBirthdate && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="birth_year">Birthdate</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <select
+                                            id="birth_year"
+                                            required
+                                            value={birthYear}
+                                            onChange={(e) => setBirthYear(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            tabIndex={2}
+                                        >
+                                            <option value="">Year</option>
+                                            {years.map((year) => (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            id="birth_month"
+                                            required
+                                            value={birthMonth}
+                                            onChange={(e) => setBirthMonth(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            tabIndex={3}
+                                        >
+                                            <option value="">Month</option>
+                                            {months.map((month) => (
+                                                <option key={month.value} value={month.value}>
+                                                    {month.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            id="birth_day"
+                                            required
+                                            value={birthDay}
+                                            onChange={(e) => setBirthDay(e.target.value)}
+                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            tabIndex={4}
+                                        >
+                                            <option value="">Day</option>
+                                            {days.map((day) => (
+                                                <option key={day} value={day}>
+                                                    {day}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <InputError message={errors.password} />
                                 </div>
-                                <input type="hidden" name="password" value={birthdateValue} />
-                                <InputError message={errors.password} />
-                            </div>
+                            )}
+
+                            <input
+                                type="hidden"
+                                name="password"
+                                value={loginRequiresBirthdate ? birthdateValue : 'contact-only-login'}
+                            />
 
                             <div className="flex items-center space-x-3">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
-                                    tabIndex={5}
+                                    tabIndex={loginRequiresBirthdate ? 5 : 2}
                                 />
                                 <Label htmlFor="remember">Remember me</Label>
                             </div>
@@ -179,7 +192,7 @@ export default function Login({
                             <Button
                                 type="submit"
                                 className="mt-4 w-full"
-                                tabIndex={6}
+                                tabIndex={loginRequiresBirthdate ? 6 : 3}
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -191,7 +204,7 @@ export default function Login({
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
                                 Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={7}>
+                                <TextLink href={register()} tabIndex={loginRequiresBirthdate ? 7 : 4}>
                                     Sign up
                                 </TextLink>
                             </div>

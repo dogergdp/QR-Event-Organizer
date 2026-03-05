@@ -41,14 +41,14 @@ export default function AuthCardLayout({
                                     &times;
                                 </button>
                             )}
-                            <div className="flex flex-col items-center gap-2">
+                            <div className="flex justify-center items-center w-full gap-2">
                             <img
-                                src="/images/logo-movement.png"
+                                src="/images/ccf-logo.png"
                                 alt="Event Banner"
-                                className="h-38 w-auto px-32  object-contain rounded-lg mx-auto lg:mx-0 lg:self-start"
+                                className="h-64 w-auto px-32 object-contain rounded-lg mx-auto"
                             />
                             </div>
-                            <CardHeader className="px-16 pt-6 pb-0 text-center">
+                            <CardHeader className="px-12 pt-6 pb-0 text-center">
                                 <CardTitle className="text-xl">{title}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </CardHeader>

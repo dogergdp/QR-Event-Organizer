@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\AppSetting;
 use App\Models\User;
 use App\Http\Responses\CustomLoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -47,13 +48,31 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::authenticateUsing(function (Request $request) {
             $isAdminLogin = $request->boolean('admin_login');
+            $loginWithBirthdate = AppSetting::getBoolean('login_with_birthdate', false);
+            $rawContact = trim($request->string('contact_number')->toString());
+            $digitsOnly = preg_replace('/\D+/', '', $rawContact) ?? '';
+
+            $contactCandidates = collect([
+                $rawContact,
+                $digitsOnly,
+                str_starts_with($digitsOnly, '63') && strlen($digitsOnly) === 12
+                    ? '0'.substr($digitsOnly, 2)
+                    : null,
+                str_starts_with($digitsOnly, '0') && strlen($digitsOnly) === 11
+                    ? '63'.substr($digitsOnly, 1)
+                    : null,
+            ])->filter()->unique()->values();
 
             $request->validate([
                 'contact_number' => ['required', 'string'],
-                'password' => $isAdminLogin ? ['required', 'string'] : ['required', 'date_format:Y-m-d'],
+                'password' => $isAdminLogin
+                    ? ['required', 'string']
+                    : ($loginWithBirthdate ? ['required', 'date_format:Y-m-d'] : ['nullable', 'string']),
             ]);
 
-            $user = User::where('contact_number', $request->string('contact_number')->toString())->first();
+            $user = User::query()
+                ->whereIn('contact_number', $contactCandidates->all())
+                ->first();
 
             if (! $user) {
                 return null;
@@ -71,6 +90,10 @@ class FortifyServiceProvider extends ServiceProvider
                 return Hash::check($request->string('password')->toString(), $user->password)
                     ? $user
                     : null;
+            }
+
+            if (! $loginWithBirthdate) {
+                return $user;
             }
 
             if (! $user->birthdate) {
@@ -92,6 +115,7 @@ class FortifyServiceProvider extends ServiceProvider
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
+            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [

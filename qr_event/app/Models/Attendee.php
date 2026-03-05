@@ -13,6 +13,7 @@ class Attendee extends Model
         'data_privacy_consent',
         'is_attended',
         'is_first_time',
+        'is_paid',
         'plus_ones',
         'attended_time',
     ];
@@ -21,6 +22,7 @@ class Attendee extends Model
         'data_privacy_consent' => 'boolean',
         'is_attended' => 'boolean',
         'is_first_time' => 'boolean',
+        'is_paid' => 'boolean',
         'plus_ones' => 'array',
         'attended_time' => 'datetime',
     ];

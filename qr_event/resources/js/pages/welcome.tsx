@@ -20,7 +20,7 @@ export default function Welcome({
             </Head>
             <BackgroundSlideshow />
             <div className="relative min-h-screen flex items-center justify-start z-10">
-                <main className="w-full max-w-4xl mx-auto p-8 lg:p-20 flex items-center justify-start lg:ml-24">
+                <main className="w-full max-w-xl mx-auto p-8 lg:p-20 flex items-center justify-start lg:ml-24">
                     <div className="relative w-full">
                         <div
                             className="absolute inset-0 bg-white/80 dark:bg-black/70 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-none"
@@ -34,7 +34,7 @@ export default function Welcome({
                         />
                         <div className="relative z-10 p-12 w-full flex flex-col items-center lg:items-start lg:text-left">
                             <img
-                                src="/images/logo-movement.png"
+                                src="/images/ccf-logo.png"
                                 alt="Organization Banner"
                                 className="h-[12rem] object-contain rounded-lg mx-auto lg:mx-0 lg:self-start"
                             />

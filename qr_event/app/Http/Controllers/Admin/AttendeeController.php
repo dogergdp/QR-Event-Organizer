@@ -117,4 +117,36 @@ class AttendeeController extends Controller
 
         return redirect()->route('admin.attendees')->with('success', 'Attendee deleted successfully.');
     }
+
+    public function updatePaymentStatus(Request $request, Attendee $attendee): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_paid' => ['required', 'boolean'],
+        ]);
+
+        if ($attendee->is_attended) {
+            return back()->with('error', 'Paid status can only be updated before check-in.');
+        }
+
+        $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
+        $attendee->update([
+            'is_paid' => (bool) $validated['is_paid'],
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_attendee_payment',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Updated paid status for %s %s in event %s to %s',
+                $attendee->user?->first_name ?? 'Unknown',
+                $attendee->user?->last_name ?? 'User',
+                $attendee->event?->name ?? 'Unknown event',
+                $attendee->is_paid ? 'Paid' : 'Unpaid'
+            ),
+        ]);
+
+        return back()->with('success', 'Paid status updated successfully.');
+    }
 }

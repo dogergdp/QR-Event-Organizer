@@ -14,6 +14,7 @@ export interface Attendee {
     user_id: number;
     is_attended: boolean;
     is_first_time: boolean; // IMPORTANT: event-specific first-time flag
+    is_paid: boolean;
     attended_time: string | null;
     user: AttendeeUser;
 }
@@ -34,6 +35,7 @@ export interface EventShowProps {
         updated_at: string;
     };
     isAdmin: boolean;
+    loginRequiresBirthdate?: boolean;
     userAttendance?: {
         id: number;
         user_id: number;

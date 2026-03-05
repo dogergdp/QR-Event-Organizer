@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
 use App\Http\Controllers\Admin\ImportController as AdminImportController;
 use App\Http\Controllers\Admin\LogController as AdminLogController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
@@ -41,6 +42,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('attendees', [AdminAttendeeController::class, 'index'])->name('attendees');
     Route::post('attendees', [AdminAttendeeController::class, 'store'])->name('attendees.store');
     Route::delete('attendees/{attendee}', [AdminAttendeeController::class, 'destroy'])->name('attendees.destroy');
+    Route::patch('attendees/{attendee}/payment', [AdminAttendeeController::class, 'updatePaymentStatus'])->name('attendees.payment');
+
+    Route::patch('settings/login-birthdate', [AdminSettingController::class, 'updateLoginBirthdateRequirement'])->name('settings.login-birthdate');
 
     Route::get('qr-codes', [QrCodeController::class, 'listAll'])->name('qr-codes');
     Route::get('qr/{qrCode}/view', [QrCodeController::class, 'adminView'])->name('qr.view');

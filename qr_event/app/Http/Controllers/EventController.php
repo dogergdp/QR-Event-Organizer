@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\AppSetting;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Services\LiveDashboardService;
@@ -64,6 +65,7 @@ class EventController extends Controller
                 'user_id' => $attendee->user_id,
                 'is_attended' => $attendee->is_attended,
                 'is_first_time' => (bool) $attendee->is_first_time,
+                'is_paid' => (bool) $attendee->is_paid,
                 'attended_time' => $attendee->attended_time,
                 'user' => [
                     'id' => $attendee->user->id,
@@ -81,6 +83,7 @@ class EventController extends Controller
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
+            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
             'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
             'attendees' => $attendees,
             'filters' => [
@@ -203,7 +206,7 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^0-9]*$/'],
-            'date' => ['required', 'date', 'after_or_equal:today'],
+            'date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],

@@ -12,7 +12,7 @@ export default function AdminUsers() {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
-    const { users, filters, flash, import_errors } = usePage<any>().props as {
+    const { users, filters, flash, import_errors, loginRequiresBirthdate } = usePage<any>().props as {
         users: {
             data: Array<{
                 id: number;
@@ -45,6 +45,7 @@ export default function AdminUsers() {
             error?: string;
         };
         import_errors?: string[];
+        loginRequiresBirthdate: boolean;
     };
 
     const currentSort = filters?.sort ?? 'created_at';
@@ -113,6 +114,34 @@ export default function AdminUsers() {
                                 Add User
                             </Link>
                         </div>
+                    </div>
+                </div>
+
+                <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-base font-semibold text-foreground">User Login Method</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Enable this if users should log in with contact number + birthdate. Disable to allow contact number only.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                router.patch(
+                                    '/admin/settings/login-birthdate',
+                                    { login_with_birthdate: !loginRequiresBirthdate },
+                                    { preserveScroll: true },
+                                );
+                            }}
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                loginRequiresBirthdate
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                            }`}
+                        >
+                            {loginRequiresBirthdate ? 'Birthdate Required' : 'Number Only'}
+                        </button>
                     </div>
                 </div>
 

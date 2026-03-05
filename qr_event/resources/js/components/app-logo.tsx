@@ -1,9 +1,12 @@
 export default function AppLogo() {
     return (
-        <img
-            src="/images/logo-movement.png"
-            alt="Logo"
-            className="h-10 w-auto object-contain rounded-sm"
-        />
+        <div className="flex items-center">
+            <img
+                src="/images/ccf-logo.png"
+                alt="Logo"
+                className="h-10 w-auto object-contain rounded-sm"
+            />
+            <p className="ml-2 text-lg font-black text-white">CCF Las Pinas</p>
+        </div>
     );
 }

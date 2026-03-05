@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Concerns\ProfileValidationRules;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\AppSetting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,6 +95,7 @@ class UserController extends Controller
 
         return Inertia::render('admin/users', [
             'users' => $users,
+            'loginRequiresBirthdate' => AppSetting::getBoolean('login_with_birthdate', false),
             'filters' => [
                 'search' => $search,
                 'sort' => $sort,

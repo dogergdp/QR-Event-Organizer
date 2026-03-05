@@ -28,9 +28,10 @@ type RegisterFromQRProps = {
     qrToken: string;
     isAttendanceQr?: boolean;
     shareImage?: string;
+    loginRequiresBirthdate?: boolean;
 };
 
-export default function RegisterFromQR({ event, qrToken, shareImage }: RegisterFromQRProps) {    const absoluteShareImage = shareImage ? `${window.location.origin}${shareImage}` : undefined;    const today = new Date().toISOString().split('T')[0];
+export default function RegisterFromQR({ event, qrToken, shareImage, loginRequiresBirthdate = false }: RegisterFromQRProps) {    const absoluteShareImage = shareImage ? `${window.location.origin}${shareImage}` : undefined;    const today = new Date().toISOString().split('T')[0];
     const currentYear = new Date().getFullYear();
     const [step, setStep] = useState<'contact-lookup' | 'register' | 'confirm-identity'>('contact-lookup');
     const [contactNumber, setContactNumber] = useState('');
@@ -185,7 +186,7 @@ export default function RegisterFromQR({ event, qrToken, shareImage }: RegisterF
     const handleIdentityLogin = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!birthdatePassword) {
+        if (loginRequiresBirthdate && !birthdatePassword) {
             setIdentityError('Please select your birthdate.');
             return;
         }
@@ -196,7 +197,7 @@ export default function RegisterFromQR({ event, qrToken, shareImage }: RegisterF
 
         router.post('/login', {
             contact_number: contactNumber,
-            password: birthdatePassword,
+            password: loginRequiresBirthdate ? birthdatePassword : 'contact-only-login',
             redirect_url: `/qr/${qrToken}`,
         }, {
             preserveScroll: true,
@@ -336,67 +337,72 @@ export default function RegisterFromQR({ event, qrToken, shareImage }: RegisterF
                                     </p>
                                 </div>
                                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                                    Confirm your birthdate to continue with attendance.
+                                    {loginRequiresBirthdate
+                                        ? 'Confirm your birthdate to continue with attendance.'
+                                        : 'Confirm to continue with attendance.'}
                                 </p>
                             </div>
 
                             <form onSubmit={handleIdentityLogin} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="birth_year">Birthdate</Label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <select
-                                            id="birth_year"
-                                            required
-                                            value={birthYear}
-                                            onChange={(e) => setBirthYear(e.target.value)}
-                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        >
-                                            <option value="">Year</option>
-                                            {years.map((year) => (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            id="birth_month"
-                                            required
-                                            value={birthMonth}
-                                            onChange={(e) => setBirthMonth(e.target.value)}
-                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        >
-                                            <option value="">Month</option>
-                                            {months.map((month) => (
-                                                <option key={month.value} value={month.value}>
-                                                    {month.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            id="birth_day"
-                                            required
-                                            value={birthDay}
-                                            onChange={(e) => setBirthDay(e.target.value)}
-                                            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        >
-                                            <option value="">Day</option>
-                                            {days.map((day) => (
-                                                <option key={day} value={day}>
-                                                    {day}
-                                                </option>
-                                            ))}
-                                        </select>
+                                {loginRequiresBirthdate && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="birth_year">Birthdate</Label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <select
+                                                id="birth_year"
+                                                required
+                                                value={birthYear}
+                                                onChange={(e) => setBirthYear(e.target.value)}
+                                                className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                            >
+                                                <option value="">Year</option>
+                                                {years.map((year) => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <select
+                                                id="birth_month"
+                                                required
+                                                value={birthMonth}
+                                                onChange={(e) => setBirthMonth(e.target.value)}
+                                                className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                            >
+                                                <option value="">Month</option>
+                                                {months.map((month) => (
+                                                    <option key={month.value} value={month.value}>
+                                                        {month.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <select
+                                                id="birth_day"
+                                                required
+                                                value={birthDay}
+                                                onChange={(e) => setBirthDay(e.target.value)}
+                                                className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                            >
+                                                <option value="">Day</option>
+                                                {days.map((day) => (
+                                                    <option key={day} value={day}>
+                                                        {day}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    {(identityError || loginErrors.contact_number || loginErrors.password) && (
-                                        <p className="text-red-500 text-sm">
-                                            {identityError || loginErrors.contact_number || loginErrors.password}
-                                        </p>
-                                    )}
-                                </div>
+                                )}
+
+                                {(identityError || loginErrors.contact_number || loginErrors.password) && (
+                                    <p className="text-red-500 text-sm">
+                                        {identityError || loginErrors.contact_number || loginErrors.password}
+                                    </p>
+                                )}
 
                                 <Button
                                     type="submit"
-                                    disabled={loginProcessing || !birthdatePassword}
+                                    disabled={loginProcessing || (loginRequiresBirthdate && !birthdatePassword)}
                                     className="w-full bg-green-600 hover:bg-green-700"
                                 >
                                     {loginProcessing ? 'Verifying...' : 'Confirm and Continue'}
