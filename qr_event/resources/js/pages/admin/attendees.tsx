@@ -139,6 +139,50 @@ export default function AdminAttendees() {
                                             </div>
                                         </div>
 
+                                        <div className="grid gap-3 md:grid-cols-2">
+                                            <div>
+                                                <label className="block text-xs mb-1 text-foreground">Paid Amount (PHP)</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    name="amount_paid"
+                                                    placeholder="0.00"
+                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                                />
+                                                {errors.amount_paid && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors.amount_paid}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs mb-1 text-foreground">Payment Type</label>
+                                                <select
+                                                    name="payment_type"
+                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                                >
+                                                    <option value="">Select payment type</option>
+                                                    <option value="cash">Cash</option>
+                                                    <option value="gcash">GCash</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                                {errors.payment_type && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors.payment_type}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs mb-1 text-foreground">Payment Remarks</label>
+                                                <input
+                                                    type="text"
+                                                    name="payment_remarks"
+                                                    placeholder="Extra remarks (optional)"
+                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
+                                                />
+                                                {errors.payment_remarks && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors.payment_remarks}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <label className="inline-flex items-center gap-2 text-xs text-foreground">
                                             <input type="checkbox" name="is_attended" value="1" className="h-4 w-4" />
                                             Mark as already attended

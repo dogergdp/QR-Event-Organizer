@@ -15,6 +15,7 @@ import {
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
 import { dashboard } from '@/routes';
+import { attendees as adminAttendees } from '@/routes/admin';
 
 const footerNavItems: NavItem[] = [];
 
@@ -41,7 +42,7 @@ export function AppSidebar() {
                   },
                   {
                       title: 'Event Attendees',
-                      href: '/admin/attendees',
+                      href: adminAttendees(),
                       icon: UserCheck,
                   },
                   {

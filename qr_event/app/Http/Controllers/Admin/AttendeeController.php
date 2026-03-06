@@ -56,10 +56,19 @@ class AttendeeController extends Controller
             'user_id' => ['required', 'exists:users,id'],
             'event_id' => ['required', 'exists:events,id'],
             'is_attended' => ['sometimes', 'boolean'],
+            'is_paid' => ['sometimes', 'boolean'],
+            'amount_paid' => ['nullable', 'numeric', 'min:0'],
+            'payment_type' => ['nullable', 'string', 'max:50'],
+            'payment_remarks' => ['nullable', 'string', 'max:255'],
+            'redirect_to' => ['nullable', 'string', 'starts_with:/'],
         ]);
 
         $isAttended = (bool) ($validated['is_attended'] ?? false);
         $attendedTime = $isAttended ? now() : null;
+        $amountPaid = array_key_exists('amount_paid', $validated) && $validated['amount_paid'] !== null
+            ? (float) $validated['amount_paid']
+            : null;
+        $isPaid = (bool) ($validated['is_paid'] ?? false) || ($amountPaid !== null && $amountPaid > 0);
 
         $attendee = Attendee::updateOrCreate(
             [
@@ -69,6 +78,10 @@ class AttendeeController extends Controller
             [
                 'is_attended' => $isAttended,
                 'attended_time' => $attendedTime,
+                'is_paid' => $isPaid,
+                'amount_paid' => $isPaid ? $amountPaid : null,
+                'payment_type' => $validated['payment_type'] ?? null,
+                'payment_remarks' => $validated['payment_remarks'] ?? null,
             ]
         );
 
@@ -91,6 +104,10 @@ class AttendeeController extends Controller
         LiveDashboardService::notify($attendee->wasRecentlyCreated ? 'attendee_created' : 'attendance_confirmed', $attendee->event_id);
 
         $message = $attendee->wasRecentlyCreated ? 'Attendee added successfully.' : 'Attendee status updated successfully.';
+        if (! empty($validated['redirect_to'])) {
+            return redirect($validated['redirect_to'])->with('success', $message);
+        }
+
         return redirect()->route('admin.attendees')->with('success', $message);
     }
 
@@ -123,6 +140,8 @@ class AttendeeController extends Controller
         $validated = $request->validate([
             'is_paid' => ['required', 'boolean'],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
+            'payment_type' => ['nullable', 'string', 'max:50'],
+            'payment_remarks' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($attendee->is_attended) {
@@ -135,6 +154,8 @@ class AttendeeController extends Controller
             'amount_paid' => (bool) $validated['is_paid']
                 ? ($validated['amount_paid'] ?? $attendee->amount_paid)
                 : null,
+            'payment_type' => $validated['payment_type'] ?? $attendee->payment_type,
+            'payment_remarks' => $validated['payment_remarks'] ?? $attendee->payment_remarks,
         ]);
 
         ActivityLog::create([

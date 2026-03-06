@@ -18,6 +18,8 @@ export default function ShowEventAdmin() {
     const [paymentModalAttendee, setPaymentModalAttendee] = useState<Attendee | null>(null);
     const [paymentIsPaid, setPaymentIsPaid] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('0');
+    const [paymentType, setPaymentType] = useState('');
+    const [paymentRemarks, setPaymentRemarks] = useState('');
 
     const activeAdminTab = filters?.status ?? 'rsvp';
     const firstTimeFilter = filters?.first_time ?? 'all';
@@ -60,6 +62,8 @@ export default function ShowEventAdmin() {
         setPaymentModalAttendee(attendee);
         setPaymentIsPaid(attendee.is_paid);
         setPaymentAmount(attendee.amount_paid ?? '0');
+        setPaymentType(attendee.payment_type ?? '');
+        setPaymentRemarks(attendee.payment_remarks ?? '');
     };
 
     const savePaymentDetails = () => {
@@ -78,6 +82,8 @@ export default function ShowEventAdmin() {
             {
                 is_paid: paymentIsPaid,
                 amount_paid: paymentIsPaid ? parsedAmount : null,
+                payment_type: paymentType || null,
+                payment_remarks: paymentRemarks || null,
             },
             {
                 preserveScroll: true,
@@ -249,392 +255,20 @@ export default function ShowEventAdmin() {
                     </div>
                 </div>
 
-                {/* Attendees List Section */}
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                            <h2 className="text-xl font-semibold text-foreground">
-                                Event Attendees
-                            </h2>
-                            {!event.is_finished && (
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Track attendance for this upcoming event
-                                </p>
-                            )}
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-xl font-semibold text-foreground">Event Attendees</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">View and manage attendees on a dedicated page.</p>
                         </div>
 
-                        <a
-                            href={`/admin/reports/export/event/${event.id}/attendees`}
-                            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors"
+                        <Link
+                            href={`/events/${event.id}/attendees`}
+                            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                            <span>↓</span>
-                            Download CSV
-                        </a>
+                            View Attendees
+                        </Link>
                     </div>
-
-                    <div className="mt-4 border-b border-sidebar-border/70">
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setActiveAdminTab('rsvp')
-                                }
-                                className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                    activeAdminTab === 'rsvp'
-                                        ? 'bg-muted text-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                RSVP {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setActiveAdminTab('attendance')
-                                }
-                                className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                                    activeAdminTab === 'attendance'
-                                        ? 'bg-muted text-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                Attendance {activeAdminTab === 'attendance' && `(${attendees?.total ?? 0})`}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Filters Section */}
-                    <div className="mt-4 rounded-lg border border-sidebar-border/70 bg-sidebar p-4">
-                        <div className="flex flex-wrap items-center gap-6">
-                            {/* First-time filter */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    First time:
-                                </span>
-
-                                <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setFirstTimeFilter('all')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            firstTimeFilter === 'all'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        All
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setFirstTimeFilter('yes')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            firstTimeFilter === 'yes'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        Yes
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setFirstTimeFilter('no')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            firstTimeFilter === 'no'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        No
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Walk-in filter */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    Walk-in:
-                                </span>
-
-                                <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setWalkInFilter('all')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            walkInFilter === 'all'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        All
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setWalkInFilter('yes')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            walkInFilter === 'yes'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        Yes
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setWalkInFilter('no')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            walkInFilter === 'no'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        No
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Paid filter */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    Paid:
-                                </span>
-
-                                <div className="inline-flex rounded-md border border-sidebar-border/70 bg-background p-1">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPaidFilter('all')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            paidFilter === 'all'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        All
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPaidFilter('yes')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            paidFilter === 'yes'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        Yes
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPaidFilter('no')
-                                        }
-                                        className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                                            paidFilter === 'no'
-                                                ? 'bg-muted text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                    >
-                                        No
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-sidebar-border/70">
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        Name
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        Contact
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        First Time
-                                    </th>
-                                    {activeAdminTab === 'rsvp' && (
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Walk-in
-                                        </th>
-                                    )}
-                                    {activeAdminTab === 'rsvp' && (
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Paid
-                                        </th>
-                                    )}
-                                    {activeAdminTab === 'rsvp' && (
-                                        <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                            Amount Paid
-                                        </th>
-                                    )}
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">
-                                        {activeAdminTab === 'attendance'
-                                            ? 'Attended Time'
-                                            : 'Status'}
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {allAttendees.map((attendee: Attendee) => (
-                                    <tr
-                                        key={attendee.id}
-                                        className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
-                                    >
-                                        <td className="px-4 py-3 text-foreground">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setSelectedAttendee(
-                                                        attendee,
-                                                    )
-                                                }
-                                                className="text-left transition-colors hover:text-primary hover:underline"
-                                            >
-                                                {attendee.user.first_name}{' '}
-                                                {attendee.user.last_name}
-                                            </button>
-                                        </td>
-
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {attendee.user.contact_number}
-                                        </td>
-
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {attendee.is_first_time
-                                                ? 'Yes'
-                                                : 'No'}
-                                        </td>
-
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                    attendee.is_walk_in
-                                                        ? 'bg-purple-100 text-purple-800'
-                                                        : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                    {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
-                                                </span>
-                                            </td>
-                                        )}
-
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openPaymentModal(attendee)}
-                                                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                        attendee.is_paid
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-amber-100 text-amber-800'
-                                                    }`}
-                                                >
-                                                    {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                </button>
-                                            </td>
-                                        )}
-
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                ₱{attendee.amount_paid ?? '0'}
-                                            </td>
-                                        )}
-
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {activeAdminTab ===
-                                            'attendance' ? (
-                                                attendee.attended_time ? (
-                                                    formatDateTime12Hour(
-                                                        attendee.attended_time,
-                                                    )
-                                                ) : (
-                                                    '—'
-                                                )
-                                            ) : attendee.is_attended ? (
-                                                <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                                    Attended
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-                                                    RSVP Only
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {attendees && attendees.data.length === 0 && (
-                        <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
-                            {activeAdminTab === 'rsvp'
-                                ? 'No RSVPs found for this selection'
-                                : 'No attendance records found for this selection'}
-                        </div>
-                    )}
-
-                    {attendees && attendees.data.length > 0 && (
-                        <div className="mt-4 flex items-center justify-between gap-3">
-                            <div className="text-sm text-muted-foreground">
-                                Showing {attendees.from ?? 0} to {attendees.to ?? 0} of{' '}
-                                <span className="font-semibold text-foreground">{attendees.total}</span>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                                {attendees.links.map((link: any, index: number) => {
-                                    const isDisabled = !link.url;
-                                    const label = link.label.replace(/&laquo;|&raquo;/g, (match: string) => {
-                                        return match === '&laquo;' ? '«' : '»';
-                                    });
-
-                                    if (isDisabled) {
-                                        return (
-                                            <span
-                                                key={`${link.label}-${index}`}
-                                                className="rounded-md px-3 py-1 text-sm font-medium border border-sidebar-border/70 text-muted-foreground cursor-not-allowed opacity-50"
-                                            >
-                                                {label}
-                                            </span>
-                                        );
-                                    }
-
-                                    return (
-                                        <button
-                                            key={`${link.label}-${index}`}
-                                            onClick={() => {
-                                                window.location.href = link.url as string;
-                                            }}
-                                            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                                                link.active
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'border border-sidebar-border/70 text-foreground hover:bg-sidebar/50'
-                                            }`}
-                                        >
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Back Button */}
@@ -700,6 +334,31 @@ export default function ShowEventAdmin() {
                                             className="w-full bg-transparent text-sm text-foreground outline-none"
                                         />
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Type</label>
+                                    <select
+                                        value={paymentType}
+                                        onChange={(e) => setPaymentType(e.target.value)}
+                                        className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
+                                    >
+                                        <option value="">Select payment type</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="gcash">GCash</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Remarks</label>
+                                    <input
+                                        type="text"
+                                        value={paymentRemarks}
+                                        onChange={(e) => setPaymentRemarks(e.target.value)}
+                                        placeholder="Extra remarks (optional)"
+                                        className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
+                                    />
                                 </div>
                             </div>
 

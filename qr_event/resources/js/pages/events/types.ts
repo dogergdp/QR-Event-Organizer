@@ -17,6 +17,8 @@ export interface Attendee {
     is_paid: boolean;
     is_walk_in: boolean;
     amount_paid: string | null;
+    payment_type: string | null;
+    payment_remarks: string | null;
     plus_ones: Array<{
         id?: string;
         full_name?: string;
@@ -67,10 +69,17 @@ export interface EventShowProps {
         from: number | null;
         to: number | null;
     };
+    users?: Array<{
+        id: number;
+        first_name: string;
+        last_name: string;
+        contact_number: string;
+    }>;
     filters?: {
         status?: 'rsvp' | 'attendance';
         first_time?: 'all' | 'yes' | 'no';
         walk_in?: 'all' | 'yes' | 'no';
         paid?: 'all' | 'yes' | 'no';
+        search?: string;
     };
 }

@@ -18,6 +18,8 @@ class Attendee extends Model
         'amount_paid',
         'plus_ones',
         'attended_time',
+        'payment_type',
+        'payment_remarks',
     ];
 
     protected $casts = [
@@ -29,6 +31,8 @@ class Attendee extends Model
         'amount_paid' => 'decimal:2',
         'plus_ones' => 'array',
         'attended_time' => 'datetime',
+        'payment_type' => 'string',
+        'payment_remarks' => 'string',
     ];
 
     protected static function booted(): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\QrCode;
+use App\Models\User;
 use App\Services\LiveDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,13 +49,32 @@ class EventController extends Controller
     public function show(Request $request, Event $event): Response
     {
         $user = $request->user();
+
+        return Inertia::render('events/show', [
+            'event' => $event,
+            'isAdmin' => $user?->isAdmin() ?? false,
+            'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
+        ]);
+    }
+
+    public function showAttendees(Request $request, Event $event): Response
+    {
         $status = $request->query('status', 'rsvp');
         $isFirstTime = $request->query('first_time');
         $isWalkIn = $request->query('walk_in');
         $isPaid = $request->query('paid');
+        $search = trim((string) $request->query('search', ''));
 
         $attendees = $event->attendees()
             ->with('user')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery
+                        ->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%");
+                });
+            })
             ->when($status === 'rsvp', fn($q) => $q->where('is_attended', false))
             ->when($status === 'attendance', fn($q) => $q->where('is_attended', true))
             ->when($isFirstTime === 'yes', fn($q) => $q->where('is_first_time', true))
@@ -73,6 +93,8 @@ class EventController extends Controller
                 'is_paid' => (bool) $attendee->is_paid,
                 'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
                 'amount_paid' => $attendee->amount_paid,
+                'payment_type' => $attendee->payment_type,
+                'payment_remarks' => $attendee->payment_remarks,
                 'plus_ones' => $attendee->plus_ones ?? [],
                 'attended_time' => $attendee->attended_time,
                 'user' => [
@@ -88,16 +110,19 @@ class EventController extends Controller
             ])
             ->withQueryString();
 
-        return Inertia::render('events/show', [
+        return Inertia::render('events/attendees-admin', [
             'event' => $event,
-            'isAdmin' => $user?->isAdmin() ?? false,
-            'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
             'attendees' => $attendees,
+            'users' => User::query()
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get(['id', 'first_name', 'last_name', 'contact_number']),
             'filters' => [
                 'status' => $status,
                 'first_time' => $isFirstTime ?? 'all',
                 'walk_in' => $isWalkIn ?? 'all',
                 'paid' => $isPaid ?? 'all',
+                'search' => $search,
             ],
         ]);
     }
