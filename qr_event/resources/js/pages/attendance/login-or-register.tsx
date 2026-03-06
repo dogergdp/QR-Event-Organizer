@@ -49,7 +49,21 @@ export default function LoginOrRegister({ event, qrToken }: LoginOrRegisterProps
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Attendance Check-in - ${event.name}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <div
+                className="fixed inset-0 z-0 w-full h-full min-h-screen overflow-hidden pointer-events-none"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("/images/slideshow/slide1.jpg")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    width: '100vw',
+                    minHeight: '100vh',
+                    height: '100%',
+                }}
+            />
+            <div className="fixed inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/40 pointer-events-none z-10" />
+
+            <div className="relative z-20 flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="max-w-2xl">
                     <h1 className="text-2xl font-bold text-foreground mb-2">Event Check-in</h1>
 

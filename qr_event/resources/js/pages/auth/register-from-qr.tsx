@@ -211,11 +211,15 @@ export default function RegisterFromQR({ event, qrToken, shareImage, loginRequir
         });
     };
 
-    const handleNotYou = () => {
+    const handleBackToLookup = () => {
         setMatchedAttendee(null);
         setIdentityError('');
-        setData('contact_number', contactNumber);
-        setStep('register');
+        setLookupError('');
+        setBirthYear('');
+        setBirthMonth('');
+        setBirthDay('');
+        setContactNumber('');
+        setStep('contact-lookup');
     };
 
     const handleFormContactNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,8 +287,22 @@ export default function RegisterFromQR({ event, qrToken, shareImage, loginRequir
                 {absoluteShareImage && <meta property="twitter:image" content={absoluteShareImage} />}
             </Head>
 
-            <div className="min-h-screen bg-white dark:bg-[#313638] flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
+            <div
+                className="fixed inset-0 z-0 w-full h-full min-h-screen overflow-hidden pointer-events-none"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("/images/slideshow/slide1.jpg")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    width: '100vw',
+                    minHeight: '100vh',
+                    height: '100%',
+                }}
+            />
+            <div className="fixed inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/40 pointer-events-none z-10" />
+
+            <div className="relative z-20 min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-2xl bg-white/70 p-6 shadow-2xl backdrop-blur-lg dark:bg-black/45">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{event.name}</h1>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{event.location}</p>
@@ -403,21 +421,19 @@ export default function RegisterFromQR({ event, qrToken, shareImage, loginRequir
                                 <Button
                                     type="submit"
                                     disabled={loginProcessing || (loginRequiresBirthdate && !birthdatePassword)}
-                                    className="w-full bg-green-600 hover:bg-green-700"
+                                    className="w-full bg-green-600 hover:bg-green-700 font-white font-bold"
                                 >
-                                    {loginProcessing ? 'Verifying...' : 'Confirm and Continue'}
+                                    {loginProcessing ? 'Verifying...' : 'Yes, this is me'}
                                 </Button>
 
-                                {matchedAttendee.type !== 'already-registered' && (
-                                    <Button
-                                        type="button"
-                                        onClick={handleNotYou}
-                                        variant="outline"
-                                        className="w-full"
-                                    >
-                                        This is not me
-                                    </Button>
-                                )}
+                                <Button
+                                    type="button"
+                                    onClick={handleBackToLookup}
+                                    variant="outline"
+                                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+                                >
+                                    This is not me, re-enter number
+                                </Button>
                             </form>
                         </div>
                     )}
