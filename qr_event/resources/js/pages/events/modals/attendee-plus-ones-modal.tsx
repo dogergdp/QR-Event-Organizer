@@ -58,36 +58,39 @@ export default function AttendeePlusOnesModal({
                     </button>
                 </div>
 
-                <p className="mb-4 text-sm text-muted-foreground">
-                    {attendee.user.first_name} {attendee.user.last_name}
-                </p>
+                <div className="mb-4">
+                    <p className="text-xs font-medium text-muted-foreground">Full Name</p>
+                    <h3 className="text-lg font-bold text-foreground">
+                        {attendee.user.first_name} {attendee.user.last_name}
+                    </h3>
+                </div>
 
                 <div className="space-y-3 border-b border-sidebar-border/70 pb-4">
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
-                        <p className="text-sm text-foreground">{attendee.user.contact_number}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground">Registration Type</p>
-                        <p className="text-sm text-foreground">{attendee.is_walk_in ? 'Walk-in' : 'Regular'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground">Attendance Status</p>
-                        <p className="text-sm text-foreground">{attendee.is_attended ? 'Attended' : 'RSVP Only'}</p>
-                    </div>
-                    {attendee.attended_time && (
+                    <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                            <p className="text-xs font-medium text-muted-foreground">Attended Time</p>
-                            <p className="text-sm text-foreground">{formatDateTime12Hour(attendee.attended_time)}</p>
+                            <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
+                            <p className="text-sm text-foreground">{attendee.user.contact_number}</p>
                         </div>
-                    )}
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground">Registration Type</p>
+                            <p className="text-sm text-foreground">{attendee.is_walk_in ? 'Walk-in' : 'Regular'}</p>
+                        </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground">Attendance Status</p>
+                            <p className="text-sm text-foreground">{attendee.is_attended ? 'Attended' : 'RSVP Only'}</p>
+                        </div>
+                        {attendee.attended_time && (
+                            <div>
+                                <p className="text-xs font-medium text-muted-foreground">Attended Time</p>
+                                <p className="text-sm text-foreground">{formatDateTime12Hour(attendee.attended_time)}</p>
+                            </div>
+                        )}
+                    </div>
                     <div>
                         <p className="text-xs font-medium text-muted-foreground">First Time Attendee</p>
                         <p className="text-sm text-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground">Plus Ones ({attendee.plus_ones?.length ?? 0})</p>
-                        <p className="text-sm text-foreground">Edit plus ones below.</p>
                     </div>
                 </div>
 

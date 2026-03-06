@@ -69,7 +69,7 @@ export default function PaymentRequired({ event, attendee }: PaymentRequiredProp
                             <div className="flex gap-3">
                                 <Link
                                     href="/dashboard"
-                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-4 py-2 text-center text-sm font-medium text-foreground hover:bg-sidebar/50"
+                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-4 py-2 text-center text-sm font-medium text-foreground hover:bg-sidebar/50 bg-black text-white"
                                 >
                                     Back to Dashboard
                                 </Link>

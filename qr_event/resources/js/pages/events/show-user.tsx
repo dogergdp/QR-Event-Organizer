@@ -1,10 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
 import QRScanner from '@/components/QRScanner';
 import { useState } from 'react';
 import {formatTime12Hour, formatDateTime12Hour} from '@/utils/dateUtils';
-import { show as showRoute } from '@/routes/events';
 
 import type { EventShowProps } from './types';
 
@@ -65,18 +62,27 @@ export default function ShowEventUser() {
         event.description && event.description.trim(),
     );
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: event.name, href: `/events/${event.id}` },
-    ];
-
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={event.name} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+            <div
+                className="fixed inset-0 z-0 w-full h-full min-h-screen overflow-hidden pointer-events-none"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("/images/slideshow/slide1.jpg")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    width: '100vw',
+                    minHeight: '100vh',
+                    height: '100%',
+                }}
+            />
+            <div className="fixed inset-0 bg-black/40 pointer-events-none z-0" />
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/40 pointer-events-none z-10" />
+
+            <div className="relative flex min-h-screen flex-col gap-6 overflow-x-auto p-4 md:p-8 z-20 max-w-4xl mx-auto">
                 {/* Event Banner */}
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 overflow-hidden">
                     <div className="aspect-video overflow-hidden rounded-xl">
                         <img
                             src={
@@ -91,7 +97,7 @@ export default function ShowEventUser() {
                 </div>
 
                 {/* Event Details Section */}
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                             <h1 className="text-3xl font-bold text-foreground">
@@ -152,7 +158,7 @@ export default function ShowEventUser() {
 
                 {/* Description Section */}
                 {hasDescription && (
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638]">
+                    <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
                         <h2 className="text-xl font-semibold text-foreground">
                             About This Event
                         </h2>
@@ -164,7 +170,7 @@ export default function ShowEventUser() {
 
                 {/* RSVP Section (for non-registered users) */}
                 {!event.is_finished && !userAttendance && (
-                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                    <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex-1">
                                 <h2 className="text-xl font-semibold text-foreground">
@@ -196,7 +202,7 @@ export default function ShowEventUser() {
 
                 {/* Attendance Section */}
                 {!event.is_finished && userAttendance && (
-                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
+                    <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex-1">
                                 <h2 className="text-xl font-semibold text-foreground">
@@ -204,7 +210,7 @@ export default function ShowEventUser() {
                                 </h2>
 
                                 {userAttendance.is_attended ? (
-                                    <p className="mt-2 text-sm text-green-600">
+                                    <p className="mt-2 text-sm font-bold text-foreground">
                                         ✓ You have attended this event
                                         {userAttendance.attended_time && (
                                             <>
@@ -226,8 +232,9 @@ export default function ShowEventUser() {
                                 )}
 
                                 {typeof userAttendance.is_paid !== 'undefined' && (
-                                    <p className={`mt-2 text-sm ${userAttendance.is_paid ? 'text-green-600' : 'text-amber-600'}`}>
+                                    <p className={`mt-2 text-sm font-bold ${userAttendance.is_paid ? 'text-foreground' : 'text-amber-600'}`}>
                                         Payment: {userAttendance.is_paid ? 'Paid' : 'Unpaid'}
+                                        <br />
                                         {userAttendance.amount_paid ? ` (Amount: ${userAttendance.amount_paid})` : ''}
                                     </p>
                                 )}
@@ -262,6 +269,6 @@ export default function ShowEventUser() {
                     onScan={handleScan}
                 />
             </div>
-        </AppLayout>
+        </>
     );
 }

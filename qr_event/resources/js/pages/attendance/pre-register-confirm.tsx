@@ -84,14 +84,13 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
             remarks: p.remarks,
         })) : [];
 
-        rsvpForm.setData({
+        rsvpForm.transform((currentData) => ({
+            ...currentData,
             confirm_rsvp: confirmChecked,
-            is_first_time: rsvpForm.data.is_first_time,
             has_plus_ones: hasPlusOnes,
             plus_ones: formattedPlusOnes,
             data_privacy_consent: consentChecked,
-            qr_token: rsvpForm.data.qr_token,
-        });
+        }));
 
         rsvpForm.post(`/events/${event.id}/confirm-rsvp`);
     };
@@ -127,15 +126,15 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                 <div className="flex w-full max-w-2xl flex-col gap-10">
                     <Card className="rounded-2xl relative shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40">
                         <CardContent className="px-8 py-10">
-                            <h1 className="text-xl font-bold text-foreground mb-3">RSVP Confirmation</h1>
+                            <h1 className="text-3xl font-bold text-foreground mb-3">RSVP Confirmation</h1>
 
                             <div className="rounded-lg border-2 border-green-500/50 bg-green-500/10 p-4 mb-4">
                                 <div className="flex items-start gap-3">
                                     <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                                    <div className="text-sm">
-                                        <h2 className="font-semibold text-foreground mb-1">{event.name}</h2>
-                                        <p className="text-xs text-muted-foreground mb-1">{event.location}</p>
-                                        <p className="text-xs text-muted-foreground">{event.date} {event.start_time && `at ${event.start_time}`}</p>
+                                    <div className="text-base">
+                                        <h2 className="text-lg font-semibold text-foreground mb-1">{event.name}</h2>
+                                        <p className="text-sm text-muted-foreground mb-1">{event.location}</p>
+                                        <p className="text-sm text-muted-foreground">{event.date} {event.start_time && `at ${event.start_time}`}</p>
                                     </div>
                                 </div>
                             </div>
@@ -144,14 +143,14 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                 <form onSubmit={handleConfirmRsvp} className="space-y-3">
                             <div className="rounded-lg border border-border bg-card/40 p-4">
                                 <div className="mb-4">
-                                    <p className="text-xs font-medium text-foreground mb-2">
+                                    <p className="text-sm font-medium text-foreground mb-2">
                                         Is this your first time joining such an event?
                                     </p>
                                     <div className="flex gap-2">
                                         <button
                                             type="button"
                                             onClick={() => rsvpForm.setData('is_first_time', true)}
-                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-xs ${
+                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-sm ${
                                                 rsvpForm.data.is_first_time === true
                                                     ? 'bg-primary border-primary text-primary-foreground'
                                                     : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
@@ -162,7 +161,7 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                         <button
                                             type="button"
                                             onClick={() => rsvpForm.setData('is_first_time', false)}
-                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-xs ${
+                                            className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-sm ${
                                                 rsvpForm.data.is_first_time === false
                                                     ? 'bg-primary border-primary text-primary-foreground'
                                                     : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
@@ -173,34 +172,48 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                     </div>
                                 </div>
 
-                                <h3 className="font-semibold text-foreground mb-2 text-sm">Account Created</h3>
-                                <p className="text-xs text-muted-foreground mb-3">
+                                <h3 className="font-semibold text-foreground mb-2 text-lg">Account Created</h3>
+                                <p className="text-sm text-muted-foreground mb-3">
                                     Your account has been successfully created. Now please confirm your RSVP for this event.
                                 </p>
 
                                 <div className="mb-3">
-                                    <label className="flex items-start gap-2 cursor-pointer relative mb-3">
-                                        <div className="mt-1 relative flex-shrink-0">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasPlusOnes}
-                                                onChange={(e) => {
-                                                    setHasPlusOnes(e.target.checked);
-                                                    rsvpForm.setData('has_plus_ones', e.target.checked);
-                                                    if (!e.target.checked) {
-                                                        setPlusOnesData([]);
-                                                    }
+                                    <div>
+                                        <p className="text-sm font-medium text-foreground mb-2">
+                                            Do you have family members/plus ones attending?
+                                        </p>
+                                        <div className="flex gap-2 mb-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setHasPlusOnes(true);
+                                                    rsvpForm.setData('has_plus_ones', true);
                                                 }}
-                                                className="appearance-none h-4 w-4 border-2 border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 cursor-pointer checked:bg-primary dark:checked:bg-primary checked:border-primary dark:checked:border-primary peer"
-                                            />
-                                            {hasPlusOnes && (
-                                                <svg className="absolute top-0 left-0 w-4 h-4 text-white dark:text-white pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                </svg>
-                                            )}
+                                                className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                    hasPlusOnes === true
+                                                        ? 'bg-primary border-primary text-primary-foreground'
+                                                        : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                Yes
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setHasPlusOnes(false);
+                                                    rsvpForm.setData('has_plus_ones', false);
+                                                    setPlusOnesData([]);
+                                                }}
+                                                className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-medium text-sm ${
+                                                    hasPlusOnes === false
+                                                        ? 'bg-primary border-primary text-primary-foreground'
+                                                        : 'border-sidebar-border/70 hover:bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                No
+                                            </button>
                                         </div>
-                                        <span className="text-xs text-foreground">Do you have family members/plus ones attending?</span>
-                                    </label>
+                                    </div>
 
                                     {hasPlusOnes && (
                                         <div className="space-y-3 bg-muted/20 p-3 rounded-lg">
@@ -216,19 +229,19 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
 
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <div className="grid gap-1">
-                                                            <Label htmlFor={`name-${index}`} className="text-xs font-medium">Full Name *</Label>
+                                                            <Label htmlFor={`name-${index}`} className="text-sm font-medium">Full Name *</Label>
                                                             <Input
                                                                 id={`name-${index}`}
                                                                 value={member.full_name}
                                                                 onChange={(e) => updatePlusOne(index, 'full_name', e.target.value)}
                                                                 placeholder="e.g. Juan Dela Cruz"
-                                                                className="text-xs h-8"
+                                                                className="text-sm h-9"
                                                                 required
                                                             />
                                                         </div>
 
                                                         <div className="grid gap-1">
-                                                            <Label htmlFor={`age-${index}`} className="text-xs font-medium">Age *</Label>
+                                                            <Label htmlFor={`age-${index}`} className="text-sm font-medium">Age *</Label>
                                                             <Input
                                                                 id={`age-${index}`}
                                                                 type="number"
@@ -237,19 +250,19 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                                                 value={member.age}
                                                                 onChange={(e) => updatePlusOne(index, 'age', e.target.value)}
                                                                 placeholder="e.g. 25"
-                                                                className="text-xs h-8"
+                                                                className="text-sm h-9"
                                                                 required
                                                             />
                                                         </div>
                                                     </div>
 
                                                     <div className="grid gap-1">
-                                                        <Label htmlFor={`gender-${index}`} className="text-xs font-medium">Gender *</Label>
+                                        <Label htmlFor={`gender-${index}`} className="text-sm font-medium">Gender *</Label>
                                                         <select
                                                             id={`gender-${index}`}
                                                             value={member.gender}
                                                             onChange={(e) => updatePlusOne(index, 'gender', e.target.value)}
-                                                            className="flex h-8 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                                            className="flex h-9 rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground"
                                                             required
                                                         >
                                                             <option value="">Select gender</option>
@@ -261,13 +274,13 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                                     </div>
 
                                                     <div className="grid gap-1">
-                                                        <Label htmlFor={`remarks-${index}`} className="text-xs font-medium">Remarks</Label>
+                                        <Label htmlFor={`remarks-${index}`} className="text-sm font-medium">Remarks</Label>
                                                         <Input
                                                             id={`remarks-${index}`}
                                                             value={member.remarks}
                                                             onChange={(e) => updatePlusOne(index, 'remarks', e.target.value)}
                                                             placeholder="Any special needs"
-                                                            className="text-xs h-8"
+                                                            className="text-sm h-9"
                                                         />
                                                     </div>
 
@@ -276,9 +289,9 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                                             type="checkbox"
                                                             checked={member.is_first_time}
                                                             onChange={(e) => updatePlusOne(index, 'is_first_time', e.target.checked)}
-                                                            className="h-3 w-3"
+                                                            className="h-4 w-4"
                                                         />
-                                                        <span className="text-xs text-foreground">First time attending</span>
+                                                        <span className="text-sm text-foreground">First time attending</span>
                                                     </label>
                                                 </div>
                                             ))}
@@ -287,7 +300,7 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                                 type="button"
                                                 onClick={addPlusOne}
                                                 variant="outline"
-                                                className="w-full text-xs h-8"
+                                                className="w-full text-sm h-9"
                                             >
                                                 Add Another Plus One
                                             </Button>
@@ -310,7 +323,7 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                             </svg>
                                         )}
                                     </div>
-                                    <span className="text-xs text-foreground">
+                                    <span className="text-sm text-foreground">
                                         I consent to data privacy collection for attendance processing.
                                     </span>
                                 </label>
@@ -330,7 +343,7 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
                                             </svg>
                                         )}
                                     </div>
-                                    <span className="text-xs text-foreground">
+                                    <span className="text-sm text-foreground">
                                         I confirm that I will attend this event and understand that this RSVP is a commitment.
                                     </span>
                                 </label>
@@ -338,16 +351,16 @@ export default function PreRegisterConfirm({ event, qrToken, shareImage }: PreRe
 
                             <Button
                                 type="submit"
-                                disabled={rsvpForm.processing || !rsvpForm.data.confirm_rsvp || rsvpForm.data.is_first_time === null || !rsvpForm.data.data_privacy_consent}
-                                className="w-full mt-4 text-sm"
-                                size="sm"
+                                disabled={rsvpForm.processing || !rsvpForm.data.confirm_rsvp || rsvpForm.data.is_first_time === null || !rsvpForm.data.data_privacy_consent || (hasPlusOnes === true && plusOnesData.length === 0)}
+                                className="w-full mt-4 text-base py-2"
+                                size="lg"
                             >
                                 {rsvpForm.processing ? 'Confirming RSVP...' : 'Confirm RSVP'}
                             </Button>
                         </form>
                     </div>
 
-                    <p className="mt-4 text-xs text-muted-foreground text-center">
+                    <p className="mt-4 text-sm text-muted-foreground text-center">
                         {qrToken
                             ? "After confirming your RSVP, you'll confirm your attendance."
                             : "You'll be able to mark your attendance at the event."}
