@@ -136,13 +136,16 @@ export default function AttendeePlusOnesModal({
                                             placeholder="Age"
                                             className="h-9 rounded-md border border-input bg-transparent px-3 text-sm text-foreground"
                                         />
-                                        <input
-                                            type="text"
+                                        <select
                                             value={plusOne.gender ?? ''}
                                             onChange={(e) => onUpdatePlusOneField(index, 'gender', e.target.value)}
-                                            placeholder="Gender"
                                             className="h-9 rounded-md border border-input bg-transparent px-3 text-sm text-foreground"
-                                        />
+                                        >
+                                            <option value="">Select gender</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="other">Other</option>
+                                        </select>
                                         <input
                                             type="text"
                                             value={plusOne.remarks ?? ''}

@@ -10,7 +10,10 @@ type PerformanceEvent = {
     total_attended: number;
     rsvp: Array<{
         id: number;
+        name: string;
+        contact_number: string;
         is_attended: boolean;
+        created_at?: string;
         plus_ones?: Array<unknown>;
     }>;
     attendees: Array<{
@@ -64,7 +67,7 @@ export default function EventPerformance({ reportEvents }: EventPerformanceProps
 
     // Derived Data
     const sortedRSVP = selectedPerformanceEvent?.rsvp
-        ? [...selectedPerformanceEvent.rsvp] : [];
+        ? [...selectedPerformanceEvent.rsvp].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '')) : [];
     const sortedAttendees = selectedPerformanceEvent?.attendees
         ? [...selectedPerformanceEvent.attendees].sort((a, b) => (b.attended_time || '').localeCompare(a.attended_time || '')) : [];
     const sortedFirstTimers = selectedPerformanceEvent?.attendees
