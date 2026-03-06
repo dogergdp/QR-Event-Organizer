@@ -174,4 +174,37 @@ class AttendeeController extends Controller
 
         return back()->with('success', 'Paid status updated successfully.');
     }
+
+    public function updatePlusOnes(Request $request, Attendee $attendee): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plus_ones' => ['nullable', 'array'],
+            'plus_ones.*.id' => ['nullable', 'string', 'max:100'],
+            'plus_ones.*.full_name' => ['nullable', 'string', 'max:255'],
+            'plus_ones.*.age' => ['nullable', 'integer', 'min:0', 'max:150'],
+            'plus_ones.*.gender' => ['nullable', 'string', 'max:50'],
+            'plus_ones.*.is_first_time' => ['nullable', 'boolean'],
+            'plus_ones.*.remarks' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
+        $attendee->update([
+            'plus_ones' => $validated['plus_ones'] ?? [],
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_attendee_plus_ones',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Updated plus ones for %s %s in event %s',
+                $attendee->user?->first_name ?? 'Unknown',
+                $attendee->user?->last_name ?? 'User',
+                $attendee->event?->name ?? 'Unknown event'
+            ),
+        ]);
+
+        return back()->with('success', 'Plus ones updated successfully.');
+    }
 }

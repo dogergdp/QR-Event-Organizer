@@ -43,6 +43,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('attendees', [AdminAttendeeController::class, 'store'])->name('attendees.store');
     Route::delete('attendees/{attendee}', [AdminAttendeeController::class, 'destroy'])->name('attendees.destroy');
     Route::patch('attendees/{attendee}/payment', [AdminAttendeeController::class, 'updatePaymentStatus'])->name('attendees.payment');
+    Route::patch('attendees/{attendee}/plus-ones', [AdminAttendeeController::class, 'updatePlusOnes'])->name('attendees.plus-ones');
 
     Route::patch('settings/login-birthdate', [AdminSettingController::class, 'updateLoginBirthdateRequirement'])->name('settings.login-birthdate');
 

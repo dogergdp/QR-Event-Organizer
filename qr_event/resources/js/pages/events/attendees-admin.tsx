@@ -4,13 +4,25 @@ import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { formatDateTime12Hour } from '@/utils/dateUtils';
-import AddAttendeeManualModal from './modal/add-attendee-manual-modal';
+import AddAttendeeManualModal from './modals/add-attendee-manual-modal';
+import AttendeePlusOnesModal from './modals/attendee-plus-ones-modal';
+import UpdatePaymentModal from './modals/update-payment-modal';
 
 import type { Attendee, EventShowProps } from './types';
 
 export default function EventAttendeesAdmin() {
     const { event, attendees, users = [], filters } = usePage<any>().props as EventShowProps;
 
+    const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(null);
+    const [editablePlusOnes, setEditablePlusOnes] = useState<Array<{
+        id?: string;
+        full_name?: string;
+        age?: number;
+        gender?: string;
+        is_first_time?: boolean;
+        remarks?: string;
+    }>>([]);
+    const [savingPlusOnes, setSavingPlusOnes] = useState(false);
     const [paymentModalAttendee, setPaymentModalAttendee] = useState<Attendee | null>(null);
     const [paymentIsPaid, setPaymentIsPaid] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('0');
@@ -39,6 +51,20 @@ export default function EventAttendeesAdmin() {
 
     const setPaidFilter = (filter: 'all' | 'yes' | 'no') => {
         router.get(attendeesUrl, { ...filters, paid: filter }, { preserveState: true, replace: true });
+    };
+
+    const openAttendeeModal = (attendee: Attendee) => {
+        setSelectedAttendee(attendee);
+        setEditablePlusOnes(
+            (attendee.plus_ones ?? []).map((plusOne, index) => ({
+                id: plusOne.id ?? `plus-one-${index}`,
+                full_name: plusOne.full_name ?? '',
+                age: plusOne.age,
+                gender: plusOne.gender ?? '',
+                is_first_time: !!plusOne.is_first_time,
+                remarks: plusOne.remarks ?? '',
+            })),
+        );
     };
 
     const openPaymentModal = (attendee: Attendee) => {
@@ -73,6 +99,78 @@ export default function EventAttendeesAdmin() {
                 preserveState: true,
                 onSuccess: () => {
                     setPaymentModalAttendee(null);
+                },
+            },
+        );
+    };
+
+    const updatePlusOneField = (
+        index: number,
+        field: 'full_name' | 'age' | 'gender' | 'is_first_time' | 'remarks',
+        value: string | number | boolean,
+    ) => {
+        setEditablePlusOnes((prev) =>
+            prev.map((plusOne, currentIndex) =>
+                currentIndex === index
+                    ? {
+                          ...plusOne,
+                          [field]: value,
+                      }
+                    : plusOne,
+            ),
+        );
+    };
+
+    const addPlusOneRow = () => {
+        setEditablePlusOnes((prev) => [
+            ...prev,
+            {
+                id: `plus-one-${Date.now()}`,
+                full_name: '',
+                age: undefined,
+                gender: '',
+                is_first_time: false,
+                remarks: '',
+            },
+        ]);
+    };
+
+    const removePlusOneRow = (index: number) => {
+        setEditablePlusOnes((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+    };
+
+    const savePlusOnes = () => {
+        if (!selectedAttendee) {
+            return;
+        }
+
+        setSavingPlusOnes(true);
+
+        const normalizedPlusOnes = editablePlusOnes.map((plusOne) => ({
+            id: plusOne.id,
+            full_name: plusOne.full_name?.trim() || null,
+            age:
+                plusOne.age === undefined || plusOne.age === null || Number.isNaN(Number(plusOne.age))
+                    ? null
+                    : Number(plusOne.age),
+            gender: plusOne.gender?.trim() || null,
+            is_first_time: !!plusOne.is_first_time,
+            remarks: plusOne.remarks?.trim() || null,
+        }));
+
+        router.patch(
+            `/admin/attendees/${selectedAttendee.id}/plus-ones`,
+            {
+                plus_ones: normalizedPlusOnes,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setSelectedAttendee(null);
+                },
+                onFinish: () => {
+                    setSavingPlusOnes(false);
                 },
             },
         );
@@ -308,7 +406,13 @@ export default function EventAttendeesAdmin() {
                                         className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
                                     >
                                         <td className="px-4 py-3 text-foreground">
-                                            {attendee.user.first_name} {attendee.user.last_name}
+                                            <button
+                                                type="button"
+                                                onClick={() => openAttendeeModal(attendee)}
+                                                className="text-left transition-colors hover:text-primary hover:underline"
+                                            >
+                                                {attendee.user.first_name} {attendee.user.last_name}
+                                            </button>
                                         </td>
                                         <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
                                         <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
@@ -432,106 +536,32 @@ export default function EventAttendeesAdmin() {
                     onClose={() => setAddAttendeeModalOpen(false)}
                 />
 
-                {paymentModalAttendee && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-                        onClick={() => setPaymentModalAttendee(null)}
-                    >
-                        <div
-                            className="w-full max-w-md rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-xl font-semibold text-foreground">Update Payment</h2>
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentModalAttendee(null)}
-                                    className="text-muted-foreground transition-colors hover:text-foreground"
-                                >
-                                    ✕
-                                </button>
-                            </div>
+                <AttendeePlusOnesModal
+                    open={!!selectedAttendee}
+                    attendee={selectedAttendee}
+                    editablePlusOnes={editablePlusOnes}
+                    savingPlusOnes={savingPlusOnes}
+                    onClose={() => setSelectedAttendee(null)}
+                    onAddPlusOne={addPlusOneRow}
+                    onRemovePlusOne={removePlusOneRow}
+                    onUpdatePlusOneField={updatePlusOneField}
+                    onSave={savePlusOnes}
+                />
 
-                            <p className="mb-4 text-sm text-muted-foreground">
-                                {paymentModalAttendee.user.first_name} {paymentModalAttendee.user.last_name}
-                            </p>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Status</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentIsPaid((prev) => !prev)}
-                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                            paymentIsPaid
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-amber-100 text-amber-800'
-                                        }`}
-                                    >
-                                        {paymentIsPaid ? 'Paid' : 'Unpaid'}
-                                    </button>
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Amount (PHP)</label>
-                                    <div className="flex items-center rounded-md border border-sidebar-border/70 px-3 py-2">
-                                        <span className="mr-2 text-sm text-muted-foreground">₱</span>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            value={paymentAmount}
-                                            onChange={(e) => setPaymentAmount(e.target.value)}
-                                            className="w-full bg-transparent text-sm text-foreground outline-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Type</label>
-                                    <select
-                                        value={paymentType}
-                                        onChange={(e) => setPaymentType(e.target.value)}
-                                        className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
-                                    >
-                                        <option value="">Select payment type</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="gcash">GCash</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-xs font-medium text-muted-foreground">Remarks</label>
-                                    <input
-                                        type="text"
-                                        value={paymentRemarks}
-                                        onChange={(e) => setPaymentRemarks(e.target.value)}
-                                        placeholder="Extra remarks (optional)"
-                                        className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentModalAttendee(null)}
-                                    className="flex-1 rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-sidebar/50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={savePaymentDetails}
-                                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                                >
-                                    Save
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <UpdatePaymentModal
+                    open={!!paymentModalAttendee}
+                    attendee={paymentModalAttendee}
+                    paymentIsPaid={paymentIsPaid}
+                    paymentAmount={paymentAmount}
+                    paymentType={paymentType}
+                    paymentRemarks={paymentRemarks}
+                    onClose={() => setPaymentModalAttendee(null)}
+                    onTogglePaid={() => setPaymentIsPaid((prev) => !prev)}
+                    onPaymentAmountChange={setPaymentAmount}
+                    onPaymentTypeChange={setPaymentType}
+                    onPaymentRemarksChange={setPaymentRemarks}
+                    onSave={savePaymentDetails}
+                />
             </div>
         </AppLayout>
     );
