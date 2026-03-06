@@ -332,7 +332,7 @@ export default function RegisterFromQR({ event, qrToken, shareImage, loginRequir
 
                                     <Button
                                         type="submit"
-                                        disabled={lookupLoading || !contactNumber || contactNumber.length < 10}
+                                        disabled={lookupLoading || !contactNumber || !/^09\d{9}$/.test(contactNumber)}
                                         className="w-full mt-6"
                                     >
                                         {lookupLoading ? 'Looking up...' : 'Continue'}
