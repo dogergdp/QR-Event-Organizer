@@ -57,56 +57,76 @@ export default function UpdatePaymentModal({
                 <div className="space-y-4">
                     <div>
                         <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Status</label>
-                        <button
-                            type="button"
-                            onClick={onTogglePaid}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                paymentIsPaid ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                            }`}
-                        >
-                            {paymentIsPaid ? 'Paid' : 'Unpaid'}
-                        </button>
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block text-xs font-medium text-muted-foreground">Amount (PHP)</label>
-                        <div className="flex items-center rounded-md border border-sidebar-border/70 px-3 py-2">
-                            <span className="mr-2 text-sm text-muted-foreground">₱</span>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={paymentAmount}
-                                onChange={(e) => onPaymentAmountChange(e.target.value)}
-                                className="w-full bg-transparent text-sm text-foreground outline-none"
-                            />
+                        <div className="inline-flex gap-1 rounded-md border border-sidebar-border/70 bg-background p-1">
+                            <button
+                                type="button"
+                                onClick={onTogglePaid}
+                                className={`rounded px-3 py-2 text-xs font-semibold transition-all ${
+                                    !paymentIsPaid 
+                                        ? 'bg-amber-500 text-white shadow-md' 
+                                        : 'bg-amber-50 text-amber-600 dark:bg-amber-950'
+                                }`}
+                            >
+                                ✕ Unpaid
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onTogglePaid}
+                                className={`rounded px-3 py-2 text-xs font-semibold transition-all ${
+                                    paymentIsPaid 
+                                        ? 'bg-green-600 text-white shadow-md' 
+                                        : 'bg-green-50 text-green-600 dark:bg-green-950'
+                                }`}
+                            >
+                                ✓ Paid
+                            </button>
                         </div>
                     </div>
 
-                    <div>
-                        <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Type</label>
-                        <select
-                            value={paymentType}
-                            onChange={(e) => onPaymentTypeChange(e.target.value)}
-                            className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
-                        >
-                            <option value="">Select payment type</option>
-                            <option value="cash">Cash</option>
-                            <option value="gcash">GCash</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+                    {paymentIsPaid && (
+                        <>
+                            <div>
+                                <label className="mb-2 block text-xs font-medium text-muted-foreground">Amount (PHP)</label>
+                                <div className="flex items-center rounded-md border border-sidebar-border/70 px-3 py-2">
+                                    <span className="mr-2 text-sm text-muted-foreground">₱</span>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={paymentAmount}
+                                        onChange={(e) => onPaymentAmountChange(e.target.value)}
+                                        className="w-full bg-transparent text-sm text-foreground outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                    <div>
-                        <label className="mb-2 block text-xs font-medium text-muted-foreground">Remarks</label>
-                        <input
-                            type="text"
-                            value={paymentRemarks}
-                            onChange={(e) => onPaymentRemarksChange(e.target.value)}
-                            placeholder="Extra remarks (optional)"
-                            className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
-                        />
-                    </div>
+                            <div>
+                                <label className="mb-2 block text-xs font-medium text-muted-foreground">Payment Type</label>
+                                <select
+                                    value={paymentType}
+                                    onChange={(e) => onPaymentTypeChange(e.target.value)}
+                                    className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
+                                >
+                                    <option value="">Select payment type</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="gcash">GCash</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-xs font-medium text-muted-foreground">Remarks</label>
+                                <input
+                                    type="text"
+                                    value={paymentRemarks}
+                                    onChange={(e) => onPaymentRemarksChange(e.target.value)}
+                                    placeholder="Extra remarks (optional)"
+                                    className="w-full rounded-md border border-sidebar-border/70 bg-transparent px-3 py-2 text-sm text-foreground outline-none"
+                                />
+                            </div>
+                        </>
+                    )}
+
                 </div>
 
                 <div className="mt-6 flex gap-2 border-t border-sidebar-border/70 pt-4">

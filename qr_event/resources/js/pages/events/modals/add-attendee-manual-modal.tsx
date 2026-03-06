@@ -29,6 +29,7 @@ export default function AddAttendeeManualModal({
     onClose,
 }: AddAttendeeManualModalProps) {
     const [userSearch, setUserSearch] = useState('');
+    const [isFirstTime, setIsFirstTime] = useState(false);
 
     if (!open) {
         return null;
@@ -63,6 +64,7 @@ export default function AddAttendeeManualModal({
                     onSuccess={() => {
                         onClose();
                         setUserSearch('');
+                        setIsFirstTime(false);
                     }}
                 >
                     {({ errors }) => {
@@ -102,49 +104,20 @@ export default function AddAttendeeManualModal({
                                     {errors.user_id && <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>}
                                 </div>
 
-                                <div className="grid gap-3 md:grid-cols-2">
-                                    <div>
-                                        <label className="mb-1 block text-xs text-foreground">Paid Amount (PHP)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            name="amount_paid"
-                                            placeholder="0.00"
-                                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        />
-                                        {errors.amount_paid && (
-                                            <p className="mt-1 text-xs text-red-600">{errors.amount_paid}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="mb-1 block text-xs text-foreground">Payment Type</label>
-                                        <select
-                                            name="payment_type"
-                                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        >
-                                            <option value="">Select payment type</option>
-                                            <option value="cash">Cash</option>
-                                            <option value="gcash">GCash</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                        {errors.payment_type && (
-                                            <p className="mt-1 text-xs text-red-600">{errors.payment_type}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="mb-1 block text-xs text-foreground">Payment Remarks</label>
-                                        <input
-                                            type="text"
-                                            name="payment_remarks"
-                                            placeholder="Extra remarks (optional)"
-                                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                        />
-                                        {errors.payment_remarks && (
-                                            <p className="mt-1 text-xs text-red-600">{errors.payment_remarks}</p>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* Default to unpaid */}
+                                <input type="hidden" name="is_paid" value="0" />
+                                <input type="hidden" name="amount_paid" value="0" />
+                                <input type="hidden" name="is_first_time" value={isFirstTime ? "1" : "0"} />
+
+                                <label className="inline-flex items-center gap-2 text-xs text-foreground">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isFirstTime}
+                                        onChange={(e) => setIsFirstTime(e.target.checked)}
+                                        className="h-4 w-4" 
+                                    />
+                                    First timer
+                                </label>
 
                                 <label className="inline-flex items-center gap-2 text-xs text-foreground">
                                     <input type="checkbox" name="is_attended" value="1" className="h-4 w-4" />
@@ -154,7 +127,11 @@ export default function AddAttendeeManualModal({
                                 <div className="mt-2 flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={onClose}
+                                        onClick={() => {
+                                            onClose();
+                                            setUserSearch('');
+                                            setIsFirstTime(false);
+                                        }}
                                         className="flex-1 rounded-md border border-sidebar-border/70 px-4 py-2 text-sm font-medium text-foreground hover:bg-sidebar/50"
                                     >
                                         Cancel
