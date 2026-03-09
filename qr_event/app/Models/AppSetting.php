@@ -17,14 +17,11 @@ class AppSetting extends Model
         if (! Schema::hasTable('app_settings')) {
             return $default;
         }
-
         $value = static::query()->where('key', $key)->value('value');
-
         if ($value === null) {
             return $default;
         }
-
-        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? $default;
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
     }
 
     public static function setBoolean(string $key, bool $value): void
@@ -32,10 +29,29 @@ class AppSetting extends Model
         if (! Schema::hasTable('app_settings')) {
             return;
         }
-
         static::query()->updateOrCreate(
             ['key' => $key],
             ['value' => $value ? '1' : '0']
+        );
+    }
+
+    public static function getString(string $key, string $default = null): ?string
+    {
+        if (! Schema::hasTable('app_settings')) {
+            return $default;
+        }
+        $value = static::query()->where('key', $key)->value('value');
+        return $value !== null ? $value : $default;
+    }
+
+    public static function setString(string $key, string $value): void
+    {
+        if (! Schema::hasTable('app_settings')) {
+            return;
+        }
+        static::query()->updateOrCreate(
+            ['key' => $key],
+            ['value' => $value]
         );
     }
 }

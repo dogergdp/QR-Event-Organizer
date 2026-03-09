@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            \App\Http\Middleware\MaintenanceModeMiddleware::class,
             \App\Http\Middleware\CaptureLoginRedirect::class,
             AllowCameraAccess::class,
             HandleAppearance::class,
