@@ -20,9 +20,12 @@ class MaintenanceModeMiddleware
             $isAdmin = $user && method_exists($user, 'isAdmin') ? $user->isAdmin() : false;
 
             if ($scope === 'all' || ($scope === 'users' && (!$user || !$isAdmin))) {
-                // Allow access to login/logout, admin login, and maintenance page itself
-                $allowedRoutes = ['login', 'logout', 'maintenance', 'admin.login'];
-                if (!in_array($request->route()?->getName(), $allowedRoutes)) {
+                // Allow access to authentication and maintenance routes (GET/POST)
+                $allowedUris = [
+                    '/login', '/logout', '/admin/login', '/register', '/password/reset', '/password/email', '/password/request', '/password/confirm', '/password/update', '/two-factor-challenge', '/maintenance'
+                ];
+                $requestUri = $request->getPathInfo();
+                if (!in_array($requestUri, $allowedUris)) {
                     return response()->view('maintenance');
                 }
             }
