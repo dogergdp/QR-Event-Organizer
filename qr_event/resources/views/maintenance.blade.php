@@ -14,6 +14,7 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ asset('images/ccf-logo-dark.png') }}" alt="Maintenance" style="height: 32rem; margin-bottom: 20px;">
         <h1>We'll be back soon!</h1>
         <p>Sorry for the inconvenience. We're performing some maintenance at the moment.<br>Please check back later.</p>
     </div>
