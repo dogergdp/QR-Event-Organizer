@@ -205,7 +205,11 @@ class EventController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('events/create');
+        $ministries = \App\Models\Ministry::all();
+
+        return Inertia::render('events/create', [
+            'ministries' => $ministries,
+        ]);
     }
 
     /**
@@ -221,6 +225,7 @@ class EventController extends Controller
             'description' => ['nullable', 'string'],
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'ministry_id' => ['nullable', 'exists:ministries,id'],
             'is_finished' => ['sometimes', 'boolean'],
             'is_ongoing' => ['sometimes', 'boolean'],
         ]);
@@ -291,8 +296,11 @@ class EventController extends Controller
      */
     public function edit(Event $event): Response
     {
+        $ministries = \App\Models\Ministry::all();
+
         return Inertia::render('events/edit', [
             'event' => $event,
+            'ministries' => $ministries,
         ]);
     }
 
@@ -309,6 +317,7 @@ class EventController extends Controller
             'description' => ['nullable', 'string'],
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'ministry_id' => ['nullable', 'exists:ministries,id'],
             'is_finished' => ['sometimes', 'boolean'],
             'is_ongoing' => ['sometimes', 'boolean'],
         ]);

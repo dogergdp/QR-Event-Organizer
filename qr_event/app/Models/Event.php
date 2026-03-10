@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -37,6 +38,7 @@ class Event extends Model
         'is_finished',
         'is_ongoing',
         'login_requires_birthdate',
+        'ministry_id',
     ];
 
     protected $casts = [
@@ -44,6 +46,14 @@ class Event extends Model
         'is_ongoing' => 'boolean',
         'login_requires_birthdate' => 'boolean',
     ];
+
+    /**
+     * Ministry associated with this event.
+     */
+    public function ministry(): BelongsTo
+    {
+        return $this->belongsTo(Ministry::class);
+    }
 
     /**
      * Users who joined the event.

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AttendeeController as AdminAttendeeController;
 use App\Http\Controllers\Admin\ImportController as AdminImportController;
 use App\Http\Controllers\Admin\LogController as AdminLogController;
+use App\Http\Controllers\Admin\MinistryController as AdminMinistryController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AttendanceController;
@@ -45,6 +46,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('attendees/{attendee}/payment', [AdminAttendeeController::class, 'updatePaymentStatus'])->name('attendees.payment');
     Route::patch('attendees/{attendee}/plus-ones', [AdminAttendeeController::class, 'updatePlusOnes'])->name('attendees.plus-ones');
     Route::patch('attendees/{attendee}/assigned-values', [AdminAttendeeController::class, 'updateAssignedValues'])->name('attendees.assigned-values');
+
+    Route::get('ministries', [AdminMinistryController::class, 'index'])->name('ministries.index');
+    Route::get('ministries/create', [AdminMinistryController::class, 'create'])->name('ministries.create');
+    Route::post('ministries', [AdminMinistryController::class, 'store'])->name('ministries.store');
+    Route::get('ministries/{ministry}/edit', [AdminMinistryController::class, 'edit'])->name('ministries.edit');
+    Route::put('ministries/{ministry}', [AdminMinistryController::class, 'update'])->name('ministries.update');
+    Route::delete('ministries/{ministry}', [AdminMinistryController::class, 'destroy'])->name('ministries.destroy');
 
     Route::patch('settings/login-birthdate', [AdminSettingController::class, 'updateLoginBirthdateRequirement'])->name('settings.login-birthdate');
 
