@@ -207,4 +207,41 @@ class AttendeeController extends Controller
 
         return back()->with('success', 'Plus ones updated successfully.');
     }
+
+    public function updateAssignedValues(Request $request, Attendee $attendee): RedirectResponse
+    {
+        $validated = $request->validate([
+            'assigned_values' => ['nullable', 'array'],
+            'family_color' => ['nullable', Rule::in(['blue', 'green', 'red', 'yellow', 'none'])],
+        ]);
+
+        $existingAssignedValues = is_array($attendee->assigned_values) ? $attendee->assigned_values : [];
+        $incomingAssignedValues = $validated['assigned_values'] ?? [];
+
+        if (array_key_exists('family_color', $validated)) {
+            $incomingAssignedValues['family_color'] = ($validated['family_color'] === 'none')
+                ? null
+                : $validated['family_color'];
+        }
+
+        $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
+        $attendee->update([
+            'assigned_values' => array_merge($existingAssignedValues, $incomingAssignedValues),
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_attendee_assigned_values',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Updated assigned values for %s %s in event %s',
+                $attendee->user?->first_name ?? 'Unknown',
+                $attendee->user?->last_name ?? 'User',
+                $attendee->event?->name ?? 'Unknown event'
+            ),
+        ]);
+
+        return back()->with('success', 'Assigned values updated successfully.');
+    }
 }

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('attendees/{attendee}', [AdminAttendeeController::class, 'destroy'])->name('attendees.destroy');
     Route::patch('attendees/{attendee}/payment', [AdminAttendeeController::class, 'updatePaymentStatus'])->name('attendees.payment');
     Route::patch('attendees/{attendee}/plus-ones', [AdminAttendeeController::class, 'updatePlusOnes'])->name('attendees.plus-ones');
+    Route::patch('attendees/{attendee}/assigned-values', [AdminAttendeeController::class, 'updateAssignedValues'])->name('attendees.assigned-values');
 
     Route::patch('settings/login-birthdate', [AdminSettingController::class, 'updateLoginBirthdateRequirement'])->name('settings.login-birthdate');
 

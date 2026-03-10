@@ -49,11 +49,47 @@ class EventController extends Controller
     public function show(Request $request, Event $event): Response
     {
         $user = $request->user();
+        $userAttendance = $user
+            ? $event->attendees()->with('user:id,last_name')->where('user_id', $user->id)->first()
+            : null;
+
+        $attendedUsers = $event->attendees()
+            ->with('user:id,first_name,last_name')
+            ->where('is_attended', true)
+            ->latest('attended_time')
+            ->get()
+            ->map(fn($attendee) => [
+                'id' => $attendee->id,
+                'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                'family_name' => $attendee->user->last_name ?? null,
+                'family_color' => data_get($attendee->assigned_values, 'family_color'),
+                'attended_time' => optional($attendee->attended_time)?->toDateTimeString(),
+            ])
+            ->values();
 
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
-            'userAttendance' => $user ? $event->attendees()->where('user_id', $user->id)->first() : null,
+            'userAttendance' => $userAttendance ? [
+                'id' => $userAttendance->id,
+                'user_id' => $userAttendance->user_id,
+                'event_id' => $userAttendance->event_id,
+                'is_attended' => (bool) $userAttendance->is_attended,
+                'is_paid' => (bool) $userAttendance->is_paid,
+                'amount_paid' => $userAttendance->amount_paid,
+                'attended_time' => optional($userAttendance->attended_time)?->toDateTimeString(),
+                'family_name' => $userAttendance->user?->last_name,
+                'family_color' => data_get($userAttendance->assigned_values, 'family_color'),
+                'assigned_values' => $userAttendance->assigned_values ?? [],
+                'attending_plus_ones' => collect($userAttendance->plus_ones ?? [])
+                    ->filter(fn($member) => (bool) data_get($member, 'is_attended', false))
+                    ->map(fn($member) => [
+                        'id' => (string) data_get($member, 'id', ''),
+                        'full_name' => (string) data_get($member, 'full_name', ''),
+                    ])
+                    ->values(),
+            ] : null,
+            'attendedUsers' => $attendedUsers,
         ]);
     }
 
@@ -96,6 +132,7 @@ class EventController extends Controller
                 'payment_type' => $attendee->payment_type,
                 'payment_remarks' => $attendee->payment_remarks,
                 'plus_ones' => $attendee->plus_ones ?? [],
+                'assigned_values' => $attendee->assigned_values ?? [],
                 'attended_time' => $attendee->attended_time,
                 'user' => [
                     'id' => $attendee->user->id,

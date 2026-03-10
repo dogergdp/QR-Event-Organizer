@@ -19,6 +19,7 @@ export interface Attendee {
     amount_paid: string | null;
     payment_type: string | null;
     payment_remarks: string | null;
+    assigned_values: Record<string, string | number | boolean | null>;
     plus_ones: Array<{
         id?: string;
         full_name?: string;
@@ -57,7 +58,21 @@ export interface EventShowProps {
         is_paid?: boolean;
         amount_paid?: string | null;
         attended_time: string | null;
+        family_name?: string | null;
+        family_color?: string | null;
+        assigned_values?: Record<string, string | number | boolean | null>;
+        attending_plus_ones?: Array<{
+            id: string;
+            full_name: string;
+        }>;
     } | null;
+    attendedUsers?: Array<{
+        id: number;
+        name: string;
+        family_name?: string | null;
+        family_color?: string | null;
+        attended_time?: string | null;
+    }>;
     attendees?: {
         data: Attendee[];
         links: Array<{

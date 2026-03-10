@@ -164,6 +164,8 @@ class DashboardController extends Controller
                     'is_ongoing' => $event->is_ongoing,
                     'has_rsvp' => $attendee !== null,
                     'is_attended' => $attendee?->is_attended ?? false,
+                    'family_name' => $user->last_name,
+                    'family_color' => data_get($attendee?->assigned_values, 'family_color'),
                 ];
             });
 

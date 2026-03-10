@@ -6,6 +6,7 @@ import type { BreadcrumbItem } from '@/types';
 import { formatDateTime12Hour } from '@/utils/dateUtils';
 import AddAttendeeManualModal from './modals/add-attendee-manual-modal';
 import AttendeePlusOnesModal from './modals/attendee-plus-ones-modal';
+import EditFamilyColorModal from './modals/edit-family-color-modal';
 import UpdatePaymentModal from './modals/update-payment-modal';
 
 import type { Attendee, EventShowProps } from './types';
@@ -29,6 +30,8 @@ export default function EventAttendeesAdmin() {
     const [paymentType, setPaymentType] = useState('');
     const [paymentRemarks, setPaymentRemarks] = useState('');
     const [addAttendeeModalOpen, setAddAttendeeModalOpen] = useState(false);
+    const [colorModalAttendee, setColorModalAttendee] = useState<Attendee | null>(null);
+    const [familyColor, setFamilyColor] = useState('');
 
     const activeAdminTab = filters?.status ?? 'rsvp';
     const firstTimeFilter = filters?.first_time ?? 'all';
@@ -73,6 +76,11 @@ export default function EventAttendeesAdmin() {
         setPaymentAmount(attendee.amount_paid ?? '0');
         setPaymentType(attendee.payment_type ?? '');
         setPaymentRemarks(attendee.payment_remarks ?? '');
+    };
+
+    const openFamilyColorModal = (attendee: Attendee) => {
+        setColorModalAttendee(attendee);
+        setFamilyColor(String(attendee.assigned_values?.family_color ?? 'none'));
     };
 
     const savePaymentDetails = () => {
@@ -171,6 +179,29 @@ export default function EventAttendeesAdmin() {
                 },
                 onFinish: () => {
                     setSavingPlusOnes(false);
+                },
+            },
+        );
+    };
+
+    const saveFamilyColor = () => {
+        if (!colorModalAttendee) {
+            return;
+        }
+
+        const normalizedColor = (familyColor || 'none').toLowerCase();
+
+        router.patch(
+            `/admin/attendees/${colorModalAttendee.id}/assigned-values`,
+            {
+                family_color: normalizedColor,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setColorModalAttendee(null);
+                    router.reload({ only: ['attendees'] });
                 },
             },
         );
@@ -394,6 +425,7 @@ export default function EventAttendeesAdmin() {
                                     {activeAdminTab === 'rsvp' && (
                                         <th className="px-4 py-2 text-left font-semibold text-foreground">Amount Paid</th>
                                     )}
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Assigned Values</th>
                                     <th className="px-4 py-2 text-left font-semibold text-foreground">
                                         {activeAdminTab === 'attendance' ? 'Attended Time' : 'Status'}
                                     </th>
@@ -450,6 +482,21 @@ export default function EventAttendeesAdmin() {
                                         {activeAdminTab === 'rsvp' && (
                                             <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
                                         )}
+
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+                                                    Color: {String(attendee.assigned_values?.family_color ?? '—')}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openFamilyColorModal(attendee)}
+                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
+                                                >
+                                                    Edit Color
+                                                </button>
+                                            </div>
+                                        </td>
 
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {activeAdminTab === 'attendance' ? (
@@ -561,6 +608,15 @@ export default function EventAttendeesAdmin() {
                     onPaymentTypeChange={setPaymentType}
                     onPaymentRemarksChange={setPaymentRemarks}
                     onSave={savePaymentDetails}
+                />
+
+                <EditFamilyColorModal
+                    open={!!colorModalAttendee}
+                    attendee={colorModalAttendee}
+                    familyColor={familyColor}
+                    onFamilyColorChange={setFamilyColor}
+                    onClose={() => setColorModalAttendee(null)}
+                    onSave={saveFamilyColor}
                 />
             </div>
         </AppLayout>

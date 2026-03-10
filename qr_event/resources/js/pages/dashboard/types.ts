@@ -23,6 +23,8 @@ export interface DashboardProps {
         is_ongoing?: boolean;
         has_rsvp?: boolean;
         is_attended?: boolean;
+        family_name?: string | null;
+        family_color?: string | null;
     }>;
     isAdmin?: boolean;
     stats?: {

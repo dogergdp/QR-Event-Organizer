@@ -6,7 +6,20 @@ import {formatTime12Hour, formatDateTime12Hour} from '@/utils/dateUtils';
 import type { EventShowProps } from './types';
 
 export default function ShowEventUser() {
-    const { event, userAttendance } = usePage<any>().props as EventShowProps;
+    const { event, userAttendance, auth } = usePage<any>().props as EventShowProps & {
+        auth?: {
+            user?: {
+                first_name?: string;
+                last_name?: string;
+                name?: string;
+            };
+        };
+    };
+
+    const userFirstName =
+        auth?.user?.first_name ||
+        auth?.user?.name?.trim().split(' ')[0] ||
+        'You';
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
 
@@ -61,6 +74,30 @@ export default function ShowEventUser() {
     const hasDescription = Boolean(
         event.description && event.description.trim(),
     );
+
+    const normalizedFamilyColor =
+        typeof userAttendance?.family_color === 'string'
+            ? userAttendance.family_color.toLowerCase()
+            : null;
+
+    const familyColorName =
+        normalizedFamilyColor === 'blue' ||
+        normalizedFamilyColor === 'green' ||
+        normalizedFamilyColor === 'red' ||
+        normalizedFamilyColor === 'yellow'
+            ? normalizedFamilyColor.charAt(0).toUpperCase() + normalizedFamilyColor.slice(1)
+            : 'None';
+
+    const familyColorHex =
+        normalizedFamilyColor === 'blue'
+            ? '#2563eb'
+            : normalizedFamilyColor === 'green'
+              ? '#16a34a'
+              : normalizedFamilyColor === 'red'
+                ? '#dc2626'
+                : normalizedFamilyColor === 'yellow'
+                  ? '#eab308'
+                  : '#9ca3af';
 
     return (
         <>
@@ -203,8 +240,8 @@ export default function ShowEventUser() {
                 {/* Attendance Section */}
                 {!event.is_finished && userAttendance && (
                     <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
+                        <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="w-full max-w-2xl">
                                 <h2 className="text-xl font-semibold text-foreground">
                                     Your Attendance
                                 </h2>
@@ -229,6 +266,40 @@ export default function ShowEventUser() {
                                         the attendance QR code at the venue to
                                         mark your attendance.
                                     </p>
+                                )}
+
+                                {userAttendance.is_attended && (
+                                    <div className="mt-3 text-sm text-foreground">
+                                        <p>
+                                            Family Name: <span className="font-semibold">{userAttendance.family_name || 'N/A'}</span>
+                                        </p>
+                                        <p>
+                                            Family Color:{' '}
+                                            <span className="inline-flex items-center gap-2 font-semibold">
+                                                <span
+                                                    className="inline-block h-3 w-3 rounded-full border border-sidebar-border/70"
+                                                    style={{ backgroundColor: familyColorHex }}
+                                                />
+                                                {familyColorName}
+                                            </span>
+                                        </p>
+
+                                        <div className="mt-2">
+                                            <p className="font-semibold">
+                                                Attending (Headcount:{' '}
+                                                {1 + (userAttendance.attending_plus_ones?.length ?? 0)})
+                                            </p>
+                                            <ul className="mt-1 list-inside list-disc text-sm text-foreground">
+                                                <li>{userFirstName}</li>
+                                                {userAttendance.attending_plus_ones?.map((plusOne) => (
+                                                    <li key={plusOne.id || plusOne.full_name}>{plusOne.full_name || 'Unnamed'}</li>
+                                                ))}
+                                            </ul>
+                                            {(!userAttendance.attending_plus_ones || userAttendance.attending_plus_ones.length === 0) && (
+                                                <p className="text-sm text-muted-foreground">No additional attendees.</p>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
 
                                 {typeof userAttendance.is_paid !== 'undefined' && (

@@ -77,6 +77,25 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
                                         )}
                                     </p>
                                     <p className="truncate text-xs text-muted-foreground">{event.location}</p>
+                                    {event.is_attended && (
+                                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                            <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-foreground">
+                                                Family: {event.family_name || 'N/A'}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-foreground">
+                                                <span
+                                                    className="inline-block h-2.5 w-2.5 rounded-full border border-sidebar-border/70"
+                                                    style={{
+                                                        backgroundColor:
+                                                            typeof event.family_color === 'string' && event.family_color.trim() !== ''
+                                                                ? event.family_color
+                                                                : '#9ca3af',
+                                                    }}
+                                                />
+                                                Color: {event.family_color ? event.family_color.charAt(0).toUpperCase() + event.family_color.slice(1) : 'None'}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </Link>
                         ))}
@@ -143,6 +162,25 @@ export default function UserView({ events = [], onScanClick }: UserViewProps) {
                                             )}
                                         </p>
                                         <p className="truncate text-xs text-muted-foreground">{event.location}</p>
+                                        {event.is_attended && (
+                                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                                <span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-foreground">
+                                                    Family: {event.family_name || 'N/A'}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-foreground">
+                                                    <span
+                                                        className="inline-block h-2.5 w-2.5 rounded-full border border-sidebar-border/70"
+                                                        style={{
+                                                            backgroundColor:
+                                                                typeof event.family_color === 'string' && event.family_color.trim() !== ''
+                                                                    ? event.family_color
+                                                                    : '#9ca3af',
+                                                        }}
+                                                    />
+                                                    Color: {event.family_color ? event.family_color.charAt(0).toUpperCase() + event.family_color.slice(1) : 'None'}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </Link>
 
