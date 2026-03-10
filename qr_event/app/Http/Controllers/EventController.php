@@ -86,6 +86,7 @@ class EventController extends Controller
                     ->map(fn($member) => [
                         'id' => (string) data_get($member, 'id', ''),
                         'full_name' => (string) data_get($member, 'full_name', ''),
+                        'age' => data_get($member, 'age'),
                     ])
                     ->values(),
             ] : null,

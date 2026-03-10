@@ -71,7 +71,15 @@ class User extends Authenticatable
         return $this->isAdmin();
     }
 
-    protected $appends = ['is_admin'];
+    protected $appends = ['is_admin', 'age'];
+
+    /**
+     * Get user's age calculated from birthdate.
+     */
+    public function getAgeAttribute(): ?int
+    {
+        return $this->birthdate ? $this->birthdate->diffInYears(now()) : null;
+    }
 
     /**
      * Events the user has joined.

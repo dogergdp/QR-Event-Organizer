@@ -64,6 +64,7 @@ export interface EventShowProps {
         attending_plus_ones?: Array<{
             id: string;
             full_name: string;
+            age?: number | null;
         }>;
     } | null;
     attendedUsers?: Array<{

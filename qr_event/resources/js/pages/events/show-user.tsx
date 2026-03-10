@@ -12,6 +12,7 @@ export default function ShowEventUser() {
                 first_name?: string;
                 last_name?: string;
                 name?: string;
+                age?: number | null;
             };
         };
     };
@@ -99,6 +100,13 @@ export default function ShowEventUser() {
                   ? '#eab308'
                   : '#9ca3af';
 
+    const calculateCostByAge = (age: number | undefined) => {
+        if (age === undefined || age === null) return 'N/A';
+        if (age >= 12) return '200 pesos';
+        if (age >= 5) return '100 pesos';
+        return 'Free';
+    };
+
     return (
         <>
             <Head title={event.name} />
@@ -134,35 +142,35 @@ export default function ShowEventUser() {
                 </div>
 
                 {/* Event Details Section */}
-                <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
+                <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                            <h1 className="text-3xl font-bold text-foreground">
+                            <h1 className="text-2xl font-bold text-foreground">
                                 {event.name}
                             </h1>
 
-                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                            <div className="mt-4 grid gap-3 md:grid-cols-2">
                                 <div>
-                                    <p className="text-sm font-semibold text-muted-foreground">
+                                    <p className="text-xs font-semibold text-muted-foreground">
                                         DATE
                                     </p>
-                                    <p className="mt-1 text-lg text-foreground">
+                                    <p className="mt-1 text-sm text-foreground">
                                         {new Date(
                                             event.date,
                                         ).toLocaleDateString('en-US', {
-                                            weekday: 'long',
+                                            weekday: 'short',
                                             year: 'numeric',
-                                            month: 'long',
+                                            month: 'short',
                                             day: 'numeric',
                                         })}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-semibold text-muted-foreground">
+                                    <p className="text-xs font-semibold text-muted-foreground">
                                         START TIME
                                     </p>
-                                    <p className="mt-1 text-lg text-foreground">
+                                    <p className="mt-1 text-sm text-foreground">
                                         {event.start_time
                                             ? formatTime12Hour(event.start_time)
                                             : 'N/A'}
@@ -170,10 +178,10 @@ export default function ShowEventUser() {
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-semibold text-muted-foreground">
+                                    <p className="text-xs font-semibold text-muted-foreground">
                                         END TIME
                                     </p>
-                                    <p className="mt-1 text-lg text-foreground">
+                                    <p className="mt-1 text-sm text-foreground">
                                         {event.end_time
                                             ? formatTime12Hour(event.end_time)
                                             : 'N/A'}
@@ -181,10 +189,10 @@ export default function ShowEventUser() {
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <p className="text-sm font-semibold text-muted-foreground">
+                                    <p className="text-xs font-semibold text-muted-foreground">
                                         LOCATION
                                     </p>
-                                    <p className="mt-1 text-lg text-foreground">
+                                    <p className="mt-1 text-sm text-foreground">
                                         {event.location}
                                     </p>
                                 </div>
@@ -239,15 +247,15 @@ export default function ShowEventUser() {
 
                 {/* Attendance Section */}
                 {!event.is_finished && userAttendance && (
-                    <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-6">
-                        <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="rounded-2xl border border-white/30 shadow-2xl backdrop-blur-lg bg-white/60 dark:bg-black/40 p-8">
+                        <div className="flex flex-col items-center gap-6 text-center">
                             <div className="w-full max-w-2xl">
-                                <h2 className="text-xl font-semibold text-foreground">
+                                <h2 className="text-2xl font-bold text-foreground">
                                     Your Attendance
                                 </h2>
 
                                 {userAttendance.is_attended ? (
-                                    <p className="mt-2 text-sm font-bold text-foreground">
+                                    <p className="mt-4 text-base font-bold text-foreground">
                                         ✓ You have attended this event
                                         {userAttendance.attended_time && (
                                             <>
@@ -261,7 +269,7 @@ export default function ShowEventUser() {
                                         )}
                                     </p>
                                 ) : (
-                                    <p className="mt-2 text-sm text-muted-foreground">
+                                    <p className="mt-4 text-base text-muted-foreground">
                                         You are registered for this event. Scan
                                         the attendance QR code at the venue to
                                         mark your attendance.
@@ -269,7 +277,7 @@ export default function ShowEventUser() {
                                 )}
 
                                 {userAttendance.is_attended && (
-                                    <div className="mt-3 text-sm text-foreground">
+                                    <div className="mt-6 text-base text-foreground space-y-3">
                                         <p>
                                             Family Name: <span className="font-semibold">{userAttendance.family_name || 'N/A'}</span>
                                         </p>
@@ -277,33 +285,49 @@ export default function ShowEventUser() {
                                             Family Color:{' '}
                                             <span className="inline-flex items-center gap-2 font-semibold">
                                                 <span
-                                                    className="inline-block h-3 w-3 rounded-full border border-sidebar-border/70"
+                                                    className="inline-block h-4 w-4 rounded-full border border-sidebar-border/70"
                                                     style={{ backgroundColor: familyColorHex }}
                                                 />
                                                 {familyColorName}
                                             </span>
                                         </p>
 
-                                        <div className="mt-2">
-                                            <p className="font-semibold">
+                                        <div className="mt-4">
+                                            <p className="font-bold text-lg">
                                                 Attending (Headcount:{' '}
                                                 {1 + (userAttendance.attending_plus_ones?.length ?? 0)})
                                             </p>
-                                            <ul className="mt-1 list-inside list-disc text-sm text-foreground">
-                                                <li>{userFirstName}</li>
+                                            <ul className="mt-2 list-inside list-disc text-base text-foreground space-y-1">
+                                                <li>
+                                                    {userFirstName}
+                                                    {auth?.user?.age && (
+                                                        <>
+                                                            {' '}({auth.user.age} years old) -{' '}
+                                                            <span className="font-medium">{calculateCostByAge(auth.user.age)}</span>
+                                                        </>
+                                                    )}
+                                                </li>
                                                 {userAttendance.attending_plus_ones?.map((plusOne) => (
-                                                    <li key={plusOne.id || plusOne.full_name}>{plusOne.full_name || 'Unnamed'}</li>
+                                                    <li key={plusOne.id || plusOne.full_name}>
+                                                        {plusOne.full_name || 'Unnamed'}
+                                                        {plusOne.age && (
+                                                            <>
+                                                                {' '}({plusOne.age} years old) -{' '}
+                                                                <span className="font-medium">{calculateCostByAge(plusOne.age)}</span>
+                                                            </>
+                                                        )}
+                                                    </li>
                                                 ))}
                                             </ul>
                                             {(!userAttendance.attending_plus_ones || userAttendance.attending_plus_ones.length === 0) && (
-                                                <p className="text-sm text-muted-foreground">No additional attendees.</p>
+                                                <p className="text-base text-muted-foreground">No additional attendees.</p>
                                             )}
                                         </div>
                                     </div>
                                 )}
 
                                 {typeof userAttendance.is_paid !== 'undefined' && (
-                                    <p className={`mt-2 text-sm font-bold ${userAttendance.is_paid ? 'text-foreground' : 'text-amber-600'}`}>
+                                    <p className={`mt-4 text-base font-bold ${userAttendance.is_paid ? 'text-foreground' : 'text-amber-600'}`}>
                                         Payment: {userAttendance.is_paid ? 'Paid' : 'Unpaid'}
                                         <br />
                                         {userAttendance.amount_paid ? ` (Amount: ${userAttendance.amount_paid})` : ''}
@@ -314,7 +338,7 @@ export default function ShowEventUser() {
                             {!userAttendance.is_attended && (
                                 <button
                                     onClick={() => setIsScannerOpen(true)}
-                                    className="rounded-lg bg-black px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                                    className="rounded-lg bg-black px-8 py-3 text-base font-medium text-white transition-colors hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                                 >
                                     Scan QR to Mark Attendance
                                 </button>
