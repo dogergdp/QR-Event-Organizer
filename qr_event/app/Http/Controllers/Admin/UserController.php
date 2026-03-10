@@ -31,7 +31,7 @@ class UserController extends Controller
             'has_dg_leader' => $this->hasDgLeaderRules(),
             'dg_leader_name' => array_merge($this->dgLeaderNameRules(), [Rule::requiredIf($request->input('has_dg_leader') === 'yes')]),
             'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($request->input('has_dg_leader') === 'no')],
-            'password' => ['required', 'string', 'min:1', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:1', 'confirmed'],
         ]);
 
         $validated['dg_leader_name'] = ($validated['has_dg_leader'] ?? $request->input('has_dg_leader')) === 'yes'

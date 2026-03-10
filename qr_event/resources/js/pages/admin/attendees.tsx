@@ -1,17 +1,15 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { calculateAge, formatDate } from '@/utils/dateUtils';
-import AttendeeController from '@/actions/App/Http/Controllers/Admin/AttendeeController';
 
 
 export default function AdminAttendees() {
-    const [userSearch, setUserSearch] = useState('');
     const [selectedUser, setSelectedUser] = useState<any>(null);
 
-    const { attendees, users, events, filters } = usePage<any>().props as {
+    const { attendees, events, filters } = usePage<any>().props as {
         attendees: {
             data: Array<{
                 id: number;
@@ -41,12 +39,6 @@ export default function AdminAttendees() {
             from: number | null;
             to: number | null;
         };
-        users: Array<{
-            id: number;
-            first_name: string;
-            last_name: string;
-            contact_number: string;
-        }>;
         events: Array<{
             id: number;
             name: string;
@@ -76,132 +68,6 @@ export default function AdminAttendees() {
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
-                    <div className="rounded-xl border border-sidebar-border/70 bg-background p-4 shadow-sm">
-                        <h2 className="text-base font-semibold text-foreground">Add Attendee Manually</h2>
-                        <p className="text-xs text-muted-foreground mt-1 mb-3">Adds user as RSVP by default so they appear in the event RSVP list</p>
-                        <Form
-                            {...AttendeeController.store.form()}
-                            className="mt-3 grid gap-3"
-                        >
-                        {({ errors }) => {
-                                const filteredUsers = users.filter((user: any) => {
-                                    const searchLower = userSearch.toLowerCase();
-                                    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
-                                    const contact = user.contact_number.toLowerCase();
-                                    return fullName.includes(searchLower) || contact.includes(searchLower);
-                                });
-
-                                return (
-                                    <>
-                                        <input
-                                            type="text"
-                                            value={userSearch}
-                                            onChange={(e) => setUserSearch(e.target.value)}
-                                            placeholder="Search by name or contact number"
-                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                                        />
-
-                                        <div className="grid gap-3 md:grid-cols-2">
-                                            <div>
-                                                <select
-                                                    name="user_id"
-                                                    required
-                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                                >
-                                                    <option value="">Select user</option>
-                                                    {filteredUsers.map((user: any) => (
-                                                        <option key={user.id} value={user.id}>
-                                                            {user.first_name} {user.last_name} - {user.contact_number}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {errors.user_id && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors.user_id}</p>
-                                                )}
-                                            </div>
-
-                                            <div>
-                                                <select
-                                                    name="event_id"
-                                                    required
-                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                                >
-                                                    <option value="">Select event</option>
-                                                    {events.map((event: any) => (
-                                                        <option key={event.id} value={event.id}>
-                                                            {event.name} ({event.date})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {errors.event_id && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors.event_id}</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-3 md:grid-cols-2">
-                                            <div>
-                                                <label className="block text-xs mb-1 text-foreground">Paid Amount (PHP)</label>
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.01"
-                                                    name="amount_paid"
-                                                    placeholder="0.00"
-                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                                />
-                                                {errors.amount_paid && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors.amount_paid}</p>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs mb-1 text-foreground">Payment Type</label>
-                                                <select
-                                                    name="payment_type"
-                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                                >
-                                                    <option value="">Select payment type</option>
-                                                    <option value="cash">Cash</option>
-                                                    <option value="gcash">GCash</option>
-                                                    <option value="other">Other</option>
-                                                </select>
-                                                {errors.payment_type && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors.payment_type}</p>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs mb-1 text-foreground">Payment Remarks</label>
-                                                <input
-                                                    type="text"
-                                                    name="payment_remarks"
-                                                    placeholder="Extra remarks (optional)"
-                                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
-                                                />
-                                                {errors.payment_remarks && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors.payment_remarks}</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <label className="inline-flex items-center gap-2 text-xs text-foreground">
-                                            <input type="checkbox" name="is_attended" value="1" className="h-4 w-4" />
-                                            Mark as already attended
-                                        </label>
-
-                                        <div>
-                                            <button
-                                                    type="submit"
-                                                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                                                >
-                                                Add Attendee
-                                            </button>
-                                        </div>
-                                    </>
-                                );
-                            }}
-                        </Form>
-                    </div>
-
                     <form method="get" action="/admin/attendees" className="mt-4 flex flex-wrap gap-2">
                         <input
                             type="text"

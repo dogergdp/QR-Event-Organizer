@@ -62,7 +62,7 @@ trait ProfileValidationRules
      */
     protected function birthdateRules(): array
     {
-        return ['required', 'date', 'before_or_equal:today'];
+        return ['nullable', 'date', 'before_or_equal:today'];
     }
 
     /**
@@ -72,7 +72,7 @@ trait ProfileValidationRules
      */
     protected function maritalStatusRules(): array
     {
-        return ['required', Rule::in(['single', 'married', 'separated', 'widowed'])];
+        return ['nullable', Rule::in(['single', 'married', 'separated', 'widowed'])];
     }
 
     /**
@@ -82,7 +82,7 @@ trait ProfileValidationRules
      */
     protected function hasDgLeaderRules(): array
     {
-        return ['required', Rule::in(['yes', 'no'])];
+        return ['nullable', Rule::in(['yes', 'no'])];
     }
 
     /**

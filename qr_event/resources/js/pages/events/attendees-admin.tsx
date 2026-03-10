@@ -220,7 +220,7 @@ export default function EventAttendeesAdmin() {
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
-                                RSVP {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
+                                Registered {activeAdminTab === 'rsvp' && `(${attendees?.total ?? 0})`}
                             </button>
 
                             <button
@@ -464,7 +464,7 @@ export default function EventAttendeesAdmin() {
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-                                                    RSVP Only
+                                                    Registered Only
                                                 </span>
                                             )}
                                         </td>
@@ -477,7 +477,7 @@ export default function EventAttendeesAdmin() {
                     {attendees && attendees.data.length === 0 && (
                         <div className="rounded-md border border-dashed border-sidebar-border/70 p-6 text-center text-sm text-muted-foreground">
                             {activeAdminTab === 'rsvp'
-                                ? 'No RSVPs found for this selection'
+                                ? 'No registered found for this selection'
                                 : 'No attendance records found for this selection'}
                         </div>
                     )}

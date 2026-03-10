@@ -95,7 +95,6 @@ export default function CreateUser() {
                                         value={data.birthdate}
                                         onChange={(e) => setData('birthdate', e.target.value)}
                                         max={today}
-                                        required
                                     />
                                     <InputError message={errors.birthdate} />
                                 </div>
@@ -107,9 +106,9 @@ export default function CreateUser() {
                                         name="marital_status"
                                         value={data.marital_status}
                                         onChange={(e) => setData('marital_status', e.target.value)}
-                                        required
                                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                     >
+                                        <option value="">Select marital status</option>
                                         <option value="single">Single</option>
                                         <option value="married">Married</option>
                                         <option value="separated">Separated</option>
@@ -125,9 +124,9 @@ export default function CreateUser() {
                                         name="has_dg_leader"
                                         value={data.has_dg_leader}
                                         onChange={(e) => setData('has_dg_leader', e.target.value)}
-                                        required
                                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground"
                                     >
+                                        <option value="">Select an option</option>
                                         <option value="yes">Yes</option>
                                         <option value="no">No</option>
                                     </select>
@@ -177,7 +176,6 @@ export default function CreateUser() {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Minimum 8 characters"
-                                        required
                                     />
                                     <InputError message={errors.password} />
                                 </div>
@@ -191,7 +189,6 @@ export default function CreateUser() {
                                         value={data.password_confirmation}
                                         onChange={(e) => setData('password_confirmation', e.target.value)}
                                         placeholder="Re-enter password"
-                                        required
                                     />
                                 </div>
 

@@ -215,7 +215,7 @@ export default function EventPerformance({ reportEvents }: EventPerformanceProps
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-[#555c63] dark:bg-[#313638] lg:col-span-4">
                     <h3 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2"><Users2 className="h-5 w-5" /> Event People</h3>
                     {selectedPerformanceId === 'all' || !selectedPerformanceEvent ? (
-                        <p className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-sm text-muted-foreground">Select a specific event in Event Performance to view RSVP and attendee lists.</p>
+                        <p className="rounded-md border border-dashed border-sidebar-border/70 p-4 text-sm text-muted-foreground">Select a specific event in Event Performance to view registered and attendee lists.</p>
                     ) : (
                         <>
                             <div className="mb-3">
@@ -224,7 +224,7 @@ export default function EventPerformance({ reportEvents }: EventPerformanceProps
                             <div className="border-b border-sidebar-border/70">
                                 <div className="flex flex-wrap gap-2">
                                     <button onClick={() => setActivePerformanceTab('rsvp')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'rsvp' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                        RSVP ({getRsvpCount(selectedPerformanceEvent.rsvp)})
+                                        Registered ({getRsvpCount(selectedPerformanceEvent.rsvp)})
                                     </button>
                                     <button onClick={() => setActivePerformanceTab('attendees')} className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors ${activePerformanceTab === 'attendees' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                                         Attendees ({getPeopleCount(selectedPerformanceEvent.attendees)})
@@ -244,7 +244,7 @@ export default function EventPerformance({ reportEvents }: EventPerformanceProps
                                     download
                                 >
                                     <Download className="h-3 w-3" />
-                                    Export {activePerformanceTab === 'rsvp' ? 'RSVP' : activePerformanceTab === 'attendees' ? 'Attendance' : 'First Timers'}
+                                    Export {activePerformanceTab === 'rsvp' ? 'Registered' : activePerformanceTab === 'attendees' ? 'Attendance' : 'First Timers'}
                                 </a>
                             </div>
                             <div className="mt-3 h-80 overflow-y-auto">
