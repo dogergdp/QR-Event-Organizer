@@ -16,6 +16,7 @@ type PaymentRequiredProps = {
         is_paid: boolean;
         amount_paid: string | number | null;
         is_walk_in: boolean;
+        due_amount: number;
     };
 };
 
@@ -57,6 +58,7 @@ export default function PaymentRequired({ event, attendee }: PaymentRequiredProp
                                 <p><span className="font-medium">Location:</span> {event.location}</p>
                                 <p><span className="font-medium">Payment Status:</span> {attendee.is_paid ? 'Paid' : 'Unpaid'}</p>
                                 <p><span className="font-medium">Amount Paid:</span> {attendee.amount_paid ?? '—'}</p>
+                                <p><span className="font-medium">Due Amount:</span> <span className="font-bold text-amber-600">₱{attendee.due_amount}</span></p>
                                 {attendee.is_walk_in && (
                                     <p><span className="font-medium">Registration Type:</span> Walk-in</p>
                                 )}

@@ -81,6 +81,7 @@ class EventController extends Controller
                 'family_name' => $userAttendance->user?->last_name,
                 'family_color' => data_get($userAttendance->assigned_values, 'family_color'),
                 'assigned_values' => $userAttendance->assigned_values ?? [],
+                'plus_ones' => $userAttendance->plus_ones ?? [],
                 'attending_plus_ones' => collect($userAttendance->plus_ones ?? [])
                     ->filter(fn($member) => (bool) data_get($member, 'is_attended', false))
                     ->map(fn($member) => [

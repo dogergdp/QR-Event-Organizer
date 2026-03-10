@@ -118,8 +118,8 @@ export default function ShowEventUser() {
         let total = 0;
         // Add user's cost
         total += calculateCostAmount(auth?.user?.age);
-        // Add plus-ones' costs
-        userAttendance?.attending_plus_ones?.forEach((plusOne) => {
+        // Add all plus-ones' costs (including those who didn't attend)
+        userAttendance?.plus_ones?.forEach((plusOne) => {
             total += calculateCostAmount(plusOne.age);
         });
         return total;

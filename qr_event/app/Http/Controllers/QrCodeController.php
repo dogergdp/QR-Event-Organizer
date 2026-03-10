@@ -245,6 +245,9 @@ class QrCodeController extends Controller
                 }
 
                 if (! $attendee->is_paid) {
+                    // Calculate due amount
+                    $dueAmount = $this->calculateDueAmount($user, $attendee);
+
                     return Inertia::render('attendance/payment-required', [
                         'event' => [
                             'id' => $event->id,
@@ -256,6 +259,7 @@ class QrCodeController extends Controller
                             'is_paid' => (bool) $attendee->is_paid,
                             'amount_paid' => $attendee->amount_paid,
                             'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
+                            'due_amount' => $dueAmount,
                         ],
                     ]);
                 }
@@ -358,4 +362,47 @@ class QrCodeController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Calculate cost based on age
+     */
+    private function calculateCostByAge(?int $age): int
+    {
+        if ($age === null) {
+            return 0;
+        }
+
+        // Age 12 and up: 200 pesos
+        if ($age >= 12) {
+            return 200;
+        }
+
+        // Age 5-11: 100 pesos
+        if ($age >= 5) {
+            return 100;
+        }
+
+        // Age below 5: Free
+        return 0;
+    }
+
+    /**
+     * Calculate total due amount for attendee and their plus-ones
+     */
+    private function calculateDueAmount(User $user, $attendee): int
+    {
+        $total = 0;
+
+        // Add cost for main attendee
+        $total += $this->calculateCostByAge($user->age);
+
+        // Add cost for all plus-ones
+        $plusOnes = $attendee->plus_ones ?? [];
+        foreach ($plusOnes as $plusOne) {
+            $total += $this->calculateCostByAge($plusOne['age'] ?? null);
+        }
+
+        return $total;
+    }
 }
+

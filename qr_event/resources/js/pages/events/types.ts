@@ -61,6 +61,11 @@ export interface EventShowProps {
         family_name?: string | null;
         family_color?: string | null;
         assigned_values?: Record<string, string | number | boolean | null>;
+        plus_ones?: Array<{
+            id?: string;
+            full_name?: string;
+            age?: number | null;
+        }>;
         attending_plus_ones?: Array<{
             id: string;
             full_name: string;

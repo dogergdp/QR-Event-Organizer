@@ -72,7 +72,7 @@ export default function EventAttendeesAdmin() {
             const age = new Date().getFullYear() - new Date(userBirthdate).getFullYear();
             total += calculateCostByAge(age);
         }
-        // Add plus-ones' costs
+        // Add all plus-ones' costs
         (attendee.plus_ones ?? []).forEach((plusOne) => {
             total += calculateCostByAge(plusOne.age);
         });
