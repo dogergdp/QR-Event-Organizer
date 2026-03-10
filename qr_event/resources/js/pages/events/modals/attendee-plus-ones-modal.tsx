@@ -8,6 +8,7 @@ type EditablePlusOne = {
     gender?: string;
     is_first_time?: boolean;
     remarks?: string;
+    is_attended?: boolean;
 };
 
 type AttendeePlusOnesModalProps = {

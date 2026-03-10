@@ -22,6 +22,7 @@ export default function EventAttendeesAdmin() {
         gender?: string;
         is_first_time?: boolean;
         remarks?: string;
+        is_attended?: boolean;
     }>>([]);
     const [savingPlusOnes, setSavingPlusOnes] = useState(false);
     const [paymentModalAttendee, setPaymentModalAttendee] = useState<Attendee | null>(null);
@@ -56,6 +57,28 @@ export default function EventAttendeesAdmin() {
         router.get(attendeesUrl, { ...filters, paid: filter }, { preserveState: true, replace: true });
     };
 
+    const calculateCostByAge = (age: number | undefined | null) => {
+        if (age === undefined || age === null) return 0;
+        if (age >= 12) return 200;
+        if (age >= 5) return 100;
+        return 0;
+    };
+
+    const calculateDueAmount = (attendee: Attendee) => {
+        let total = 0;
+        // Add attendee's cost (if they have a birthdate/age)
+        const userBirthdate = attendee.user.birthdate;
+        if (userBirthdate) {
+            const age = new Date().getFullYear() - new Date(userBirthdate).getFullYear();
+            total += calculateCostByAge(age);
+        }
+        // Add plus-ones' costs
+        (attendee.plus_ones ?? []).forEach((plusOne) => {
+            total += calculateCostByAge(plusOne.age);
+        });
+        return total;
+    };
+
     const openAttendeeModal = (attendee: Attendee) => {
         setSelectedAttendee(attendee);
         setEditablePlusOnes(
@@ -66,6 +89,7 @@ export default function EventAttendeesAdmin() {
                 gender: plusOne.gender ?? '',
                 is_first_time: !!plusOne.is_first_time,
                 remarks: plusOne.remarks ?? '',
+                is_attended: !!plusOne.is_attended,
             })),
         );
     };
@@ -139,6 +163,7 @@ export default function EventAttendeesAdmin() {
                 gender: '',
                 is_first_time: false,
                 remarks: '',
+                is_attended: selectedAttendee?.is_attended ?? false,
             },
         ]);
     };
@@ -164,6 +189,7 @@ export default function EventAttendeesAdmin() {
             gender: plusOne.gender?.trim() || null,
             is_first_time: !!plusOne.is_first_time,
             remarks: plusOne.remarks?.trim() || null,
+            is_attended: !!plusOne.is_attended,
         }));
 
         router.patch(
@@ -176,6 +202,7 @@ export default function EventAttendeesAdmin() {
                 preserveState: true,
                 onSuccess: () => {
                     setSelectedAttendee(null);
+                    router.reload({ only: ['attendees'] });
                 },
                 onFinish: () => {
                     setSavingPlusOnes(false);
@@ -602,6 +629,7 @@ export default function EventAttendeesAdmin() {
                     paymentAmount={paymentAmount}
                     paymentType={paymentType}
                     paymentRemarks={paymentRemarks}
+                    dueAmount={paymentModalAttendee ? calculateDueAmount(paymentModalAttendee) : undefined}
                     onClose={() => setPaymentModalAttendee(null)}
                     onTogglePaid={() => setPaymentIsPaid((prev) => !prev)}
                     onPaymentAmountChange={setPaymentAmount}

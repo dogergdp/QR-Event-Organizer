@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 type ModalEvent = {
@@ -65,6 +65,7 @@ export default function AddAttendeeManualModal({
                         onClose();
                         setUserSearch('');
                         setIsFirstTime(false);
+                        router.reload({ only: ['attendees'] });
                     }}
                 >
                     {({ errors }) => {

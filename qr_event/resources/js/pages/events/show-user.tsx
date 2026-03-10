@@ -100,11 +100,29 @@ export default function ShowEventUser() {
                   ? '#eab308'
                   : '#9ca3af';
 
-    const calculateCostByAge = (age: number | undefined) => {
+    const calculateCostByAge = (age: number | undefined | null) => {
         if (age === undefined || age === null) return 'N/A';
         if (age >= 12) return '200 pesos';
         if (age >= 5) return '100 pesos';
         return 'Free';
+    };
+
+    const calculateCostAmount = (age: number | undefined | null) => {
+        if (age === undefined || age === null) return 0;
+        if (age >= 12) return 200;
+        if (age >= 5) return 100;
+        return 0;
+    };
+
+    const calculateTotalDueAmount = () => {
+        let total = 0;
+        // Add user's cost
+        total += calculateCostAmount(auth?.user?.age);
+        // Add plus-ones' costs
+        userAttendance?.attending_plus_ones?.forEach((plusOne) => {
+            total += calculateCostAmount(plusOne.age);
+        });
+        return total;
     };
 
     return (
@@ -327,11 +345,17 @@ export default function ShowEventUser() {
                                 )}
 
                                 {typeof userAttendance.is_paid !== 'undefined' && (
-                                    <p className={`mt-4 text-base font-bold ${userAttendance.is_paid ? 'text-foreground' : 'text-amber-600'}`}>
-                                        Payment: {userAttendance.is_paid ? 'Paid' : 'Unpaid'}
-                                        <br />
-                                        {userAttendance.amount_paid ? ` (Amount: ${userAttendance.amount_paid})` : ''}
-                                    </p>
+                                    <div className="mt-4 space-y-2">
+                                        <p className={`text-base font-bold ${userAttendance.is_paid ? 'text-foreground' : 'text-amber-600'}`}>
+                                            Payment: {userAttendance.is_paid ? 'Paid' : 'Unpaid'}
+                                        </p>
+                                        <p className="text-base font-semibold text-foreground">
+                                            Due Amount: <span className="font-bold">{calculateTotalDueAmount()} pesos</span>
+                                        </p>
+                                        {userAttendance.amount_paid ? (
+                                            <p className="text-sm text-muted-foreground">Amount Paid: {userAttendance.amount_paid}</p>
+                                        ) : null}
+                                    </div>
                                 )}
                             </div>
 

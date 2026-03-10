@@ -7,6 +7,7 @@ type UpdatePaymentModalProps = {
     paymentAmount: string;
     paymentType: string;
     paymentRemarks: string;
+    dueAmount?: number;
     onClose: () => void;
     onTogglePaid: () => void;
     onPaymentAmountChange: (value: string) => void;
@@ -22,6 +23,7 @@ export default function UpdatePaymentModal({
     paymentAmount,
     paymentType,
     paymentRemarks,
+    dueAmount,
     onClose,
     onTogglePaid,
     onPaymentAmountChange,
@@ -53,6 +55,14 @@ export default function UpdatePaymentModal({
                 <p className="mb-4 text-sm text-muted-foreground">
                     {attendee.user.first_name} {attendee.user.last_name}
                 </p>
+
+                {dueAmount !== undefined && (
+                    <div className="mb-4 rounded-md bg-muted p-3">
+                        <p className="text-sm font-semibold text-foreground">
+                            Due Amount: <span className="font-bold">₱{dueAmount}</span>
+                        </p>
+                    </div>
+                )}
 
                 <div className="space-y-4">
                     <div>

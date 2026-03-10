@@ -184,6 +184,7 @@ class AttendeeController extends Controller
             'plus_ones.*.age' => ['nullable', 'integer', 'min:0', 'max:150'],
             'plus_ones.*.gender' => ['nullable', 'string', 'max:50'],
             'plus_ones.*.is_first_time' => ['nullable', 'boolean'],
+            'plus_ones.*.is_attended' => ['nullable', 'boolean'],
             'plus_ones.*.remarks' => ['nullable', 'string', 'max:255'],
         ]);
 
