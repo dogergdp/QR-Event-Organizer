@@ -9,7 +9,7 @@ import { calculateAge, formatDate } from '@/utils/dateUtils';
 export default function AdminAttendees() {
     const [selectedUser, setSelectedUser] = useState<any>(null);
 
-    const { attendees, events, filters } = usePage<any>().props as {
+    const { attendees, events, filters, userCapabilities } = usePage<any>().props as {
         attendees: {
             data: Array<{
                 id: number;
@@ -47,6 +47,11 @@ export default function AdminAttendees() {
         filters: {
             search?: string;
         };
+        userCapabilities: {
+            canManageAttendees: boolean;
+            canManagePayments: boolean;
+            canMarkAttendance: boolean;
+        };
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -65,6 +70,11 @@ export default function AdminAttendees() {
                     <p className="mt-1 text-muted-foreground">
                         Track all event attendance registrations
                     </p>
+                    {!userCapabilities.canManageAttendees && (
+                        <div className="mt-3 rounded-md border-l-4 border-blue-500 bg-blue-50 p-3 text-sm text-blue-900 dark:bg-blue-900/20 dark:text-blue-200">
+                            You have read-only access. You can only mark users as attended.
+                        </div>
+                    )}
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-4">
@@ -172,20 +182,22 @@ export default function AdminAttendees() {
                                                 })}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (confirm('Delete this attendee record?')) {
-                                                            router.delete(`/admin/attendees/${attendee.id}`, {
-                                                                preserveScroll: true,
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 rounded bg-red-600 text-white transition hover:bg-red-700"
-                                                    title="Delete attendee"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                {userCapabilities.canManageAttendees && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (confirm('Delete this attendee record?')) {
+                                                                router.delete(`/admin/attendees/${attendee.id}`, {
+                                                                    preserveScroll: true,
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 rounded bg-red-600 text-white transition hover:bg-red-700"
+                                                        title="Delete attendee"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

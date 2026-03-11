@@ -4,10 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
@@ -63,8 +63,6 @@ class User extends Authenticatable
 
     /**
      * Check if the user is an admin.
-     *
-     * @return bool
      */
     public function getIsAdminAttribute(): bool
     {
@@ -122,11 +120,47 @@ class User extends Authenticatable
     }
 
     /**
-     * Shortcut for admin checks.
+     * Check if user is any type of admin (includes all admin roles).
+     * This includes: super-admin, admin-payment, user-admin, and legacy admin role.
      */
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->hasRole('admin')
+            || $this->hasRole('super-admin')
+            || $this->hasRole('admin-payment')
+            || $this->hasRole('user-admin');
+    }
+
+    /**
+     * Check if user is a super admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super-admin');
+    }
+
+    /**
+     * Check if user can manage payments.
+     */
+    public function canManagePayments(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasRole('admin-payment');
+    }
+
+    /**
+     * Check if user can mark attendance.
+     */
+    public function canMarkAttendance(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasRole('admin-payment') || $this->hasRole('user-admin');
+    }
+
+    /**
+     * Check if user can delete attendees and perform full attendee management.
+     */
+    public function canManageAttendees(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasRole('admin-payment');
     }
 
     /**

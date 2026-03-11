@@ -20,15 +20,29 @@ import { attendees as adminAttendees } from '@/routes/admin';
 const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
-    const { isAdmin } = usePage().props as { isAdmin?: boolean };
+    const { isAdmin, userCapabilities } = usePage().props as {
+        isAdmin?: boolean;
+        userCapabilities?: {
+            canManageAttendees: boolean;
+            canManagePayments: boolean;
+            canMarkAttendance: boolean;
+        };
+    };
+
+    // For user-admins, only show Event Attendees (canMarkAttendance but not canManageAttendees)
+    // For payment-admins and super-admins, show all admin items (canManageAttendees)
+    const canAccessFullAdmin = userCapabilities?.canManageAttendees ?? isAdmin ?? false;
+    const isUserAdmin = userCapabilities?.canMarkAttendance && !userCapabilities?.canManageAttendees;
 
     const mainNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-        ...(isAdmin
+        ...(isUserAdmin ? [] : [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ]),
+        ...(canAccessFullAdmin
             ? [
                   {
                       title: 'Events',
@@ -51,7 +65,21 @@ export function AppSidebar() {
                       icon: QrCode,
                   },
               ]
-            : []),
+            : (isUserAdmin
+                ? [
+                      {
+                          title: 'Event Attendees',
+                          href: adminAttendees(),
+                          icon: UserCheck,
+                      },
+                  ]
+                : [
+                      {
+                          title: 'Dashboard',
+                          href: dashboard(),
+                          icon: LayoutGrid,
+                      },
+                  ])),
     ];
 
     return (

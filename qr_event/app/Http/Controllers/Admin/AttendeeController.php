@@ -18,7 +18,11 @@ class AttendeeController extends Controller
 {
     public function index(Request $request): Response
     {
+        // User-admins get read-only access, payment admins and super-admins get full access
+        abort_unless($request->user()->canMarkAttendance(), 403, 'Unauthorized. Only admins can access this area.');
+
         $search = trim((string) $request->query('search', ''));
+        $user = $request->user();
 
         $attendees = Attendee::query()
             ->with(['user:id,first_name,last_name,contact_number,birthdate,want_to_join_dg,dg_leader_name', 'event:id,name'])
@@ -47,11 +51,22 @@ class AttendeeController extends Controller
             'filters' => [
                 'search' => $search,
             ],
+            'userCapabilities' => [
+                'canManageAttendees' => $user->canManageAttendees(),
+                'canManagePayments' => $user->canManagePayments(),
+                'canMarkAttendance' => $user->canMarkAttendance(),
+            ],
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        // All admins can call this, but user-admins can only mark attendance
+        if (! $request->user()->canMarkAttendance()) {
+            abort(403, 'Unauthorized. Only admins can add attendees.');
+        }
+
+        // Validate the request first
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
             'event_id' => ['required', 'exists:events,id'],
@@ -62,6 +77,12 @@ class AttendeeController extends Controller
             'payment_remarks' => ['nullable', 'string', 'max:255'],
             'redirect_to' => ['nullable', 'string', 'starts_with:/'],
         ]);
+
+        // Check if user is trying to modify payment info without permission
+        $isModifyingPayment = isset($validated['is_paid']) || isset($validated['amount_paid']) || isset($validated['payment_type']);
+        if ($isModifyingPayment && ! $request->user()->canManagePayments()) {
+            abort(403, 'Unauthorized. Only payment admins can modify payment information.');
+        }
 
         $isAttended = (bool) ($validated['is_attended'] ?? false);
         $attendedTime = $isAttended ? now() : null;
@@ -113,6 +134,9 @@ class AttendeeController extends Controller
 
     public function destroy(Request $request, Attendee $attendee): RedirectResponse
     {
+        // Only payment admins and super admins can delete attendees, NOT user-admins
+        abort_unless($request->user()->canManageAttendees(), 403, 'Unauthorized. Only admins with full attendee management can delete attendees.');
+
         $attendee->loadMissing(['user:id,first_name,last_name', 'event:id,name']);
 
         ActivityLog::create([
@@ -137,6 +161,9 @@ class AttendeeController extends Controller
 
     public function updatePaymentStatus(Request $request, Attendee $attendee): RedirectResponse
     {
+        // Only payment admins and super admins can update payment status
+        abort_unless($request->user()->canManagePayments(), 403, 'Unauthorized. Only payment admins can modify payment information.');
+
         $validated = $request->validate([
             'is_paid' => ['required', 'boolean'],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
@@ -177,6 +204,9 @@ class AttendeeController extends Controller
 
     public function updatePlusOnes(Request $request, Attendee $attendee): RedirectResponse
     {
+        // Only payment admins and super admins can manage plus ones
+        abort_unless($request->user()->canManageAttendees(), 403, 'Unauthorized. Only payment admins can manage plus ones.');
+
         $validated = $request->validate([
             'plus_ones' => ['nullable', 'array'],
             'plus_ones.*.id' => ['nullable', 'string', 'max:100'],
@@ -211,6 +241,9 @@ class AttendeeController extends Controller
 
     public function updateAssignedValues(Request $request, Attendee $attendee): RedirectResponse
     {
+        // Only payment admins and super admins can manage assigned values
+        abort_unless($request->user()->canManageAttendees(), 403, 'Unauthorized. Only payment admins can modify assigned values.');
+
         $validated = $request->validate([
             'assigned_values' => ['nullable', 'array'],
             'family_color' => ['nullable', Rule::in(['blue', 'green', 'red', 'yellow', 'none'])],

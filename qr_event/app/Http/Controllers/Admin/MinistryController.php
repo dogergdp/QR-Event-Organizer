@@ -12,7 +12,7 @@ use Inertia\Response;
 class MinistryController extends Controller
 {
     /**
-     * Display a listing of the ministries.
+     * Display testttt a listing of the ministries.
      */
     public function index(): Response
     {

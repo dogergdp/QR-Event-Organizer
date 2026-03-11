@@ -1,1 +1,6 @@
 .idea/
+.vscode/sftp.json
+qr_event/RACE_CONDITION_ANALYSIS.md
+qr_event/RACE_CONDITION_FIXES.md
+.gitignore
+qr_event/RACE_CONDITION_REFERENCE.md

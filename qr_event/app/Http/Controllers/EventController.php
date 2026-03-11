@@ -19,8 +19,9 @@ class EventController extends Controller
     /**
      * Show admin events list page.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $user = $request->user();
         $events = Event::query()
             ->orderBy('date')
             ->orderBy('start_time')
@@ -40,6 +41,11 @@ class EventController extends Controller
         return Inertia::render('events/index', [
             'events' => $events,
             'isAdmin' => true,
+            'userCapabilities' => [
+                'canManageAttendees' => $user?->canManageAttendees() ?? false,
+                'canManagePayments' => $user?->canManagePayments() ?? false,
+                'canMarkAttendance' => $user?->canMarkAttendance() ?? false,
+            ],
         ]);
     }
 
@@ -58,9 +64,9 @@ class EventController extends Controller
             ->where('is_attended', true)
             ->latest('attended_time')
             ->get()
-            ->map(fn($attendee) => [
+            ->map(fn ($attendee) => [
                 'id' => $attendee->id,
-                'name' => trim(($attendee->user->first_name ?? '') . ' ' . ($attendee->user->last_name ?? '')),
+                'name' => trim(($attendee->user->first_name ?? '').' '.($attendee->user->last_name ?? '')),
                 'family_name' => $attendee->user->last_name ?? null,
                 'family_color' => data_get($attendee->assigned_values, 'family_color'),
                 'attended_time' => optional($attendee->attended_time)?->toDateTimeString(),
@@ -70,6 +76,11 @@ class EventController extends Controller
         return Inertia::render('events/show', [
             'event' => $event,
             'isAdmin' => $user?->isAdmin() ?? false,
+            'userCapabilities' => [
+                'canManageAttendees' => $user?->canManageAttendees() ?? false,
+                'canManagePayments' => $user?->canManagePayments() ?? false,
+                'canMarkAttendance' => $user?->canMarkAttendance() ?? false,
+            ],
             'userAttendance' => $userAttendance ? [
                 'id' => $userAttendance->id,
                 'user_id' => $userAttendance->user_id,
@@ -83,8 +94,8 @@ class EventController extends Controller
                 'assigned_values' => $userAttendance->assigned_values ?? [],
                 'plus_ones' => $userAttendance->plus_ones ?? [],
                 'attending_plus_ones' => collect($userAttendance->plus_ones ?? [])
-                    ->filter(fn($member) => (bool) data_get($member, 'is_attended', false))
-                    ->map(fn($member) => [
+                    ->filter(fn ($member) => (bool) data_get($member, 'is_attended', false))
+                    ->map(fn ($member) => [
                         'id' => (string) data_get($member, 'id', ''),
                         'full_name' => (string) data_get($member, 'full_name', ''),
                         'age' => data_get($member, 'age'),
@@ -113,17 +124,17 @@ class EventController extends Controller
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 });
             })
-            ->when($status === 'rsvp', fn($q) => $q->where('is_attended', false))
-            ->when($status === 'attendance', fn($q) => $q->where('is_attended', true))
-            ->when($isFirstTime === 'yes', fn($q) => $q->where('is_first_time', true))
-            ->when($isFirstTime === 'no', fn($q) => $q->where('is_first_time', false))
-            ->when($isWalkIn === 'yes', fn($q) => $q->where('is_walk_in', true))
-            ->when($isWalkIn === 'no', fn($q) => $q->where('is_walk_in', false))
-            ->when($isPaid === 'yes', fn($q) => $q->where('is_paid', true))
-            ->when($isPaid === 'no', fn($q) => $q->where('is_paid', false))
+            ->when($status === 'rsvp', fn ($q) => $q->where('is_attended', false))
+            ->when($status === 'attendance', fn ($q) => $q->where('is_attended', true))
+            ->when($isFirstTime === 'yes', fn ($q) => $q->where('is_first_time', true))
+            ->when($isFirstTime === 'no', fn ($q) => $q->where('is_first_time', false))
+            ->when($isWalkIn === 'yes', fn ($q) => $q->where('is_walk_in', true))
+            ->when($isWalkIn === 'no', fn ($q) => $q->where('is_walk_in', false))
+            ->when($isPaid === 'yes', fn ($q) => $q->where('is_paid', true))
+            ->when($isPaid === 'no', fn ($q) => $q->where('is_paid', false))
             ->latest('updated_at')
             ->paginate(10)
-            ->through(fn($attendee) => [
+            ->through(fn ($attendee) => [
                 'id' => $attendee->id,
                 'user_id' => $attendee->user_id,
                 'is_attended' => $attendee->is_attended,
@@ -260,8 +271,8 @@ class EventController extends Controller
         ]);
 
         // Auto-generate QR codes for pre-registration and attendance
-        $preRegExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
-        $attendanceExpiresAt = \Carbon\Carbon::parse($validated['date'] . ' ' . $validated['end_time']);
+        $preRegExpiresAt = \Carbon\Carbon::parse($validated['date'].' '.$validated['start_time']);
+        $attendanceExpiresAt = \Carbon\Carbon::parse($validated['date'].' '.$validated['end_time']);
 
         // Pre-registration QR Code
         $preRegToken = Str::random(32);
@@ -270,7 +281,7 @@ class EventController extends Controller
             'name' => 'Pre-Registration',
             'purpose' => 'pre-registration',
             'token' => $preRegToken,
-            'code' => '/qr/' . $preRegToken,
+            'code' => '/qr/'.$preRegToken,
             'is_active' => true,
             'expires_at' => $preRegExpiresAt,
         ]);
@@ -282,7 +293,7 @@ class EventController extends Controller
             'name' => 'Attendance Check-in',
             'purpose' => 'attendance',
             'token' => $attendanceToken,
-            'code' => '/qr/' . $attendanceToken,
+            'code' => '/qr/'.$attendanceToken,
             'is_active' => true,
             'expires_at' => $attendanceExpiresAt,
         ]);
@@ -407,7 +418,7 @@ class EventController extends Controller
     {
         $user = request()->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
