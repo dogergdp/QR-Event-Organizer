@@ -14,8 +14,8 @@ class LogController extends Controller
             ->latest()
             ->paginate(15)
             ->through(function ($log) {
-                $userName = $log->user 
-                    ? trim($log->user->first_name . ' ' . $log->user->last_name) 
+                $userName = $log->user
+                    ? trim($log->user->first_name.' '.$log->user->last_name)
                     : 'System';
 
                 return [

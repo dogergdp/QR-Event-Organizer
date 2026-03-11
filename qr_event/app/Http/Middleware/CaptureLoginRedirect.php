@@ -18,10 +18,10 @@ class CaptureLoginRedirect
         // Capture redirect_url from login form submission
         if ($request->isMethod('post') && $request->path() === 'login') {
             $redirectUrl = $request->input('redirect_url');
-            
+
             if ($redirectUrl && str_starts_with($redirectUrl, '/')) {
                 // Validate it's a local path and not malicious
-                if (!str_contains($redirectUrl, '//')) {
+                if (! str_contains($redirectUrl, '//')) {
                     $request->session()->put('login_redirect_url', $redirectUrl);
                 }
             }

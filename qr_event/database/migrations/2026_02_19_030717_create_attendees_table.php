@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_attended')->default(false);
             $table->timestamp('attended_time')->nullable();
             $table->timestamps();
-            
+
             // Ensure each user attends an event only once
             $table->unique(['user_id', 'event_id']);
         });

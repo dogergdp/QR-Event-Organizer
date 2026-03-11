@@ -15,12 +15,12 @@ return new class extends Migration
             // Drop email columns
             $table->dropUnique(['email']);
             $table->dropColumn(['email', 'email_verified_at']);
-            
+
             // Change name to first_name and last_name
             $table->dropColumn('name');
             $table->string('first_name')->after('id');
             $table->string('last_name')->after('first_name');
-            
+
             // Add new fields
             $table->string('contact_number')->after('last_name');
             $table->date('birthdate')->nullable()->after('contact_number');

@@ -10,11 +10,11 @@ class LiveDashboardService
     {
         $url = config('services.live_updates.url');
 
-        if (!$url) {
+        if (! $url) {
             return;
         }
 
-        $endpoint = rtrim($url, '/') . '/internal/dashboard-update';
+        $endpoint = rtrim($url, '/').'/internal/dashboard-update';
         $secret = config('services.live_updates.secret');
 
         try {

@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Concerns\ProfileValidationRules;
 use App\Actions\Fortify\CreateNewUser;
-use App\Models\ActivityLog;
+use App\Concerns\ProfileValidationRules;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\QrCode;
@@ -16,11 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     use ProfileValidationRules;
+
     /**
      * Register a new user from QR code
      */
@@ -76,7 +75,7 @@ class AuthController extends Controller
     {
         $user = request()->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -96,4 +95,3 @@ class AuthController extends Controller
         ]);
     }
 }
-

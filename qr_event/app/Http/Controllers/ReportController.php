@@ -6,9 +6,9 @@ use App\Models\ActivityLog;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -26,28 +26,28 @@ class ReportController extends Controller
         // Get events with attendance counts
         $events = Event::withCount([
             'attendees',
-            'attendees as attended_count' => fn($q) => $q->where('is_attended', true)
+            'attendees as attended_count' => fn ($q) => $q->where('is_attended', true),
         ])
-        ->orderBy('date', 'desc')
-        ->get()
-        ->map(fn($event) => [
-            'id' => $event->id,
-            'name' => $event->name,
-            'date' => $event->date,
-            'start_time' => $event->start_time,
-            'location' => $event->location,
-            'total_registered' => $event->attendees_count,
-            'total_attended' => $event->attended_count,
-        ]);
+            ->orderBy('date', 'desc')
+            ->get()
+            ->map(fn ($event) => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date,
+                'start_time' => $event->start_time,
+                'location' => $event->location,
+                'total_registered' => $event->attendees_count,
+                'total_attended' => $event->attended_count,
+            ]);
 
         // Get top attendees
         $topAttendees = User::withCount([
-            'attendances as attended_events' => fn($q) => $q->where('is_attended', true)
+            'attendances as attended_events' => fn ($q) => $q->where('is_attended', true),
         ])
             ->orderBy('attended_events', 'desc')
             ->limit(10)
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => "{$user->first_name} {$user->last_name}",
                 'contact_number' => $user->contact_number,
@@ -98,7 +98,7 @@ class ReportController extends Controller
             // Get events data
             $events = Event::withCount([
                 'attendees',
-                'attendees as attended_count' => fn($q) => $q->where('is_attended', true)
+                'attendees as attended_count' => fn ($q) => $q->where('is_attended', true),
             ])->get();
 
             foreach ($events as $event) {
@@ -243,7 +243,7 @@ class ReportController extends Controller
 
             foreach ($logs as $log) {
                 $userName = $log->user
-                    ? trim($log->user->first_name . ' ' . $log->user->last_name)
+                    ? trim($log->user->first_name.' '.$log->user->last_name)
                     : 'System';
 
                 fputcsv($handle, [
@@ -302,14 +302,14 @@ class ReportController extends Controller
 
             $attendees = $query->get();
 
-            $title = match($type) {
+            $title = match ($type) {
                 'rsvp' => 'RSVP List',
                 'attendance' => 'Attendance List',
                 'first_time' => 'First Timers List',
                 default => 'All Event Participants'
             };
 
-            fputcsv($handle, [$title . ' for ' . $event->name . ' (' . $event->date . ')']);
+            fputcsv($handle, [$title.' for '.$event->name.' ('.$event->date.')']);
             fputcsv($handle, []);
             fputcsv($handle, $headers);
 
@@ -326,7 +326,7 @@ class ReportController extends Controller
 
                 $plusOnesDetails = collect($plusOnes)
                     ->map(function ($plusOne) {
-                        if (!is_array($plusOne)) {
+                        if (! is_array($plusOne)) {
                             return null;
                         }
 

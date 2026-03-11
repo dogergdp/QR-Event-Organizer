@@ -15,6 +15,7 @@ use Inertia\Response;
 class UserController extends Controller
 {
     use ProfileValidationRules;
+
     public function create(): Response
     {
         return Inertia::render('admin/users/create');
@@ -64,7 +65,7 @@ class UserController extends Controller
         $direction = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $allowedSorts = ['id', 'name', 'age', 'created_at'];
-        if (!in_array($sort, $allowedSorts, true)) {
+        if (! in_array($sort, $allowedSorts, true)) {
             $sort = 'created_at';
         }
 

@@ -23,14 +23,14 @@ class QrCodeController extends Controller
         $showFinished = $request->query('show_finished', '0') === '1';
 
         $qrCodes = QrCode::query()->with('event')
-            ->when(!$showFinished, function (Builder $query) {
+            ->when(! $showFinished, function (Builder $query) {
                 $query->whereHas('event', function (Builder $eventQuery) {
                     $eventQuery->where('is_finished', false);
                 });
             })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn(QrCode $qr) => [
+            ->map(fn (QrCode $qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
                 'purpose' => $qr->purpose,
@@ -63,7 +63,7 @@ class QrCodeController extends Controller
         $qrCodes = $event->qrCodes()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn(QrCode $qr) => [
+            ->map(fn (QrCode $qr) => [
                 'id' => $qr->id,
                 'name' => $qr->name,
                 'purpose' => $qr->purpose,
@@ -90,7 +90,7 @@ class QrCodeController extends Controller
     public function toggle(Request $request, QrCode $qrCode): RedirectResponse
     {
         $qrCode->loadMissing('event');
-        $qrCode->update(['is_active' => !$qrCode->is_active]);
+        $qrCode->update(['is_active' => ! $qrCode->is_active]);
 
         $action = $qrCode->is_active ? 'activate_qr' : 'deactivate_qr';
         $eventName = $qrCode->event?->name ?? 'Unknown event';
@@ -129,7 +129,7 @@ class QrCodeController extends Controller
             return $this->showQRViewer($qrCode);
         }
 
-        if (!$qrCode->isValid()) {
+        if (! $qrCode->isValid()) {
             return Inertia::render('qr/display', [
                 'qrCode' => [
                     'id' => $qrCode->id,
@@ -268,7 +268,7 @@ class QrCodeController extends Controller
                 return Inertia::render('attendance/mark', [
                     'event' => $event,
                     'qrCode' => $qrCode,
-                    'primaryUserName' => trim($user->first_name . ' ' . $user->last_name),
+                    'primaryUserName' => trim($user->first_name.' '.$user->last_name),
                     'plusOnes' => $attendee->plus_ones ?? [],
                     'isFirstTime' => $attendee->is_first_time,
                     'hasAnsweredFirstTime' => true,
@@ -310,7 +310,7 @@ class QrCodeController extends Controller
         // Find user with this contact number
         $user = User::query()->where('contact_number', $contact)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['found' => false]);
         }
 
@@ -405,4 +405,3 @@ class QrCodeController extends Controller
         return $total;
     }
 }
-

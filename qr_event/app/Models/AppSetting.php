@@ -21,6 +21,7 @@ class AppSetting extends Model
         if ($value === null) {
             return $default;
         }
+
         return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
     }
 
@@ -35,12 +36,13 @@ class AppSetting extends Model
         );
     }
 
-    public static function getString(string $key, string $default = null): ?string
+    public static function getString(string $key, ?string $default = null): ?string
     {
         if (! Schema::hasTable('app_settings')) {
             return $default;
         }
         $value = static::query()->where('key', $key)->value('value');
+
         return $value !== null ? $value : $default;
     }
 

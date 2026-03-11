@@ -25,7 +25,7 @@ class AttendanceController extends Controller
         // Validate token and get event ID
         $eventId = QRCodeService::validateToken($token);
 
-        if (!$eventId) {
+        if (! $eventId) {
             return redirect()->route('dashboard')
                 ->with('error', 'Invalid or expired QR code. Please try again.');
         }
@@ -73,11 +73,11 @@ class AttendanceController extends Controller
         // Validate token
         $eventId = QRCodeService::validateToken($validated['token']);
 
-        if (!$eventId || $eventId !== $validated['event_id']) {
+        if (! $eventId || $eventId !== $validated['event_id']) {
             return back()->with('error', 'Invalid QR code. Please try again.');
         }
 
-        if (!$validated['confirm_attendance']) {
+        if (! $validated['confirm_attendance']) {
             return back()->with('error', 'You must confirm your attendance.');
         }
 
@@ -162,6 +162,7 @@ class AttendanceController extends Controller
 
         $updatedPlusOnes = collect($attendee->plus_ones ?? [])->map(function (array $member) use ($selectedMemberIds) {
             $member['is_attended'] = $selectedMemberIds->contains($member['id'] ?? '');
+
             return $member;
         })->values()->all();
 
@@ -213,7 +214,7 @@ class AttendanceController extends Controller
     public function getQRUrl(Event $event): array
     {
         // Only admins can get QR codes
-        if (!auth()->user() || !auth()->user()->isAdmin()) {
+        if (! auth()->user() || ! auth()->user()->isAdmin()) {
             abort(403);
         }
 

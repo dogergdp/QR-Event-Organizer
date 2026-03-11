@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\QrCodeController;
 use App\Models\Event;
 use App\Services\QRCodeService;
@@ -8,8 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/events/{event}/qr-code', function (Event $event) {
     $user = request()->user();
-    
-    if (!$user || !$user->isAdmin()) {
+
+    if (! $user || ! $user->isAdmin()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 

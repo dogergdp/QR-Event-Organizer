@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\QrCode;
 use App\Models\User;
@@ -504,5 +505,59 @@ class EventController extends Controller
         }
 
         return redirect()->route('events.show', $event->id);
+    }
+
+    public function updateAttendance(Request $request, Event $event, Attendee $attendee): \Illuminate\Http\JsonResponse
+    {
+        // Verify attendee belongs to event
+        if ($attendee->event_id != $event->id) {
+            return response()->json(['error' => 'Attendee not found for this event'], 404);
+        }
+
+        // Check authorization
+        abort_unless($request->user()->canMarkAttendance(), 403, 'Unauthorized. Only admins can update attendance.');
+
+        $validated = $request->validate([
+            'is_attended' => ['required', 'boolean'],
+            'plus_ones_attended' => ['nullable', 'array'],
+            'plus_ones_attended.*' => ['string'],
+        ]);
+
+        // Update main attendee
+        $attended = (bool) $validated['is_attended'];
+        $attendee->update([
+            'is_attended' => $attended,
+            'attended_time' => $attended ? now() : null,
+        ]);
+
+        // Update plus ones if provided
+        if (isset($validated['plus_ones_attended'])) {
+            $selectedIds = array_map('strval', $validated['plus_ones_attended']);
+            $updatedPlusOnes = array_map(function ($plusOne) use ($selectedIds) {
+                $plusOne['is_attended'] = in_array((string) data_get($plusOne, 'id', ''), $selectedIds);
+
+                return $plusOne;
+            }, $attendee->plus_ones ?? []);
+
+            $attendee->update(['plus_ones' => $updatedPlusOnes]);
+        }
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'update_attendance',
+            'target_type' => 'Attendee',
+            'target_id' => $attendee->id,
+            'description' => sprintf(
+                'Updated attendance for %s %s in event %s',
+                $attendee->user?->first_name ?? 'Unknown',
+                $attendee->user?->last_name ?? 'User',
+                $event->name,
+            ),
+        ]);
+
+        LiveDashboardService::notify('attendance_confirmed', $event->id);
+
+        return response()->json(['message' => 'Attendance updated successfully']);
     }
 }

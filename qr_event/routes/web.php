@@ -76,6 +76,8 @@ Route::middleware(['auth', 'admin'])->prefix('events')->name('events.')->group(f
     Route::get('create', [EventController::class, 'create'])->name('create');
     Route::post('/', [EventController::class, 'store'])->name('store');
     Route::get('{event}/attendees', [EventController::class, 'showAttendees'])->name('attendees');
+    Route::patch('{event}/attendees/{attendee}/attendance', [EventController::class, 'updateAttendance'])->name('attendees.attendance');
+    Route::post('{event}/attendees/import-families', [AdminImportController::class, 'importFamilies'])->name('attendees.import-families');
     Route::get('{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::get('{event}/qr-display', [EventController::class, 'qrDisplay'])->name('qr-display');
     Route::put('{event}', [EventController::class, 'update'])->name('update');

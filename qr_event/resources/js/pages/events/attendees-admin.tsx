@@ -8,6 +8,7 @@ import AddAttendeeManualModal from './modals/add-attendee-manual-modal';
 import AttendeePlusOnesModal from './modals/attendee-plus-ones-modal';
 import EditFamilyColorModal from './modals/edit-family-color-modal';
 import UpdatePaymentModal from './modals/update-payment-modal';
+import ImportFamiliesCsvModal from './modals/import-families-csv-modal';
 
 import type { Attendee, EventShowProps } from './types';
 
@@ -33,6 +34,11 @@ export default function EventAttendeesAdmin() {
     const [addAttendeeModalOpen, setAddAttendeeModalOpen] = useState(false);
     const [colorModalAttendee, setColorModalAttendee] = useState<Attendee | null>(null);
     const [familyColor, setFamilyColor] = useState('');
+    const [attendanceModalAttendee, setAttendanceModalAttendee] = useState<Attendee | null>(null);
+    const [newAttendanceStatus, setNewAttendanceStatus] = useState(false);
+    const [selectedPlusOnes, setSelectedPlusOnes] = useState<string[]>([]);
+    const [savingAttendance, setSavingAttendance] = useState(false);
+    const [importFamiliesModalOpen, setImportFamiliesModalOpen] = useState(false);
 
     const activeAdminTab = filters?.status ?? 'rsvp';
     const firstTimeFilter = filters?.first_time ?? 'all';
@@ -105,6 +111,48 @@ export default function EventAttendeesAdmin() {
     const openFamilyColorModal = (attendee: Attendee) => {
         setColorModalAttendee(attendee);
         setFamilyColor(String(attendee.assigned_values?.family_color ?? 'none'));
+    };
+
+    const openAttendanceModal = (attendee: Attendee) => {
+        setAttendanceModalAttendee(attendee);
+        setNewAttendanceStatus(attendee.is_attended);
+        // Only show plus ones that exist for this attendee
+        setSelectedPlusOnes(
+            (attendee.plus_ones ?? [])
+                .filter((plusOne) => plusOne.id)
+                .map((plusOne) => String(plusOne.id)),
+        );
+    };
+
+    const saveAttendanceStatus = () => {
+        if (!attendanceModalAttendee) {
+            return;
+        }
+
+        if (!window.confirm('Are you sure you want to update the attendance status?')) {
+            return;
+        }
+
+        setSavingAttendance(true);
+
+        router.patch(
+            `/events/${event.id}/attendees/${attendanceModalAttendee.id}/attendance`,
+            {
+                is_attended: newAttendanceStatus,
+                plus_ones_attended: selectedPlusOnes,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setAttendanceModalAttendee(null);
+                    setSavingAttendance(false);
+                },
+                onError: () => {
+                    setSavingAttendance(false);
+                },
+            },
+        );
     };
 
     const savePaymentDetails = () => {
@@ -251,6 +299,13 @@ export default function EventAttendeesAdmin() {
                     <div className="mb-4 flex items-center justify-between gap-4">
                         <h2 className="text-xl font-semibold text-foreground">Event Attendees</h2>
                         <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setImportFamiliesModalOpen(true)}
+                                className="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                            >
+                                Import Families CSV
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => setAddAttendeeModalOpen(true)}
@@ -527,19 +582,27 @@ export default function EventAttendeesAdmin() {
 
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {activeAdminTab === 'attendance' ? (
-                                                attendee.attended_time ? (
-                                                    formatDateTime12Hour(attendee.attended_time)
-                                                ) : (
-                                                    '—'
-                                                )
-                                            ) : attendee.is_attended ? (
-                                                <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                                    Attended
-                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openAttendanceModal(attendee)}
+                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                                >
+                                                    {attendee.attended_time
+                                                        ? formatDateTime12Hour(attendee.attended_time)
+                                                        : '—'}
+                                                </button>
                                             ) : (
-                                                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-                                                    Registered Only
-                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openAttendanceModal(attendee)}
+                                                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                        attendee.is_attended
+                                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                                    }`}
+                                                >
+                                                    {attendee.is_attended ? 'Attended' : 'Registered Only'}
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -602,6 +665,13 @@ export default function EventAttendeesAdmin() {
                     )}
                 </div>
 
+                <ImportFamiliesCsvModal
+                    open={importFamiliesModalOpen}
+                    event={event}
+                    attendeesUrl={attendeesUrl}
+                    onClose={() => setImportFamiliesModalOpen(false)}
+                />
+
                 <AddAttendeeManualModal
                     open={addAttendeeModalOpen}
                     event={event}
@@ -646,6 +716,93 @@ export default function EventAttendeesAdmin() {
                     onClose={() => setColorModalAttendee(null)}
                     onSave={saveFamilyColor}
                 />
+
+                {/* Attendance Status Modal */}
+                {attendanceModalAttendee && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                        onClick={() => setAttendanceModalAttendee(null)}
+                    >
+                        <div
+                            className="w-full max-w-md rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h2 className="mb-4 text-xl font-semibold text-foreground">
+                                Mark Attendance: {attendanceModalAttendee.user.first_name}{' '}
+                                {attendanceModalAttendee.user.last_name}
+                            </h2>
+
+                            <div className="space-y-4">
+                                {/* Main attendee status */}
+                                <div className="rounded-md border border-sidebar-border/70 p-4">
+                                    <label className="flex cursor-pointer items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={newAttendanceStatus}
+                                            onChange={(e) => setNewAttendanceStatus(e.target.checked)}
+                                            className="h-4 w-4 rounded border-sidebar-border/70"
+                                        />
+                                        <span className="text-sm font-medium text-foreground">
+                                            Mark {attendanceModalAttendee.user.first_name} as attended
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* Plus ones */}
+                                {attendanceModalAttendee.plus_ones && attendanceModalAttendee.plus_ones.length > 0 && (
+                                    <div className="rounded-md border border-sidebar-border/70 p-4">
+                                        <h3 className="mb-3 font-medium text-foreground">Plus Ones Available</h3>
+                                        <div className="space-y-2">
+                                            {attendanceModalAttendee.plus_ones.map((plusOne) => (
+                                                <label
+                                                    key={plusOne.id}
+                                                    className="flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar/50"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedPlusOnes.includes(String(plusOne.id))}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedPlusOnes((prev) => [...prev, String(plusOne.id)]);
+                                                            } else {
+                                                                setSelectedPlusOnes((prev) =>
+                                                                    prev.filter((id) => id !== String(plusOne.id)),
+                                                                );
+                                                            }
+                                                        }}
+                                                        className="h-4 w-4 rounded border-sidebar-border/70"
+                                                    />
+                                                    <span className="text-sm text-foreground">
+                                                        {plusOne.full_name} {plusOne.age ? `(Age ${plusOne.age})` : ''}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Action buttons */}
+                                <div className="flex gap-2 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setAttendanceModalAttendee(null)}
+                                        className="flex-1 rounded-md border border-sidebar-border/70 px-4 py-2 font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveAttendanceStatus}
+                                        disabled={savingAttendance}
+                                        className="flex-1 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        {savingAttendance ? 'Saving...' : 'Confirm & Save'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

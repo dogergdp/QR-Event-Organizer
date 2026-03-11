@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Event;
 use App\Models\User;
+use App\Services\FamilyImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -13,13 +15,14 @@ use Illuminate\Validation\Rule;
 class ImportController extends Controller
 {
     /**
-     * Import users from CSV.
+     * Import families by surname and contact number (event-specific).
+     * CSV format: surname,first_name,age,gender,contact_number
      */
-    public function importUsers(Request $request)
-        
+    public function importFamilies(Request $request, Event $event)
     {
-    set_time_limit(300); // Allow more time for large imports    
-    $request->validate([
+        set_time_limit(300);
+
+        $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
 
@@ -29,8 +32,103 @@ class ImportController extends Controller
 
         // Read header
         $header = fgetcsv($handle);
-        if (!$header) {
+        if (! $header) {
             fclose($handle);
+
+            return back()->with('error', 'The CSV file is empty.');
+        }
+
+        $rowCount = 0;
+        $rows = [];
+        $errors = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowCount++;
+            if (count($row) < 5) {
+                $errors[] = "Row {$rowCount}: Insufficient data (need: surname, first_name, age, gender, contact_number).";
+
+                continue;
+            }
+
+            $data = [
+                'surname' => trim($row[0] ?? ''),
+                'first_name' => trim($row[1] ?? ''),
+                'age' => (int) trim($row[2] ?? 0),
+                'gender' => strtoupper(trim($row[3] ?? '')) === 'M' ? 'M' : 'F',
+                'contact_number' => $this->normalizeContactNumber($row[4] ?? ''),
+            ];
+
+            if (! $data['surname'] || ! $data['first_name'] || ! $data['age'] || ! $data['contact_number']) {
+                $errors[] = "Row {$rowCount}: Missing required fields.";
+
+                continue;
+            }
+
+            if ($data['age'] < 1 || $data['age'] > 150) {
+                $errors[] = "Row {$rowCount}: Invalid age.";
+
+                continue;
+            }
+
+            $rows[] = $data;
+        }
+
+        fclose($handle);
+
+        if (empty($rows)) {
+            return back()->with('error', 'No valid family data found in file.');
+        }
+
+        // Import families
+        $service = new FamilyImportService;
+        $familyCount = $service->importFromArray($rows, $event);
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'import_families',
+            'target_type' => 'Event',
+            'target_id' => $event->id,
+            'description' => sprintf(
+                'Imported %d families (%d members) for event %s',
+                $familyCount,
+                count($rows),
+                $event->name,
+            ),
+        ]);
+
+        $message = sprintf('Successfully imported %d families (%d members).', $familyCount, count($rows));
+        if (count($errors) > 0) {
+            $message .= sprintf(' Encountered %d errors.', count($errors));
+
+            return redirect()->back()->with([
+                'success' => $message,
+                'import_errors' => $errors,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Import users from CSV.
+     */
+    public function importUsers(Request $request)
+    {
+        set_time_limit(300); // Allow more time for large imports
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+        $handle = fopen($path, 'r');
+
+        // Read header
+        $header = fgetcsv($handle);
+        if (! $header) {
+            fclose($handle);
+
             return back()->with('error', 'The CSV file is empty.');
         }
 
@@ -48,6 +146,7 @@ class ImportController extends Controller
             $rowCount++;
             if (count($row) < 3) {
                 $errors[] = "Row {$rowCount}: Insufficient data.";
+
                 continue;
             }
             $data = [
@@ -73,15 +172,16 @@ class ImportController extends Controller
             }
         }
         // Process any remaining users
-    if (count($batch) > 0) {
-        $this->processBatch($batch, $request, $errors, $importedCount);
-    }
+        if (count($batch) > 0) {
+            $this->processBatch($batch, $request, $errors, $importedCount);
+        }
 
-    fclose($handle);
+        fclose($handle);
 
         $message = "Successfully imported {$importedCount} users.";
         if (count($errors) > 0) {
-            $message .= " Encounted " . count($errors) . " errors.";
+            $message .= ' Encounted '.count($errors).' errors.';
+
             return redirect()->route('admin.users')->with([
                 'success' => $message,
                 'import_errors' => $errors,
@@ -109,7 +209,8 @@ class ImportController extends Controller
                 'want_to_join_dg' => ['nullable', Rule::in(['yes', 'no']), Rule::requiredIf($data['has_dg_leader'] === 'no')],
             ]);
             if ($validator->fails()) {
-                $errors[] = "({$data['first_name']} {$data['last_name']}): " . implode(', ', $validator->errors()->all());
+                $errors[] = "({$data['first_name']} {$data['last_name']}): ".implode(', ', $validator->errors()->all());
+
                 continue;
             }
             // Create user
@@ -141,14 +242,14 @@ class ImportController extends Controller
      */
     private function normalizeContactNumber($number)
     {
-        $number = trim((string)$number);
+        $number = trim((string) $number);
         // Remove non-numeric characters except maybe a leading +
         $number = preg_replace('/[^0-9]/', '', $number);
 
         // If it starts with 63 (PH country code), keep it or normalize to 09
         // Many local systems prefer 09XXXXXXXXX
         if (str_starts_with($number, '639') && strlen($number) === 12) {
-            $number = '0' . substr($number, 2);
+            $number = '0'.substr($number, 2);
         }
 
         return $number;
