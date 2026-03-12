@@ -1,5 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -9,141 +8,90 @@ import AttendeePlusOnesModal from './modals/attendee-plus-ones-modal';
 import EditFamilyColorModal from './modals/edit-family-color-modal';
 import UpdatePaymentModal from './modals/update-payment-modal';
 import ImportFamiliesCsvModal from './modals/import-families-csv-modal';
+import UpdateAttendanceModal from './modals/update-attendance-modal';
+import { useFilters } from './hooks/useFilters';
+import { useAttendeeModals } from './hooks/useAttendeeModals';
+import { calculateCostByAge } from './utils/attendee-utils';
+import { AttendanceService, PaymentService, PlusOnesService, FamilyColorService } from './services/AttendeeService';
 
 import type { Attendee, EventShowProps } from './types';
 
 export default function EventAttendeesAdmin() {
     const { event, attendees, users = [], filters, userCapabilities } = usePage<any>().props as EventShowProps;
 
-    const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(null);
-    const [expandedFamilies, setExpandedFamilies] = useState<Set<number>>(new Set());
-    const [editablePlusOnes, setEditablePlusOnes] = useState<Array<{
-        id?: string;
-        full_name?: string;
-        age?: number;
-        gender?: string;
-        is_first_time?: boolean;
-        remarks?: string;
-        is_attended?: boolean;
-    }>>([]);
-    const [savingPlusOnes, setSavingPlusOnes] = useState(false);
-    const [paymentModalAttendee, setPaymentModalAttendee] = useState<Attendee | null>(null);
-    const [paymentIsPaid, setPaymentIsPaid] = useState(false);
-    const [paymentAmount, setPaymentAmount] = useState('0');
-    const [paymentType, setPaymentType] = useState('');
-    const [paymentRemarks, setPaymentRemarks] = useState('');
-    const [addAttendeeModalOpen, setAddAttendeeModalOpen] = useState(false);
-    const [colorModalAttendee, setColorModalAttendee] = useState<Attendee | null>(null);
-    const [familyColor, setFamilyColor] = useState('');
-    const [attendanceModalAttendee, setAttendanceModalAttendee] = useState<Attendee | null>(null);
-    const [newAttendanceStatus, setNewAttendanceStatus] = useState(false);
-    const [selectedPlusOnes, setSelectedPlusOnes] = useState<string[]>([]);
-    const [savingAttendance, setSavingAttendance] = useState(false);
-    const [importFamiliesModalOpen, setImportFamiliesModalOpen] = useState(false);
+    // Initialize hooks
+    const {
+        attendeesUrl,
+        activeAdminTab,
+        firstTimeFilter,
+        walkInFilter,
+        paidFilter,
+        colorFilter,
+        minAgeFilter,
+        maxAgeFilter,
+        searchValue,
+        setActiveAdminTab,
+        setFirstTimeFilter,
+        setWalkInFilter,
+        setPaidFilter,
+        setColorFilter,
+        setAgeRangeFilter,
+    } = useFilters({ filters, eventId: event.id });
 
-    const activeAdminTab = filters?.status ?? 'rsvp';
-    const firstTimeFilter = filters?.first_time ?? 'all';
-    const walkInFilter = filters?.walk_in ?? 'all';
-    const paidFilter = filters?.paid ?? 'all';
-    const colorFilter = filters?.color ?? 'all';
-    const minAgeFilter = filters?.min_age ? Number(filters.min_age) : 0;
-    const maxAgeFilter = filters?.max_age ? Number(filters.max_age) : 150;
-    const searchValue = filters?.search ?? '';
-    const attendeesUrl = `/events/${event.id}/attendees`;
-
-    const setActiveAdminTab = (tab: 'rsvp' | 'attendance') => {
-        router.get(attendeesUrl, { ...filters, status: tab }, { preserveState: true, replace: true });
-    };
-
-    const setFirstTimeFilter = (filter: 'all' | 'yes' | 'no') => {
-        router.get(attendeesUrl, { ...filters, first_time: filter }, { preserveState: true, replace: true });
-    };
-
-    const setWalkInFilter = (filter: 'all' | 'yes' | 'no') => {
-        router.get(attendeesUrl, { ...filters, walk_in: filter }, { preserveState: true, replace: true });
-    };
-
-    const setPaidFilter = (filter: 'all' | 'yes' | 'no') => {
-        router.get(attendeesUrl, { ...filters, paid: filter }, { preserveState: true, replace: true });
-    };
-
-    const setColorFilter = (color: string) => {
-        router.get(attendeesUrl, { ...filters, color }, { preserveState: true, replace: true });
-    };
-
-    const setAgeRangeFilter = (minAge: number, maxAge: number) => {
-        router.get(attendeesUrl, { ...filters, min_age: minAge, max_age: maxAge }, { preserveState: true, replace: true });
-    };
-
-    const calculateCostByAge = (age: number | undefined | null) => {
-        if (age === undefined || age === null) return 0;
-        if (age >= 12) return 200;
-        if (age >= 5) return 100;
-        return 0;
-    };
+    const {
+        selectedAttendee,
+        editablePlusOnes,
+        savingPlusOnes,
+        setSavingPlusOnes,
+        openAttendeeModal,
+        closeAttendeeModal,
+        updatePlusOneField,
+        addPlusOneRow,
+        removePlusOneRow,
+        paymentModalAttendee,
+        paymentIsPaid,
+        paymentAmount,
+        paymentType,
+        paymentRemarks,
+        setPaymentIsPaid,
+        setPaymentAmount,
+        setPaymentType,
+        setPaymentRemarks,
+        openPaymentModal,
+        closePaymentModal,
+        attendanceModalAttendee,
+        newAttendanceStatus,
+        selectedPlusOnes,
+        savingAttendance,
+        setSavingAttendance,
+        setNewAttendanceStatus,
+        setSelectedPlusOnes,
+        openAttendanceModal,
+        closeAttendanceModal,
+        colorModalAttendee,
+        familyColor,
+        setFamilyColor,
+        openFamilyColorModal,
+        closeFamilyColorModal,
+        addAttendeeModalOpen,
+        setAddAttendeeModalOpen,
+        importFamiliesModalOpen,
+        setImportFamiliesModalOpen,
+        expandedFamilies,
+        toggleFamily,
+    } = useAttendeeModals();
 
     const calculateDueAmount = (attendee: Attendee) => {
         let total = 0;
-        // Add attendee's cost (if they have a birthdate/age)
         const userBirthdate = attendee.user.birthdate;
         if (userBirthdate) {
             const age = new Date().getFullYear() - new Date(userBirthdate).getFullYear();
             total += calculateCostByAge(age);
         }
-        // Add all plus-ones' costs
         (attendee.plus_ones ?? []).forEach((plusOne) => {
             total += calculateCostByAge(plusOne.age);
         });
         return total;
-    };
-
-    const openAttendeeModal = (attendee: Attendee) => {
-        setSelectedAttendee(attendee);
-        setEditablePlusOnes(
-            (attendee.plus_ones ?? []).map((plusOne, index) => ({
-                id: plusOne.id ?? `plus-one-${index}`,
-                full_name: plusOne.full_name ?? '',
-                age: plusOne.age,
-                gender: plusOne.gender ?? '',
-                is_first_time: !!plusOne.is_first_time,
-                remarks: plusOne.remarks ?? '',
-                is_attended: !!plusOne.is_attended,
-            })),
-        );
-    };
-
-    const toggleFamily = (attendeeId: number) => {
-        const newExpanded = new Set(expandedFamilies);
-        if (newExpanded.has(attendeeId)) {
-            newExpanded.delete(attendeeId);
-        } else {
-            newExpanded.add(attendeeId);
-        }
-        setExpandedFamilies(newExpanded);
-    };
-
-    const openPaymentModal = (attendee: Attendee) => {
-        setPaymentModalAttendee(attendee);
-        setPaymentIsPaid(attendee.is_paid);
-        setPaymentAmount(attendee.amount_paid ?? '0');
-        setPaymentType(attendee.payment_type ?? '');
-        setPaymentRemarks(attendee.payment_remarks ?? '');
-    };
-
-    const openFamilyColorModal = (attendee: Attendee) => {
-        setColorModalAttendee(attendee);
-        setFamilyColor(String(attendee.assigned_values?.family_color ?? 'none'));
-    };
-
-    const openAttendanceModal = (attendee: Attendee) => {
-        setAttendanceModalAttendee(attendee);
-        setNewAttendanceStatus(attendee.is_attended);
-        // Only show plus ones that exist for this attendee
-        setSelectedPlusOnes(
-            (attendee.plus_ones ?? [])
-                .filter((plusOne) => plusOne.id)
-                .map((plusOne) => String(plusOne.id)),
-        );
     };
 
     const saveAttendanceStatus = () => {
@@ -156,25 +104,13 @@ export default function EventAttendeesAdmin() {
         }
 
         setSavingAttendance(true);
-
-        router.patch(
-            `/events/${event.id}/attendees/${attendanceModalAttendee.id}/attendance`,
-            {
-                is_attended: newAttendanceStatus,
-                plus_ones_attended: selectedPlusOnes,
-            },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setAttendanceModalAttendee(null);
-                    setSavingAttendance(false);
-                },
-                onError: () => {
-                    setSavingAttendance(false);
-                },
-            },
-        );
+        AttendanceService.updateAttendance(event.id, attendanceModalAttendee.id, {
+            is_attended: newAttendanceStatus,
+            plus_ones_attended: selectedPlusOnes,
+        }, {
+            onSuccess: closeAttendanceModal,
+            onError: () => setSavingAttendance(false),
+        });
     };
 
     const savePaymentDetails = () => {
@@ -182,64 +118,20 @@ export default function EventAttendeesAdmin() {
             return;
         }
 
-        const parsedAmount = Number(paymentAmount);
-        if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
-            window.alert('Please enter a valid amount in pesos.');
+        const validation = PaymentService.validateAmount(paymentAmount);
+        if (!validation.valid) {
+            window.alert(validation.error);
             return;
         }
 
-        router.patch(
-            `/admin/attendees/${paymentModalAttendee.id}/payment`,
-            {
-                is_paid: paymentIsPaid,
-                amount_paid: paymentIsPaid ? parsedAmount : null,
-                payment_type: paymentType || null,
-                payment_remarks: paymentRemarks || null,
-            },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setPaymentModalAttendee(null);
-                },
-            },
-        );
-    };
-
-    const updatePlusOneField = (
-        index: number,
-        field: 'full_name' | 'age' | 'gender' | 'is_first_time' | 'remarks',
-        value: string | number | boolean,
-    ) => {
-        setEditablePlusOnes((prev) =>
-            prev.map((plusOne, currentIndex) =>
-                currentIndex === index
-                    ? {
-                          ...plusOne,
-                          [field]: value,
-                      }
-                    : plusOne,
-            ),
-        );
-    };
-
-    const addPlusOneRow = () => {
-        setEditablePlusOnes((prev) => [
-            ...prev,
-            {
-                id: `plus-one-${Date.now()}`,
-                full_name: '',
-                age: undefined,
-                gender: '',
-                is_first_time: false,
-                remarks: '',
-                is_attended: selectedAttendee?.is_attended ?? false,
-            },
-        ]);
-    };
-
-    const removePlusOneRow = (index: number) => {
-        setEditablePlusOnes((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+        PaymentService.updatePayment(paymentModalAttendee.id, {
+            is_paid: paymentIsPaid,
+            amount_paid: paymentIsPaid ? Number(paymentAmount) : null,
+            payment_type: paymentType || null,
+            payment_remarks: paymentRemarks || null,
+        }, {
+            onSuccess: closePaymentModal,
+        });
     };
 
     const savePlusOnes = () => {
@@ -248,37 +140,12 @@ export default function EventAttendeesAdmin() {
         }
 
         setSavingPlusOnes(true);
-
-        const normalizedPlusOnes = editablePlusOnes.map((plusOne) => ({
-            id: plusOne.id,
-            full_name: plusOne.full_name?.trim() || null,
-            age:
-                plusOne.age === undefined || plusOne.age === null || Number.isNaN(Number(plusOne.age))
-                    ? null
-                    : Number(plusOne.age),
-            gender: plusOne.gender?.trim() || null,
-            is_first_time: !!plusOne.is_first_time,
-            remarks: plusOne.remarks?.trim() || null,
-            is_attended: !!plusOne.is_attended,
-        }));
-
-        router.patch(
-            `/admin/attendees/${selectedAttendee.id}/plus-ones`,
-            {
-                plus_ones: normalizedPlusOnes,
+        PlusOnesService.updatePlusOnes(selectedAttendee.id, editablePlusOnes, {
+            onSuccess: () => {
+                closeAttendeeModal();
+                location.reload();
             },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setSelectedAttendee(null);
-                    router.reload({ only: ['attendees'] });
-                },
-                onFinish: () => {
-                    setSavingPlusOnes(false);
-                },
-            },
-        );
+        });
     };
 
     const saveFamilyColor = () => {
@@ -286,22 +153,9 @@ export default function EventAttendeesAdmin() {
             return;
         }
 
-        const normalizedColor = (familyColor || 'none').toLowerCase();
-
-        router.patch(
-            `/admin/attendees/${colorModalAttendee.id}/assigned-values`,
-            {
-                family_color: normalizedColor,
-            },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setColorModalAttendee(null);
-                    router.reload({ only: ['attendees'] });
-                },
-            },
-        );
+        FamilyColorService.updateColor(colorModalAttendee.id, familyColor, {
+            onSuccess: closeFamilyColorModal,
+        });
     };
 
     const allAttendees = attendees?.data ?? [];
@@ -651,42 +505,47 @@ export default function EventAttendeesAdmin() {
                                                         )}
 
                                                         <td className="px-4 py-3 text-muted-foreground">
-                                                            <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
-                                                                Color: {String(attendee.assigned_values?.family_color ?? '—')}
-                                                            </span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+                                                                    Color: {String(attendee.assigned_values?.family_color ?? '—')}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openFamilyColorModal(attendee)}
+                                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
+                                                                >
+                                                                    Edit Color
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-muted-foreground">
-                                                            {activeAdminTab === 'attendance' ? (
-                                                                userCapabilities?.canMarkAttendance ? (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => openAttendanceModal(attendee)}
-                                                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
-                                                                            attendee.is_attended
-                                                                                ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
-                                                                                : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
-                                                                        }`}
-                                                                    >
-                                                                        <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
-                                                                        {attendee.attended_time
+                                                            {userCapabilities?.canMarkAttendance ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openAttendanceModal(attendee)}
+                                                                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                        attendee.is_attended
+                                                                            ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                            : 'border-sidebar-border/70 text-gray-600 hover:text-gray-700'
+                                                                    }`}
+                                                                >
+                                                                    {activeAdminTab === 'attendance' ? (
+                                                                        attendee.attended_time
                                                                             ? formatDateTime12Hour(attendee.attended_time)
-                                                                            : 'Not attended'}
-                                                                    </button>
-                                                                ) : (
-                                                                    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
-                                                                        <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
-                                                                        {attendee.attended_time
-                                                                            ? formatDateTime12Hour(attendee.attended_time)
-                                                                            : 'Not attended'}
-                                                                    </span>
-                                                                )
+                                                                            : 'Registered'
+                                                                    ) : (
+                                                                        attendee.is_attended ? 'Attended' : 'Registered'
+                                                                    )}
+                                                                </button>
                                                             ) : (
-                                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                                    attendee.is_attended
-                                                                        ? 'bg-green-100 text-green-800'
-                                                                        : 'bg-amber-100 text-amber-800'
-                                                                }`}>
-                                                                    {attendee.is_attended ? '✓ Attended' : '✕ Not attended'}
+                                                                <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
+                                                                    {activeAdminTab === 'attendance' ? (
+                                                                        attendee.attended_time
+                                                                            ? formatDateTime12Hour(attendee.attended_time)
+                                                                            : 'Registered'
+                                                                    ) : (
+                                                                        attendee.is_attended ? 'Attended' : 'Registered'
+                                                                    )}
                                                                 </span>
                                                             )}
                                                         </td>
@@ -755,28 +614,33 @@ export default function EventAttendeesAdmin() {
                                                         </td>
 
                                                         <td className="px-4 py-3 text-muted-foreground">
-                                                            {activeAdminTab === 'attendance' ? (
+                                                            {userCapabilities?.canMarkAttendance ? (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => openAttendanceModal(attendee)}
                                                                     className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
                                                                         attendee.is_attended
                                                                             ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
-                                                                            : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
+                                                                            : 'border-sidebar-border/70 text-gray-600 hover:text-gray-700'
                                                                     }`}
                                                                 >
-                                                                    <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
-                                                                    {attendee.attended_time
-                                                                        ? formatDateTime12Hour(attendee.attended_time)
-                                                                        : 'Not attended'}
+                                                                    {activeAdminTab === 'attendance' ? (
+                                                                        attendee.attended_time
+                                                                            ? formatDateTime12Hour(attendee.attended_time)
+                                                                            : 'Registered'
+                                                                    ) : (
+                                                                        attendee.is_attended ? 'Attended' : 'Registered'
+                                                                    )}
                                                                 </button>
                                                             ) : (
-                                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                                    attendee.is_attended
-                                                                        ? 'bg-green-100 text-green-800'
-                                                                        : 'bg-amber-100 text-amber-800'
-                                                                }`}>
-                                                                    {attendee.is_attended ? '✓ Attended' : '✕ Not attended'}
+                                                                <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
+                                                                    {activeAdminTab === 'attendance' ? (
+                                                                        attendee.attended_time
+                                                                            ? formatDateTime12Hour(attendee.attended_time)
+                                                                            : 'Registered'
+                                                                    ) : (
+                                                                        attendee.is_attended ? 'Attended' : 'Registered'
+                                                                    )}
                                                                 </span>
                                                             )}
                                                         </td>
@@ -810,14 +674,34 @@ export default function EventAttendeesAdmin() {
                                                                     {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
                                                                     <td className="px-4 py-3 text-muted-foreground"></td>
                                                                     <td className="px-4 py-3 text-muted-foreground">
-                                                                        {activeAdminTab === 'attendance' && (
-                                                                            <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
-                                                                                attendee.is_attended
-                                                                                    ? 'border-sidebar-border/70 text-green-600'
-                                                                                    : 'border-sidebar-border/70 text-red-600'
-                                                                            }`}>
-                                                                                <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
-                                                                            </div>
+                                                                        {userCapabilities?.canMarkAttendance ? (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => openAttendanceModal(attendee)}
+                                                                                className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                                    attendee.is_attended
+                                                                                        ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                                        : 'border-sidebar-border/70 text-gray-600 hover:text-gray-700'
+                                                                                }`}
+                                                                            >
+                                                                                {activeAdminTab === 'attendance' ? (
+                                                                                    attendee.attended_time
+                                                                                        ? formatDateTime12Hour(attendee.attended_time)
+                                                                                        : 'Registered'
+                                                                                ) : (
+                                                                                    attendee.is_attended ? 'Attended' : 'Registered'
+                                                                                )}
+                                                                            </button>
+                                                                        ) : (
+                                                                            <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
+                                                                                {activeAdminTab === 'attendance' ? (
+                                                                                    attendee.attended_time
+                                                                                        ? formatDateTime12Hour(attendee.attended_time)
+                                                                                        : 'Registered'
+                                                                                ) : (
+                                                                                    attendee.is_attended ? 'Attended' : 'Registered'
+                                                                                )}
+                                                                            </span>
                                                                         )}
                                                                     </td>
                                                                 </tr>
@@ -851,14 +735,26 @@ export default function EventAttendeesAdmin() {
                                                                 {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
                                                                 <td className="px-4 py-3 text-muted-foreground"></td>
                                                                 <td className="px-4 py-3 text-muted-foreground">
-                                                                    {activeAdminTab === 'attendance' && (
-                                                                        <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
-                                                                            plusOne.is_attended
-                                                                                ? 'border-sidebar-border/70 text-green-600'
-                                                                                : 'border-sidebar-border/70 text-red-600'
-                                                                        }`}>
-                                                                            <span className="text-lg">{plusOne.is_attended ? '✓' : '✕'}</span>
-                                                                        </div>
+                                                                    {userCapabilities?.canMarkAttendance ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => openAttendanceModal(attendee)}
+                                                                            className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                                plusOne.is_attended
+                                                                                    ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                                    : 'border-sidebar-border/70 text-gray-600 hover:text-gray-700'
+                                                                            }`}
+                                                                        >
+                                                                            {activeAdminTab === 'attendance' ? (
+                                                                                plusOne.is_attended ? 'Attended' : 'Registered'
+                                                                            ) : (
+                                                                                plusOne.is_attended ? 'Attended' : 'Registered'
+                                                                            )}
+                                                                        </button>
+                                                                    ) : (
+                                                                        <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
+                                                                            {plusOne.is_attended ? 'Attended' : 'Registered'}
+                                                                        </span>
                                                                     )}
                                                                 </td>
                                                             </tr>
@@ -947,7 +843,7 @@ export default function EventAttendeesAdmin() {
                     attendee={selectedAttendee}
                     editablePlusOnes={editablePlusOnes}
                     savingPlusOnes={savingPlusOnes}
-                    onClose={() => setSelectedAttendee(null)}
+                    onClose={closeAttendeeModal}
                     onAddPlusOne={addPlusOneRow}
                     onRemovePlusOne={removePlusOneRow}
                     onUpdatePlusOneField={updatePlusOneField}
@@ -962,7 +858,7 @@ export default function EventAttendeesAdmin() {
                     paymentType={paymentType}
                     paymentRemarks={paymentRemarks}
                     dueAmount={paymentModalAttendee ? calculateDueAmount(paymentModalAttendee) : undefined}
-                    onClose={() => setPaymentModalAttendee(null)}
+                    onClose={closePaymentModal}
                     onTogglePaid={() => setPaymentIsPaid((prev) => !prev)}
                     onPaymentAmountChange={setPaymentAmount}
                     onPaymentTypeChange={setPaymentType}
@@ -975,96 +871,27 @@ export default function EventAttendeesAdmin() {
                     attendee={colorModalAttendee}
                     familyColor={familyColor}
                     onFamilyColorChange={setFamilyColor}
-                    onClose={() => setColorModalAttendee(null)}
+                    onClose={closeFamilyColorModal}
                     onSave={saveFamilyColor}
                 />
 
-                {/* Attendance Status Modal */}
-                {attendanceModalAttendee && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-                        onClick={() => setAttendanceModalAttendee(null)}
-                    >
-                        <div
-                            className="w-full max-w-md rounded-lg border border-sidebar-border/70 bg-background p-6 shadow-lg"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h2 className="mb-4 text-xl font-semibold text-foreground">
-                                Mark Attendance: {attendanceModalAttendee.user.first_name}{' '}
-                                {attendanceModalAttendee.user.last_name}
-                            </h2>
-
-                            <div className="space-y-4">
-                                {/* Main attendee status */}
-                                <div className="rounded-md border border-sidebar-border/70 p-4">
-                                    <label className="flex cursor-pointer items-center gap-3">
-                                        <input
-                                            type="checkbox"
-                                            checked={newAttendanceStatus}
-                                            onChange={(e) => setNewAttendanceStatus(e.target.checked)}
-                                            className="h-4 w-4 rounded border-sidebar-border/70"
-                                        />
-                                        <span className="text-sm font-medium text-foreground">
-                                            Mark {attendanceModalAttendee.user.first_name} as attended
-                                        </span>
-                                    </label>
-                                </div>
-
-                                {/* Plus ones */}
-                                {attendanceModalAttendee.plus_ones && attendanceModalAttendee.plus_ones.length > 0 && (
-                                    <div className="rounded-md border border-sidebar-border/70 p-4">
-                                        <h3 className="mb-3 font-medium text-foreground">Plus Ones Available</h3>
-                                        <div className="space-y-2">
-                                            {attendanceModalAttendee.plus_ones.map((plusOne) => (
-                                                <label
-                                                    key={plusOne.id}
-                                                    className="flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar/50"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedPlusOnes.includes(String(plusOne.id))}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setSelectedPlusOnes((prev) => [...prev, String(plusOne.id)]);
-                                                            } else {
-                                                                setSelectedPlusOnes((prev) =>
-                                                                    prev.filter((id) => id !== String(plusOne.id)),
-                                                                );
-                                                            }
-                                                        }}
-                                                        className="h-4 w-4 rounded border-sidebar-border/70"
-                                                    />
-                                                    <span className="text-sm text-foreground">
-                                                        {plusOne.full_name} {plusOne.age ? `(Age ${plusOne.age})` : ''}
-                                                    </span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Action buttons */}
-                                <div className="flex gap-2 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setAttendanceModalAttendee(null)}
-                                        className="flex-1 rounded-md border border-sidebar-border/70 px-4 py-2 font-medium text-foreground hover:bg-sidebar/50 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={saveAttendanceStatus}
-                                        disabled={savingAttendance}
-                                        className="flex-1 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                                    >
-                                        {savingAttendance ? 'Saving...' : 'Confirm & Save'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <UpdateAttendanceModal
+                    open={!!attendanceModalAttendee}
+                    attendee={attendanceModalAttendee}
+                    newAttendanceStatus={newAttendanceStatus}
+                    selectedPlusOnes={selectedPlusOnes}
+                    savingAttendance={savingAttendance}
+                    onClose={closeAttendanceModal}
+                    onAttendanceStatusChange={setNewAttendanceStatus}
+                    onPlusOneToggle={(plusOneId) => {
+                        if (selectedPlusOnes.includes(plusOneId)) {
+                            setSelectedPlusOnes((prev) => prev.filter((id) => id !== plusOneId));
+                        } else {
+                            setSelectedPlusOnes((prev) => [...prev, plusOneId]);
+                        }
+                    }}
+                    onSave={saveAttendanceStatus}
+                />
             </div>
         </AppLayout>
     );
