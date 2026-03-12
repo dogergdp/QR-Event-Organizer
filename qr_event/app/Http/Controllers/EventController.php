@@ -120,6 +120,8 @@ class EventController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $attendees = $event->attendees()
+            ->select('attendees.*')
+            ->join('users', 'attendees.user_id', '=', 'users.id')
             ->with('user')
             ->when($search !== '', function ($query) use ($search) {
                 $query->whereHas('user', function ($userQuery) use ($search) {
@@ -129,25 +131,44 @@ class EventController extends Controller
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 });
             })
-            ->when($status === 'rsvp', fn ($q) => $q->where('is_attended', false))
-            ->when($status === 'attendance', fn ($q) => $q->where('is_attended', true))
-            ->when($isFirstTime === 'yes', fn ($q) => $q->where('is_first_time', true))
-            ->when($isFirstTime === 'no', fn ($q) => $q->where('is_first_time', false))
-            ->when($isWalkIn === 'yes', fn ($q) => $q->where('is_walk_in', true))
-            ->when($isWalkIn === 'no', fn ($q) => $q->where('is_walk_in', false))
-            ->when($isPaid === 'yes', fn ($q) => $q->where('is_paid', true))
-            ->when($isPaid === 'no', fn ($q) => $q->where('is_paid', false))
-            ->when($colorFilter && $colorFilter !== 'all', fn ($q) => $q->whereJsonContains('assigned_values->family_color', $colorFilter))
-            ->when($minAge > 0 || $maxAge < 150, function ($query) use ($minAge, $maxAge) {
-                return $query->whereRaw(
-                    "YEAR(CURDATE()) - YEAR(users.birthdate) - (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(users.birthdate, '%m%d')) BETWEEN ? AND ?",
-                    [$minAge, $maxAge]
-                );
-            })
-            ->latest('updated_at')
+            ->when($status === 'rsvp', fn ($q) => $q->where('attendees.is_attended', false))
+            ->when($status === 'attendance', fn ($q) => $q->where('attendees.is_attended', true))
+            ->when($isFirstTime === 'yes', fn ($q) => $q->where('attendees.is_first_time', true))
+            ->when($isFirstTime === 'no', fn ($q) => $q->where('attendees.is_first_time', false))
+            ->when($isWalkIn === 'yes', fn ($q) => $q->where('attendees.is_walk_in', true))
+            ->when($isWalkIn === 'no', fn ($q) => $q->where('attendees.is_walk_in', false))
+            ->when($isPaid === 'yes', fn ($q) => $q->where('attendees.is_paid', true))
+            ->when($isPaid === 'no', fn ($q) => $q->where('attendees.is_paid', false))
+            ->when($colorFilter && $colorFilter !== 'all', fn ($q) => $q->whereJsonContains('attendees.assigned_values->family_color', $colorFilter))
             ->paginate(10)
-            ->withQueryString()
-            ->through(function ($attendee) {
+            ->withQueryString();
+
+        // Post-process to filter by age and transform data
+        $attendees->setCollection(
+            collect($attendees->items())->filter(function ($attendee) use ($minAge, $maxAge) {
+                // Calculate head age from birthdate
+                $headAge = null;
+                if ($attendee->user->birthdate) {
+                    $headAge = \Carbon\Carbon::parse($attendee->user->birthdate)->age;
+                }
+
+                // Check if head meets age criteria
+                $headMeetsAge = $headAge !== null && $headAge >= $minAge && $headAge <= $maxAge;
+
+                // Check if any plus one meets age criteria
+                $hasQualifyingPlusOne = false;
+                if ($attendee->plus_ones) {
+                    foreach ($attendee->plus_ones as $plusOne) {
+                        $plusOneAge = $plusOne['age'] ?? null;
+                        if ($plusOneAge !== null && $plusOneAge >= $minAge && $plusOneAge <= $maxAge) {
+                            $hasQualifyingPlusOne = true;
+                            break;
+                        }
+                    }
+                }
+
+                return $headMeetsAge || $hasQualifyingPlusOne;
+            })->map(function ($attendee) {
                 return [
                     'id' => $attendee->id,
                     'user_id' => $attendee->user_id,
@@ -172,7 +193,8 @@ class EventController extends Controller
                         'want_to_join_dg' => $attendee->user->want_to_join_dg,
                     ],
                 ];
-            });
+            })
+        );
 
         return Inertia::render('events/attendees-admin', [
             'event' => $event,

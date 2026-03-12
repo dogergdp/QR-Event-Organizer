@@ -594,7 +594,7 @@ export default function EventAttendeesAdmin() {
                                     
                                     return (
                                         <>
-                                            {/* Main attendee row */}
+                                            {/* Family row - collapsed shows just family name, expanded shows tree */}
                                             <tr
                                                 key={`attendee-${attendee.id}`}
                                                 className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
@@ -612,139 +612,260 @@ export default function EventAttendeesAdmin() {
                                                             </button>
                                                         )}
                                                         {!hasPlusOnes && <span className="w-4"></span>}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openAttendeeModal(attendee)}
-                                                            className="text-left transition-colors hover:text-primary hover:underline"
-                                                        >
-                                                            {isExpanded ? `${attendeeFirstName} ${familyLastName}` : familyLastName}
-                                                        </button>
+                                                        <span className="text-left text-muted-foreground">
+                                                            {familyLastName}
+                                                        </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-muted-foreground">{attendeeAge}</td>
-                                                <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
-                                                <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
+                                                {/* Collapsed row - show all data except age */}
+                                                {!isExpanded && (
+                                                    <>
+                                                        <td className="px-4 py-3 text-muted-foreground"></td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
 
-                                                {activeAdminTab === 'rsvp' && (
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        <span
-                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                                attendee.is_walk_in
-                                                                    ? 'bg-purple-100 text-purple-800'
-                                                                    : 'bg-gray-100 text-gray-800'
-                                                            }`}
-                                                        >
-                                                            {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
-                                                        </span>
-                                                    </td>
-                                                )}
+                                                        {activeAdminTab === 'rsvp' && (
+                                                            <>
+                                                                <td className="px-4 py-3 text-muted-foreground">
+                                                                    <span
+                                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                            attendee.is_walk_in
+                                                                                ? 'bg-purple-100 text-purple-800'
+                                                                                : 'bg-gray-100 text-gray-800'
+                                                                        }`}
+                                                                    >
+                                                                        {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-muted-foreground">
+                                                                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                        attendee.is_paid
+                                                                            ? 'bg-green-100 text-green-800'
+                                                                            : 'bg-amber-100 text-amber-800'
+                                                                    }`}>
+                                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
+                                                            </>
+                                                        )}
 
-                                                {activeAdminTab === 'rsvp' && (
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {userCapabilities?.canManagePayments ? (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => openPaymentModal(attendee)}
-                                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                                    attendee.is_paid
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+                                                                Color: {String(attendee.assigned_values?.family_color ?? '—')}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            {activeAdminTab === 'attendance' ? (
+                                                                userCapabilities?.canMarkAttendance ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openAttendanceModal(attendee)}
+                                                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                            attendee.is_attended
+                                                                                ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                                : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
+                                                                        }`}
+                                                                    >
+                                                                        <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
+                                                                        {attendee.attended_time
+                                                                            ? formatDateTime12Hour(attendee.attended_time)
+                                                                            : 'Not attended'}
+                                                                    </button>
+                                                                ) : (
+                                                                    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-gray-500 cursor-not-allowed`}>
+                                                                        <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
+                                                                        {attendee.attended_time
+                                                                            ? formatDateTime12Hour(attendee.attended_time)
+                                                                            : 'Not attended'}
+                                                                    </span>
+                                                                )
+                                                            ) : (
+                                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                    attendee.is_attended
                                                                         ? 'bg-green-100 text-green-800'
                                                                         : 'bg-amber-100 text-amber-800'
-                                                                }`}
-                                                            >
-                                                                {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                            </button>
-                                                        ) : (
-                                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                                attendee.is_paid
-                                                                    ? 'bg-green-100 text-green-800'
-                                                                    : 'bg-amber-100 text-amber-800'
-                                                            }`}>
-                                                                {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                            </span>
+                                                                }`}>
+                                                                    {attendee.is_attended ? '✓ Attended' : '✕ Not attended'}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </>
+                                                )}
+                                                {/* Expanded row - show full details of head */}
+                                                {isExpanded && (
+                                                    <>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendeeAge}</td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
+
+                                                        {activeAdminTab === 'rsvp' && (
+                                                            <>
+                                                                <td className="px-4 py-3 text-muted-foreground">
+                                                                    <span
+                                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                            attendee.is_walk_in
+                                                                                ? 'bg-purple-100 text-purple-800'
+                                                                                : 'bg-gray-100 text-gray-800'
+                                                                        }`}
+                                                                    >
+                                                                        {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-muted-foreground">
+                                                                    {userCapabilities?.canManagePayments ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => openPaymentModal(attendee)}
+                                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                                                attendee.is_paid
+                                                                                    ? 'bg-green-100 text-green-800'
+                                                                                    : 'bg-amber-100 text-amber-800'
+                                                                            }`}
+                                                                        >
+                                                                            {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                                        </button>
+                                                                    ) : (
+                                                                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                            attendee.is_paid
+                                                                                ? 'bg-green-100 text-green-800'
+                                                                                : 'bg-amber-100 text-amber-800'
+                                                                        }`}>
+                                                                            {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
+                                                            </>
                                                         )}
-                                                    </td>
+
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+                                                                    Color: {String(attendee.assigned_values?.family_color ?? '—')}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openFamilyColorModal(attendee)}
+                                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
+                                                                >
+                                                                    Edit Color
+                                                                </button>
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            {activeAdminTab === 'attendance' ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openAttendanceModal(attendee)}
+                                                                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                        attendee.is_attended
+                                                                            ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                            : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
+                                                                    }`}
+                                                                >
+                                                                    <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
+                                                                    {attendee.attended_time
+                                                                        ? formatDateTime12Hour(attendee.attended_time)
+                                                                        : 'Not attended'}
+                                                                </button>
+                                                            ) : (
+                                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                    attendee.is_attended
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : 'bg-amber-100 text-amber-800'
+                                                                }`}>
+                                                                    {attendee.is_attended ? '✓ Attended' : '✕ Not attended'}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </>
                                                 )}
-
-                                                {activeAdminTab === 'rsvp' && (
-                                                    <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
-                                                )}
-
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
-                                                            Color: {String(attendee.assigned_values?.family_color ?? '—')}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openFamilyColorModal(attendee)}
-                                                            className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
-                                                        >
-                                                            Edit Color
-                                                        </button>
-                                                    </div>
-                                                </td>
-
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {activeAdminTab === 'attendance' ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openAttendanceModal(attendee)}
-                                                            className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
-                                                                attendee.is_attended
-                                                                    ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
-                                                                    : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
-                                                            }`}
-                                                        >
-                                                            <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
-                                                            {attendee.attended_time
-                                                                ? formatDateTime12Hour(attendee.attended_time)
-                                                                : '—'}
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openAttendanceModal(attendee)}
-                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                                attendee.is_attended
-                                                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                                    : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                                            }`}
-                                                        >
-                                                            {attendee.is_attended ? 'Attended' : 'Registered Only'}
-                                                        </button>
-                                                    )}
-                                                </td>
                                             </tr>
 
-                                            {/* Plus ones rows - only shown when expanded */}
-                                            {isExpanded && hasPlusOnes && attendee.plus_ones.map((plusOne, index) => (
-                                                <tr
-                                                    key={`plus-one-${attendee.id}-${index}`}
-                                                    className="border-b border-sidebar-border/70 bg-sidebar/30 hover:bg-sidebar/50 transition-colors"
-                                                >
-                                                    <td className="px-4 py-3 text-foreground pl-10">
-                                                        <span className="text-muted-foreground">└─</span> {familyLastName}, {plusOne.full_name?.split(' ')[0] || '—'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">{plusOne.age ?? '—'}</td>
-                                                    <td className="px-4 py-3 text-muted-foreground"></td>
-                                                    <td className="px-4 py-3 text-muted-foreground"></td>
-                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
-                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
-                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
-                                                    <td className="px-4 py-3 text-muted-foreground"></td>
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {activeAdminTab === 'attendance' && (
-                                                            <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
-                                                                plusOne.is_attended
-                                                                    ? 'border-sidebar-border/70 text-green-600'
-                                                                    : 'border-sidebar-border/70 text-red-600'
-                                                            }`}>
-                                                                <span className="text-lg">{plusOne.is_attended ? '✓' : '✕'}</span>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {/* Expanded tree view - show head + plus ones who meet age criteria */}
+                                            {isExpanded && (
+                                                <>
+                                                    {/* Head of family in expanded tree */}
+                                                    {(() => {
+                                                        const headAgeStr = attendee.user.birthdate ? calculateAge(attendee.user.birthdate) : null;
+                                                        const headAge = headAgeStr && headAgeStr !== 'N/A' ? parseInt(headAgeStr) : null;
+                                                        const headMeetsAge = headAge !== null && headAge >= minAgeFilter && headAge <= maxAgeFilter;
+
+                                                        if (headMeetsAge) {
+                                                            return (
+                                                                <tr
+                                                                    key={`head-${attendee.id}`}
+                                                                    className="border-b border-sidebar-border/70 bg-sidebar/30 hover:bg-sidebar/50 transition-colors"
+                                                                >
+                                                                    <td className="px-4 py-3 text-foreground pl-10">
+                                                                        {attendeeFirstName} {familyLastName}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">{headAgeStr}</td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
+                                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                    <td className="px-4 py-3 text-muted-foreground"></td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                                        {activeAdminTab === 'attendance' && (
+                                                                            <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
+                                                                                attendee.is_attended
+                                                                                    ? 'border-sidebar-border/70 text-green-600'
+                                                                                    : 'border-sidebar-border/70 text-red-600'
+                                                                            }`}>
+                                                                                <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
+
+                                                    {/* Plus ones - only show those who meet age criteria */}
+                                                    {hasPlusOnes && attendee.plus_ones.map((plusOne) => {
+                                                        const plusOneAge = plusOne.age ?? null;
+                                                        const plusOneMeetsAge = plusOneAge !== null && plusOneAge >= minAgeFilter && plusOneAge <= maxAgeFilter;
+
+                                                        if (!plusOneMeetsAge) {
+                                                            return null;
+                                                        }
+
+                                                        return (
+                                                            <tr
+                                                                key={`plus-one-${attendee.id}-${plusOne.full_name}`}
+                                                                className="border-b border-sidebar-border/70 bg-sidebar/30 hover:bg-sidebar/50 transition-colors"
+                                                            >
+                                                                <td className="px-4 py-3 text-foreground pl-10">
+                                                                    {familyLastName}, {plusOne.full_name?.split(' ')[0] || '—'}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-muted-foreground">{plusOne.age ?? '—'}</td>
+                                                                <td className="px-4 py-3 text-muted-foreground"></td>
+                                                                <td className="px-4 py-3 text-muted-foreground"></td>
+                                                                {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                                <td className="px-4 py-3 text-muted-foreground"></td>
+                                                                <td className="px-4 py-3 text-muted-foreground">
+                                                                    {activeAdminTab === 'attendance' && (
+                                                                        <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
+                                                                            plusOne.is_attended
+                                                                                ? 'border-sidebar-border/70 text-green-600'
+                                                                                : 'border-sidebar-border/70 text-red-600'
+                                                                        }`}>
+                                                                            <span className="text-lg">{plusOne.is_attended ? '✓' : '✕'}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </>
+                                            )}
                                         </>
                                     );
                                 })}
