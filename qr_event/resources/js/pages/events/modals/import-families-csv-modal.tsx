@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
 import { useState } from 'react';
+import { ImportService } from '../services/ImportService';
 
 interface ImportFamiliesCsvModalProps {
     open: boolean;
@@ -21,8 +21,9 @@ export default function ImportFamiliesCsvModal({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
-            if (!selectedFile.name.endsWith('.csv') && !selectedFile.type.includes('text')) {
-                setError('Please select a CSV file');
+            const validation = ImportService.validateCSVFile(selectedFile);
+            if (!validation.valid) {
+                setError(validation.error || 'Invalid file');
                 return;
             }
             setFile(selectedFile);
@@ -37,27 +38,18 @@ export default function ImportFamiliesCsvModal({
         }
 
         setIsImporting(true);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        router.post(
-            `/events/${event.id}/attendees/import-families`,
-            formData as any,
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setFile(null);
-                    setError(null);
-                    onClose();
-                },
-                onError: (errors: any) => {
-                    const fileError = errors.file?.[0] || errors?.file || 'Import failed. Please check your CSV file.';
-                    setError(Array.isArray(fileError) ? fileError.join(', ') : String(fileError));
-                    setIsImporting(false);
-                },
+        ImportService.importFamiliesCSV(event.id, file, {
+            onSuccess: () => {
+                setFile(null);
+                setError(null);
+                onClose();
             },
-        );
+            onError: (errors: any) => {
+                const fileError = errors.file?.[0] || errors?.file || 'Import failed. Please check your CSV file.';
+                setError(Array.isArray(fileError) ? fileError.join(', ') : String(fileError));
+                setIsImporting(false);
+            },
+        });
     };
 
     if (!open) {

@@ -130,7 +130,10 @@ export default function EventAttendeesAdmin() {
             payment_type: paymentType || null,
             payment_remarks: paymentRemarks || null,
         }, {
-            onSuccess: closePaymentModal,
+            onSuccess: () => {
+                closePaymentModal();
+                location.reload();
+            },
         });
     };
 
@@ -156,6 +159,106 @@ export default function EventAttendeesAdmin() {
         FamilyColorService.updateColor(colorModalAttendee.id, familyColor, {
             onSuccess: closeFamilyColorModal,
         });
+    };
+
+    const formatPhoneNumber = (phoneNumber: string): string => {
+        if (!phoneNumber) return '';
+        const digits = phoneNumber.replace(/\D/g, '');
+        if (digits.length < 10) return phoneNumber;
+        const areaCode = digits.substring(digits.length - 10, digits.length - 6);
+        const exchange = digits.substring(digits.length - 6, digits.length - 3);
+        const subscriber = digits.substring(digits.length - 3);
+        return `(${areaCode}) ${exchange}-${subscriber}`;
+    };
+
+    const exportToCSV = () => {
+        const headers = [
+            'Family Name',
+            'Member Name',
+            'Age',
+            'Contact Number',
+            'First Time',
+            'Walk-in',
+            'Paid',
+            'Amount Paid',
+            'Family Color',
+            'Status',
+            'Attended Time',
+        ];
+
+        const rows: string[][] = [];
+
+        allAttendees.forEach((attendee: Attendee) => {
+            const familyLastName = attendee.user.last_name;
+            const attendeeFirstName = attendee.user.first_name;
+            const attendeeAge = calculateAge(attendee.user.birthdate);
+            const formattedContact = formatPhoneNumber(attendee.user.contact_number || '');
+
+            // Add main attendee row
+            rows.push([
+                familyLastName,
+                attendeeFirstName,
+                attendeeAge === 'N/A' ? '' : attendeeAge,
+                formattedContact,
+                attendee.is_first_time ? 'Yes' : 'No',
+                attendee.is_walk_in ? 'Yes' : 'No',
+                attendee.is_paid ? 'Yes' : 'No',
+                attendee.amount_paid?.toString() || '0',
+                String(attendee.assigned_values?.family_color || '—'),
+                attendee.is_attended ? 'Attended' : 'Registered',
+                attendee.attended_time ? formatDateTime12Hour(attendee.attended_time) : '',
+            ]);
+
+            // Add plus ones as separate rows
+            if (attendee.plus_ones && attendee.plus_ones.length > 0) {
+                attendee.plus_ones.forEach((plusOne) => {
+                    rows.push([
+                        familyLastName,
+                        plusOne.full_name || '',
+                        plusOne.age?.toString() || '',
+                        formattedContact, // Include formatted contact number from main attendee
+                        '', // First time not applicable for plus ones
+                        '', // Walk-in not applicable for plus ones
+                        '', // Paid status not tracked for plus ones individually
+                        '', // Amount paid not tracked for plus ones individually
+                        String(attendee.assigned_values?.family_color || '—'),
+                        plusOne.is_attended ? 'Attended' : 'Registered',
+                        '', // Attended time not tracked for plus ones
+                    ]);
+                });
+            }
+        });
+
+        // Add empty row and export date
+        const exportDate = new Date();
+        const formattedDate = exportDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
+        rows.push([]);
+        rows.push([`Exported on: ${formattedDate}`]);
+
+        // Convert to CSV format
+        const csvContent = [
+            headers.map((h) => `"${h}"`).join(','),
+            rows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n'),
+        ].join('\n');
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `attendees-export-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const allAttendees = attendees?.data ?? [];
@@ -254,6 +357,15 @@ export default function EventAttendeesAdmin() {
                     </form>
 
                     <div className="mt-4 rounded-lg border border-sidebar-border/70 bg-sidebar p-4">
+                        <div className="mb-4 flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={exportToCSV}
+                                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                Export to CSV
+                            </button>
+                        </div>
                         <div className="flex flex-wrap items-center gap-6">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-medium text-muted-foreground">First time:</span>
@@ -384,9 +496,6 @@ export default function EventAttendeesAdmin() {
                                     <option value="blue">Blue</option>
                                     <option value="green">Green</option>
                                     <option value="yellow">Yellow</option>
-                                    <option value="purple">Purple</option>
-                                    <option value="orange">Orange</option>
-                                    <option value="pink">Pink</option>
                                 </select>
                             </div>
 
@@ -492,13 +601,17 @@ export default function EventAttendeesAdmin() {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-muted-foreground">
-                                                                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                                        attendee.is_paid
-                                                                            ? 'bg-green-100 text-green-800'
-                                                                            : 'bg-amber-100 text-amber-800'
-                                                                    }`}>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openPaymentModal(attendee)}
+                                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                                            attendee.is_paid
+                                                                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                                                        }`}
+                                                                    >
                                                                         {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                                    </span>
+                                                                    </button>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
                                                             </>
@@ -572,27 +685,17 @@ export default function EventAttendeesAdmin() {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-muted-foreground">
-                                                                    {userCapabilities?.canManagePayments ? (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => openPaymentModal(attendee)}
-                                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                                                attendee.is_paid
-                                                                                    ? 'bg-green-100 text-green-800'
-                                                                                    : 'bg-amber-100 text-amber-800'
-                                                                            }`}
-                                                                        >
-                                                                            {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                                        </button>
-                                                                    ) : (
-                                                                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openPaymentModal(attendee)}
+                                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
                                                                             attendee.is_paid
-                                                                                ? 'bg-green-100 text-green-800'
-                                                                                : 'bg-amber-100 text-amber-800'
-                                                                        }`}>
-                                                                            {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                                        </span>
-                                                                    )}
+                                                                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                                                        }`}
+                                                                    >
+                                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                                    </button>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
                                                             </>
