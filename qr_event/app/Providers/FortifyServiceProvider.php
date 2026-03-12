@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\CustomLoginResponse;
+use App\Http\Responses\CustomLogoutResponse;
 use App\Models\QrCode;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +16,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -27,6 +29,9 @@ class FortifyServiceProvider extends ServiceProvider
     {
         // Bind custom login response to Fortify's contract
         $this->app->bind(LoginResponse::class, CustomLoginResponse::class);
+
+        // Bind custom logout response to Fortify's contract
+        $this->app->bind(LogoutResponse::class, CustomLogoutResponse::class);
     }
 
     /**
@@ -47,7 +52,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::authenticateUsing(function (Request $request) {
-            $isAdminLogin = $request->boolean('admin_login');
+            $isAdminLogin = $request->boolean('admin_login') || $request->filled('email');
             $redirectUrl = (string) $request->input('redirect_url', '');
             $redirectPath = parse_url($redirectUrl, PHP_URL_PATH) ?: $redirectUrl;
             $loginWithBirthdate = false;
@@ -61,8 +66,41 @@ class FortifyServiceProvider extends ServiceProvider
                     $loginWithBirthdate = (bool) ($qrCode?->event?->login_requires_birthdate ?? false);
                 }
             }
+
+            if ($isAdminLogin) {
+                // For admin login, accept only email
+                $email = $request->string('email')->toString();
+                $password = $request->string('password')->toString();
+
+                // Validate email format
+                if (empty($email) || empty($password)) {
+                    return null;
+                }
+
+                if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return null;
+                }
+
+                $user = User::query()->where('email', $email)->first();
+
+                if (! $user) {
+                    return null;
+                }
+
+                if (! $user->isAdmin()) {
+                    return null;
+                }
+
+                return Hash::check($password, $user->password) ? $user : null;
+            }
+
+            // User login with contact number
             $rawContact = trim($request->string('contact_number')->toString());
             $digitsOnly = preg_replace('/\D+/', '', $rawContact) ?? '';
+
+            if (empty($rawContact)) {
+                return null;
+            }
 
             $contactCandidates = collect([
                 $rawContact,
@@ -75,13 +113,6 @@ class FortifyServiceProvider extends ServiceProvider
                     : null,
             ])->filter()->unique()->values();
 
-            $request->validate([
-                'contact_number' => ['required', 'string'],
-                'password' => $isAdminLogin
-                    ? ['required', 'string']
-                    : ($loginWithBirthdate ? ['required', 'date_format:Y-m-d'] : ['nullable', 'string']),
-            ]);
-
             $user = User::query()
                 ->whereIn('contact_number', $contactCandidates->all())
                 ->first();
@@ -90,18 +121,8 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            if ($isAdminLogin && ! $user->isAdmin()) {
+            if ($user->isAdmin()) {
                 return null;
-            }
-
-            if (! $isAdminLogin && $user->isAdmin()) {
-                return null;
-            }
-
-            if ($isAdminLogin) {
-                return Hash::check($request->string('password')->toString(), $user->password)
-                    ? $user
-                    : null;
             }
 
             if (! $loginWithBirthdate) {
@@ -160,9 +181,12 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $isAdminLogin = $request->boolean('admin_login') || $request->filled('email');
+            $field = $isAdminLogin ? 'email' : Fortify::username();
+            $fieldValue = $request->input($field, '');
+            $throttleKey = Str::transliterate(Str::lower($fieldValue).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(60)->by($throttleKey);
         });
     }
 }

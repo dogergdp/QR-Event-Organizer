@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { formatDateTime12Hour } from '@/utils/dateUtils';
+import { formatDateTime12Hour, calculateAge } from '@/utils/dateUtils';
 import AddAttendeeManualModal from './modals/add-attendee-manual-modal';
 import AttendeePlusOnesModal from './modals/attendee-plus-ones-modal';
 import EditFamilyColorModal from './modals/edit-family-color-modal';
@@ -16,6 +16,7 @@ export default function EventAttendeesAdmin() {
     const { event, attendees, users = [], filters, userCapabilities } = usePage<any>().props as EventShowProps;
 
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(null);
+    const [expandedFamilies, setExpandedFamilies] = useState<Set<number>>(new Set());
     const [editablePlusOnes, setEditablePlusOnes] = useState<Array<{
         id?: string;
         full_name?: string;
@@ -44,6 +45,9 @@ export default function EventAttendeesAdmin() {
     const firstTimeFilter = filters?.first_time ?? 'all';
     const walkInFilter = filters?.walk_in ?? 'all';
     const paidFilter = filters?.paid ?? 'all';
+    const colorFilter = filters?.color ?? 'all';
+    const minAgeFilter = filters?.min_age ? Number(filters.min_age) : 0;
+    const maxAgeFilter = filters?.max_age ? Number(filters.max_age) : 150;
     const searchValue = filters?.search ?? '';
     const attendeesUrl = `/events/${event.id}/attendees`;
 
@@ -61,6 +65,14 @@ export default function EventAttendeesAdmin() {
 
     const setPaidFilter = (filter: 'all' | 'yes' | 'no') => {
         router.get(attendeesUrl, { ...filters, paid: filter }, { preserveState: true, replace: true });
+    };
+
+    const setColorFilter = (color: string) => {
+        router.get(attendeesUrl, { ...filters, color }, { preserveState: true, replace: true });
+    };
+
+    const setAgeRangeFilter = (minAge: number, maxAge: number) => {
+        router.get(attendeesUrl, { ...filters, min_age: minAge, max_age: maxAge }, { preserveState: true, replace: true });
     };
 
     const calculateCostByAge = (age: number | undefined | null) => {
@@ -98,6 +110,16 @@ export default function EventAttendeesAdmin() {
                 is_attended: !!plusOne.is_attended,
             })),
         );
+    };
+
+    const toggleFamily = (attendeeId: number) => {
+        const newExpanded = new Set(expandedFamilies);
+        if (newExpanded.has(attendeeId)) {
+            newExpanded.delete(attendeeId);
+        } else {
+            newExpanded.add(attendeeId);
+        }
+        setExpandedFamilies(newExpanded);
     };
 
     const openPaymentModal = (attendee: Attendee) => {
@@ -359,6 +381,9 @@ export default function EventAttendeesAdmin() {
                         <input type="hidden" name="first_time" value={firstTimeFilter} />
                         <input type="hidden" name="walk_in" value={walkInFilter} />
                         <input type="hidden" name="paid" value={paidFilter} />
+                        <input type="hidden" name="color" value={colorFilter} />
+                        <input type="hidden" name="min_age" value={minAgeFilter} />
+                        <input type="hidden" name="max_age" value={maxAgeFilter} />
                         <input
                             type="text"
                             name="search"
@@ -492,6 +517,47 @@ export default function EventAttendeesAdmin() {
                                     </button>
                                 </div>
                             </div>
+
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-muted-foreground">Family Color:</span>
+                                <select
+                                    value={colorFilter}
+                                    onChange={(e) => setColorFilter(e.target.value)}
+                                    className="h-7 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                >
+                                    <option value="all">All Colors</option>
+                                    <option value="red">Red</option>
+                                    <option value="blue">Blue</option>
+                                    <option value="green">Green</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="purple">Purple</option>
+                                    <option value="orange">Orange</option>
+                                    <option value="pink">Pink</option>
+                                </select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-muted-foreground">Age Range:</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="150"
+                                    value={minAgeFilter}
+                                    onChange={(e) => setAgeRangeFilter(Number(e.target.value), maxAgeFilter)}
+                                    placeholder="Min"
+                                    className="h-7 w-16 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                />
+                                <span className="text-xs text-muted-foreground">to</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="150"
+                                    value={maxAgeFilter}
+                                    onChange={(e) => setAgeRangeFilter(minAgeFilter, Number(e.target.value))}
+                                    placeholder="Max"
+                                    className="h-7 w-16 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -499,7 +565,8 @@ export default function EventAttendeesAdmin() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
-                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Name</th>
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Family Name</th>
+                                    <th className="px-4 py-2 text-left font-semibold text-foreground">Age</th>
                                     <th className="px-4 py-2 text-left font-semibold text-foreground">Contact</th>
                                     <th className="px-4 py-2 text-left font-semibold text-foreground">First Time</th>
                                     {activeAdminTab === 'rsvp' && (
@@ -518,109 +585,169 @@ export default function EventAttendeesAdmin() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {allAttendees.map((attendee: Attendee) => (
-                                    <tr
-                                        key={attendee.id}
-                                        className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
-                                    >
-                                        <td className="px-4 py-3 text-foreground">
-                                            <button
-                                                type="button"
-                                                onClick={() => openAttendeeModal(attendee)}
-                                                className="text-left transition-colors hover:text-primary hover:underline"
+                                {allAttendees.map((attendee: Attendee) => {
+                                    const familyLastName = attendee.user.last_name;
+                                    const attendeeFirstName = attendee.user.first_name;
+                                    const attendeeAge = calculateAge(attendee.user.birthdate);
+                                    const isExpanded = expandedFamilies.has(attendee.id);
+                                    const hasPlusOnes = attendee.plus_ones && attendee.plus_ones.length > 0;
+                                    
+                                    return (
+                                        <>
+                                            {/* Main attendee row */}
+                                            <tr
+                                                key={`attendee-${attendee.id}`}
+                                                className="border-b border-sidebar-border/70 transition-colors hover:bg-sidebar/50"
                                             >
-                                                {attendee.user.first_name} {attendee.user.last_name}
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
-                                        <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
+                                                <td className="px-4 py-3 text-foreground">
+                                                    <div className="flex items-center gap-2">
+                                                        {hasPlusOnes && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleFamily(attendee.id)}
+                                                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                                                title={isExpanded ? 'Collapse' : 'Expand'}
+                                                            >
+                                                                {isExpanded ? '▼' : '▶'}
+                                                            </button>
+                                                        )}
+                                                        {!hasPlusOnes && <span className="w-4"></span>}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openAttendeeModal(attendee)}
+                                                            className="text-left transition-colors hover:text-primary hover:underline"
+                                                        >
+                                                            {isExpanded ? `${attendeeFirstName} ${familyLastName}` : familyLastName}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-muted-foreground">{attendeeAge}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{attendee.user.contact_number}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{attendee.is_first_time ? 'Yes' : 'No'}</td>
 
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                        attendee.is_walk_in
-                                                            ? 'bg-purple-100 text-purple-800'
-                                                            : 'bg-gray-100 text-gray-800'
-                                                    }`}
-                                                >
-                                                    {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
-                                                </span>
-                                            </td>
-                                        )}
-
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                {userCapabilities?.canManagePayments ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openPaymentModal(attendee)}
-                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                            attendee.is_paid
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-amber-100 text-amber-800'
-                                                        }`}
-                                                    >
-                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                    </button>
-                                                ) : (
-                                                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                                        attendee.is_paid
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-amber-100 text-amber-800'
-                                                    }`}>
-                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                    </span>
+                                                {activeAdminTab === 'rsvp' && (
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                attendee.is_walk_in
+                                                                    ? 'bg-purple-100 text-purple-800'
+                                                                    : 'bg-gray-100 text-gray-800'
+                                                            }`}
+                                                        >
+                                                            {attendee.is_walk_in ? 'Walk-in' : 'Regular'}
+                                                        </span>
+                                                    </td>
                                                 )}
-                                            </td>
-                                        )}
 
-                                        {activeAdminTab === 'rsvp' && (
-                                            <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
-                                        )}
+                                                {activeAdminTab === 'rsvp' && (
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        {userCapabilities?.canManagePayments ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openPaymentModal(attendee)}
+                                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                                    attendee.is_paid
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : 'bg-amber-100 text-amber-800'
+                                                                }`}
+                                                            >
+                                                                {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                            </button>
+                                                        ) : (
+                                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                                                attendee.is_paid
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-amber-100 text-amber-800'
+                                                            }`}>
+                                                                {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                )}
 
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
-                                                    Color: {String(attendee.assigned_values?.family_color ?? '—')}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openFamilyColorModal(attendee)}
-                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
-                                                >
-                                                    Edit Color
-                                                </button>
-                                            </div>
-                                        </td>
+                                                {activeAdminTab === 'rsvp' && (
+                                                    <td className="px-4 py-3 text-muted-foreground">₱{attendee.amount_paid ?? '0'}</td>
+                                                )}
 
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {activeAdminTab === 'attendance' ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openAttendanceModal(attendee)}
-                                                    className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50 transition-colors"
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+                                                            Color: {String(attendee.assigned_values?.family_color ?? '—')}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openFamilyColorModal(attendee)}
+                                                            className="rounded-md border border-sidebar-border/70 px-2 py-1 text-xs font-medium text-foreground hover:bg-sidebar/50"
+                                                        >
+                                                            Edit Color
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    {activeAdminTab === 'attendance' ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openAttendanceModal(attendee)}
+                                                            className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                                                                attendee.is_attended
+                                                                    ? 'border-sidebar-border/70 text-green-600 hover:text-green-700'
+                                                                    : 'border-sidebar-border/70 text-red-600 hover:text-red-700'
+                                                            }`}
+                                                        >
+                                                            <span className="text-lg">{attendee.is_attended ? '✓' : '✕'}</span>
+                                                            {attendee.attended_time
+                                                                ? formatDateTime12Hour(attendee.attended_time)
+                                                                : '—'}
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openAttendanceModal(attendee)}
+                                                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                                attendee.is_attended
+                                                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                                    : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                                            }`}
+                                                        >
+                                                            {attendee.is_attended ? 'Attended' : 'Registered Only'}
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+
+                                            {/* Plus ones rows - only shown when expanded */}
+                                            {isExpanded && hasPlusOnes && attendee.plus_ones.map((plusOne, index) => (
+                                                <tr
+                                                    key={`plus-one-${attendee.id}-${index}`}
+                                                    className="border-b border-sidebar-border/70 bg-sidebar/30 hover:bg-sidebar/50 transition-colors"
                                                 >
-                                                    {attendee.attended_time
-                                                        ? formatDateTime12Hour(attendee.attended_time)
-                                                        : '—'}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openAttendanceModal(attendee)}
-                                                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                        attendee.is_attended
-                                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                                    }`}
-                                                >
-                                                    {attendee.is_attended ? 'Attended' : 'Registered Only'}
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                                                    <td className="px-4 py-3 text-foreground pl-10">
+                                                        <span className="text-muted-foreground">└─</span> {familyLastName}, {plusOne.full_name?.split(' ')[0] || '—'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted-foreground">{plusOne.age ?? '—'}</td>
+                                                    <td className="px-4 py-3 text-muted-foreground"></td>
+                                                    <td className="px-4 py-3 text-muted-foreground"></td>
+                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                    {activeAdminTab === 'rsvp' && <td className="px-4 py-3 text-muted-foreground"></td>}
+                                                    <td className="px-4 py-3 text-muted-foreground"></td>
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        {activeAdminTab === 'attendance' && (
+                                                            <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
+                                                                plusOne.is_attended
+                                                                    ? 'border-sidebar-border/70 text-green-600'
+                                                                    : 'border-sidebar-border/70 text-red-600'
+                                                            }`}>
+                                                                <span className="text-lg">{plusOne.is_attended ? '✓' : '✕'}</span>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

@@ -50,12 +50,16 @@ class FamilyImportService
             return;
         }
 
+        // Calculate birthdate from age
+        $birthdate = $this->calculateBirthdateFromAge((int) $head['age']);
+
         // Create or find user for family head (don't update existing users)
         $user = User::firstOrCreate(
             ['contact_number' => $head['contact_number']],
             [
                 'first_name' => $head['first_name'],
                 'last_name' => $head['surname'],
+                'birthdate' => $birthdate,
                 'password' => Hash::make('password'),
             ]
         );
@@ -95,5 +99,16 @@ class FamilyImportService
 
         // Update attendee with plus_ones
         $attendee->update(['plus_ones' => $plusOnes]);
+    }
+
+    /**
+     * Calculate a birthdate from age.
+     * Returns a date that would result in the specified age.
+     */
+    private function calculateBirthdateFromAge(int $age): string
+    {
+        $today = today();
+
+        return $today->subYears($age)->format('Y-m-d');
     }
 }

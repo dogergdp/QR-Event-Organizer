@@ -160,7 +160,7 @@ class User extends Authenticatable
      */
     public function canManageAttendees(): bool
     {
-        return $this->isSuperAdmin() || $this->hasRole('admin-payment');
+        return $this->isSuperAdmin();
     }
 
     /**

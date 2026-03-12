@@ -101,6 +101,9 @@ export interface EventShowProps {
         first_time?: 'all' | 'yes' | 'no';
         walk_in?: 'all' | 'yes' | 'no';
         paid?: 'all' | 'yes' | 'no';
+        color?: string;
+        min_age?: string | number;
+        max_age?: string | number;
         search?: string;
     };
     userCapabilities?: {

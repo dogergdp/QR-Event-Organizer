@@ -24,22 +24,24 @@ class DatabaseSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
         // Super Admin (You) - Full system control
-        $superAdmin = User::firstOrCreate(
+        $superAdmin = User::updateOrCreate(
             ['contact_number' => '09123456789'],
             [
                 'first_name' => 'Admin',
                 'last_name' => 'Coordinator',
+                'email' => 'admin@qrevent.local',
                 'password' => Hash::make('P@ssw0rd'),
             ]
         );
         $superAdmin->roles()->syncWithoutDetaching([$superAdminRole->id, $adminRole->id]);
 
         // Payment Admin (1 person) - Can manage payments and full attendee operations
-        $paymentAdmin = User::firstOrCreate(
+        $paymentAdmin = User::updateOrCreate(
             ['contact_number' => '09987654321'],
             [
                 'first_name' => 'Payment',
                 'last_name' => 'Manager',
+                'email' => 'payment@qrevent.local',
                 'password' => Hash::make('P@ssw0rd'),
             ]
         );
@@ -47,18 +49,19 @@ class DatabaseSeeder extends Seeder
 
         // User Admins (4 people) - Can only mark attendance
         $userAdminNames = [
-            ['first' => 'John', 'last' => 'Smith', 'contact' => '09111111111'],
-            ['first' => 'Jane', 'last' => 'Doe', 'contact' => '09222222222'],
-            ['first' => 'Michael', 'last' => 'Johnson', 'contact' => '09333333333'],
-            ['first' => 'Sarah', 'last' => 'Williams', 'contact' => '09444444444'],
+            ['first' => 'John', 'last' => 'Smith', 'contact' => '09111111111', 'email' => 'john@qrevent.local'],
+            ['first' => 'Jane', 'last' => 'Doe', 'contact' => '09222222222', 'email' => 'jane@qrevent.local'],
+            ['first' => 'Michael', 'last' => 'Johnson', 'contact' => '09333333333', 'email' => 'michael@qrevent.local'],
+            ['first' => 'Sarah', 'last' => 'Williams', 'contact' => '09444444444', 'email' => 'sarah@qrevent.local'],
         ];
 
         foreach ($userAdminNames as $name) {
-            $userAdmin = User::firstOrCreate(
+            $userAdmin = User::updateOrCreate(
                 ['contact_number' => $name['contact']],
                 [
                     'first_name' => $name['first'],
                     'last_name' => $name['last'],
+                    'email' => $name['email'],
                     'password' => Hash::make('P@ssw0rd'),
                 ]
             );

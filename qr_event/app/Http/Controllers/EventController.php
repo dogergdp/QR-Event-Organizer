@@ -114,6 +114,9 @@ class EventController extends Controller
         $isFirstTime = $request->query('first_time');
         $isWalkIn = $request->query('walk_in');
         $isPaid = $request->query('paid');
+        $colorFilter = $request->query('color');
+        $minAge = (int) $request->query('min_age', 0);
+        $maxAge = (int) $request->query('max_age', 150);
         $search = trim((string) $request->query('search', ''));
 
         $attendees = $event->attendees()
@@ -134,33 +137,42 @@ class EventController extends Controller
             ->when($isWalkIn === 'no', fn ($q) => $q->where('is_walk_in', false))
             ->when($isPaid === 'yes', fn ($q) => $q->where('is_paid', true))
             ->when($isPaid === 'no', fn ($q) => $q->where('is_paid', false))
+            ->when($colorFilter && $colorFilter !== 'all', fn ($q) => $q->whereJsonContains('assigned_values->family_color', $colorFilter))
+            ->when($minAge > 0 || $maxAge < 150, function ($query) use ($minAge, $maxAge) {
+                return $query->whereRaw(
+                    "YEAR(CURDATE()) - YEAR(users.birthdate) - (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(users.birthdate, '%m%d')) BETWEEN ? AND ?",
+                    [$minAge, $maxAge]
+                );
+            })
             ->latest('updated_at')
             ->paginate(10)
-            ->through(fn ($attendee) => [
-                'id' => $attendee->id,
-                'user_id' => $attendee->user_id,
-                'is_attended' => $attendee->is_attended,
-                'is_first_time' => (bool) $attendee->is_first_time,
-                'is_paid' => (bool) $attendee->is_paid,
-                'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
-                'amount_paid' => $attendee->amount_paid,
-                'payment_type' => $attendee->payment_type,
-                'payment_remarks' => $attendee->payment_remarks,
-                'plus_ones' => $attendee->plus_ones ?? [],
-                'assigned_values' => $attendee->assigned_values ?? [],
-                'attended_time' => $attendee->attended_time,
-                'user' => [
-                    'id' => $attendee->user->id,
-                    'first_name' => $attendee->user->first_name,
-                    'last_name' => $attendee->user->last_name,
-                    'contact_number' => $attendee->user->contact_number,
-                    'birthdate' => $attendee->user->birthdate,
-                    'is_first_time' => (bool) $attendee->user->is_first_time,
-                    'remarks' => $attendee->user->remarks,
-                    'want_to_join_dg' => $attendee->user->want_to_join_dg,
-                ],
-            ])
-            ->withQueryString();
+            ->withQueryString()
+            ->through(function ($attendee) {
+                return [
+                    'id' => $attendee->id,
+                    'user_id' => $attendee->user_id,
+                    'is_attended' => $attendee->is_attended,
+                    'is_first_time' => (bool) $attendee->is_first_time,
+                    'is_paid' => (bool) $attendee->is_paid,
+                    'is_walk_in' => (bool) ($attendee->is_walk_in ?? false),
+                    'amount_paid' => $attendee->amount_paid,
+                    'payment_type' => $attendee->payment_type,
+                    'payment_remarks' => $attendee->payment_remarks,
+                    'plus_ones' => $attendee->plus_ones ?? [],
+                    'assigned_values' => $attendee->assigned_values ?? [],
+                    'attended_time' => $attendee->attended_time,
+                    'user' => [
+                        'id' => $attendee->user->id,
+                        'first_name' => $attendee->user->first_name,
+                        'last_name' => $attendee->user->last_name,
+                        'contact_number' => $attendee->user->contact_number,
+                        'birthdate' => $attendee->user->birthdate,
+                        'is_first_time' => (bool) $attendee->user->is_first_time,
+                        'remarks' => $attendee->user->remarks,
+                        'want_to_join_dg' => $attendee->user->want_to_join_dg,
+                    ],
+                ];
+            });
 
         return Inertia::render('events/attendees-admin', [
             'event' => $event,
@@ -174,6 +186,9 @@ class EventController extends Controller
                 'first_time' => $isFirstTime ?? 'all',
                 'walk_in' => $isWalkIn ?? 'all',
                 'paid' => $isPaid ?? 'all',
+                'color' => $colorFilter ?? 'all',
+                'min_age' => $minAge,
+                'max_age' => $maxAge,
                 'search' => $search,
             ],
             'userCapabilities' => [
@@ -523,11 +538,11 @@ class EventController extends Controller
         return redirect()->route('events.show', $event->id);
     }
 
-    public function updateAttendance(Request $request, Event $event, Attendee $attendee): \Illuminate\Http\JsonResponse
+    public function updateAttendance(Request $request, Event $event, Attendee $attendee): RedirectResponse
     {
         // Verify attendee belongs to event
         if ($attendee->event_id != $event->id) {
-            return response()->json(['error' => 'Attendee not found for this event'], 404);
+            return back()->withErrors(['error' => 'Attendee not found for this event']);
         }
 
         // Check authorization
@@ -574,6 +589,6 @@ class EventController extends Controller
 
         LiveDashboardService::notify('attendance_confirmed', $event->id);
 
-        return response()->json(['message' => 'Attendance updated successfully']);
+        return back()->with('success', 'Attendance updated successfully.');
     }
 }
