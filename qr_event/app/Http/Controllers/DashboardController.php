@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->canManageAttendees()) {
+        if ($user->isAdmin()) {
             return $this->renderAdminDashboard($user);
         }
 

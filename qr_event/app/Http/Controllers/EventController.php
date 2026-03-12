@@ -109,6 +109,7 @@ class EventController extends Controller
 
     public function showAttendees(Request $request, Event $event): Response
     {
+        $user = $request->user();
         $status = $request->query('status', 'rsvp');
         $isFirstTime = $request->query('first_time');
         $isWalkIn = $request->query('walk_in');
@@ -174,6 +175,11 @@ class EventController extends Controller
                 'walk_in' => $isWalkIn ?? 'all',
                 'paid' => $isPaid ?? 'all',
                 'search' => $search,
+            ],
+            'userCapabilities' => [
+                'canManageAttendees' => $user?->canManageAttendees() ?? false,
+                'canManagePayments' => $user?->canManagePayments() ?? false,
+                'canMarkAttendance' => $user?->canMarkAttendance() ?? false,
             ],
         ]);
     }
@@ -307,8 +313,12 @@ class EventController extends Controller
     /**
      * Show the admin edit event page.
      */
-    public function edit(Event $event): Response
+    public function edit(Request $request, Event $event): Response
     {
+        // Only super-admin and admin-payment can edit events, not user-admin
+        $user = $request->user();
+        abort_unless($user?->canManagePayments(), 403, 'You do not have permission to edit events.');
+
         $ministries = \App\Models\Ministry::all();
 
         return Inertia::render('events/edit', [
@@ -322,6 +332,10 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event): RedirectResponse
     {
+        // Only super-admin and admin-payment can edit events
+        $user = $request->user();
+        abort_unless($user?->canManagePayments(), 403, 'You do not have permission to edit events.');
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^0-9]*$/'],
             'date' => ['required', 'date'],
@@ -331,6 +345,7 @@ class EventController extends Controller
             'location' => ['required', 'string', 'max:255'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'ministry_id' => ['nullable', 'exists:ministries,id'],
+            'login_requires_birthdate' => ['sometimes', 'boolean'],
             'is_finished' => ['sometimes', 'boolean'],
             'is_ongoing' => ['sometimes', 'boolean'],
         ]);
@@ -356,6 +371,7 @@ class EventController extends Controller
         }
         $validated['is_finished'] = $validated['is_finished'] ?? false;
         $validated['is_ongoing'] = $validated['is_ongoing'] ?? false;
+        $validated['login_requires_birthdate'] = $validated['login_requires_birthdate'] ?? false;
 
         $event->update($validated);
 

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import type { Attendee, EventShowProps } from './types';
 
 export default function ShowEventAdmin() {
-    const { event, attendees, filters } = usePage<any>()
+    const { event, attendees, filters, userCapabilities } = usePage<any>()
         .props as EventShowProps;
 
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(
@@ -185,13 +185,15 @@ export default function ShowEventAdmin() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <Link
-                                href={`/events/${event.id}/edit`}
-                                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90"
-                            >
-                                <Pencil className="h-4 w-4" />
-                                Edit Event
-                            </Link>
+                            {userCapabilities?.canManagePayments && (
+                                <Link
+                                    href={`/events/${event.id}/edit`}
+                                    className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                    Edit Event
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -207,53 +209,6 @@ export default function ShowEventAdmin() {
                         </p>
                     </div>
                 )}
-
-                <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
-                    <div className="flex items-center justify-between gap-4">
-                        <div>
-                            <h2 className="text-base font-semibold text-foreground">Login Method for This Event</h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Choose how attendees log in from this event's QR.
-                            </p>
-                        </div>
-                        <div className="inline-flex rounded-md border border-sidebar-border/70 p-1">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    router.patch(
-                                        `/events/${event.id}/login-method`,
-                                        { login_requires_birthdate: false },
-                                        { preserveScroll: true },
-                                    );
-                                }}
-                                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                                    !event.login_requires_birthdate
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                Use Number Only
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    router.patch(
-                                        `/events/${event.id}/login-method`,
-                                        { login_requires_birthdate: true },
-                                        { preserveScroll: true },
-                                    );
-                                }}
-                                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                                    event.login_requires_birthdate
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                Require Birthdate
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6">
                     <div className="flex flex-wrap items-center justify-between gap-4">

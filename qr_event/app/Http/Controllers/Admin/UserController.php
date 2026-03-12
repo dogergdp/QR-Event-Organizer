@@ -60,6 +60,10 @@ class UserController extends Controller
 
     public function index(Request $request): Response
     {
+        // Deny access to user-admins
+        $user = $request->user();
+        abort_unless($user?->canManagePayments(), 403, 'You do not have permission to access this page.');
+
         $search = trim((string) $request->query('search', ''));
         $sort = (string) $request->query('sort', 'created_at');
         $direction = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';

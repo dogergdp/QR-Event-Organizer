@@ -42,13 +42,17 @@ export function AppSidebar() {
                 icon: LayoutGrid,
             },
         ]),
-        ...(canAccessFullAdmin
+        ...(isUserAdmin || canAccessFullAdmin
             ? [
                   {
                       title: 'Events',
                       href: '/events',
                       icon: CalendarPlus,
                   },
+              ]
+            : []),
+        ...(canAccessFullAdmin && !isUserAdmin
+            ? [
                   {
                       title: 'Registered Users',
                       href: '/admin/users',
@@ -65,21 +69,7 @@ export function AppSidebar() {
                       icon: QrCode,
                   },
               ]
-            : (isUserAdmin
-                ? [
-                      {
-                          title: 'Event Attendees',
-                          href: adminAttendees(),
-                          icon: UserCheck,
-                      },
-                  ]
-                : [
-                      {
-                          title: 'Dashboard',
-                          href: dashboard(),
-                          icon: LayoutGrid,
-                      },
-                  ])),
+            : []),
     ];
 
     return (

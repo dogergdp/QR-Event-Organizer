@@ -20,6 +20,10 @@ class QrCodeController extends Controller
      */
     public function listAll(Request $request): Response
     {
+        // Deny access to user-admins
+        $user = $request->user();
+        abort_unless($user?->canManagePayments(), 403, 'You do not have permission to access this page.');
+
         $showFinished = $request->query('show_finished', '0') === '1';
 
         $qrCodes = QrCode::query()->with('event')

@@ -20,6 +20,7 @@ type EventData = {
     banner_image?: string | null;
     is_finished?: boolean;
     is_ongoing?: boolean;
+    login_requires_birthdate?: boolean;
 };
 
 export default function EditEvent({ event }: { event: EventData }) {
@@ -34,6 +35,7 @@ export default function EditEvent({ event }: { event: EventData }) {
         location: event.location,
         is_finished: event.is_finished ?? false,
         is_ongoing: event.is_ongoing ?? false,
+        login_requires_birthdate: event.login_requires_birthdate ?? false,
     });
     const [bannerImage, setBannerImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string>('');
@@ -74,6 +76,7 @@ export default function EditEvent({ event }: { event: EventData }) {
         formData.append('location', data.location);
         formData.append('is_finished', data.is_finished ? '1' : '0');
         formData.append('is_ongoing', data.is_ongoing ? '1' : '0');
+        formData.append('login_requires_birthdate', data.login_requires_birthdate ? '1' : '0');
         if (bannerImage) {
             formData.append('banner_image', bannerImage);
         }
@@ -272,6 +275,20 @@ export default function EditEvent({ event }: { event: EventData }) {
                                 }}
                             />
                             <Label htmlFor="is_ongoing">Mark as Ongoing</Label>
+                        </div>
+
+                        <div className="flex items-center gap-2 md:col-span-2">
+                            <Checkbox
+                                id="login_requires_birthdate"
+                                checked={data.login_requires_birthdate}
+                                onCheckedChange={(checked) => {
+                                    setData(prev => ({ 
+                                        ...prev, 
+                                        login_requires_birthdate: checked === true
+                                    }));
+                                }}
+                            />
+                            <Label htmlFor="login_requires_birthdate">Require Birthdate for Login</Label>
                         </div>
                     </div>
 

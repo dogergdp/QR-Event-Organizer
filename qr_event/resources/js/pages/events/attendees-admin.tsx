@@ -13,7 +13,7 @@ import ImportFamiliesCsvModal from './modals/import-families-csv-modal';
 import type { Attendee, EventShowProps } from './types';
 
 export default function EventAttendeesAdmin() {
-    const { event, attendees, users = [], filters } = usePage<any>().props as EventShowProps;
+    const { event, attendees, users = [], filters, userCapabilities } = usePage<any>().props as EventShowProps;
 
     const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(null);
     const [editablePlusOnes, setEditablePlusOnes] = useState<Array<{
@@ -299,20 +299,24 @@ export default function EventAttendeesAdmin() {
                     <div className="mb-4 flex items-center justify-between gap-4">
                         <h2 className="text-xl font-semibold text-foreground">Event Attendees</h2>
                         <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setImportFamiliesModalOpen(true)}
-                                className="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
-                            >
-                                Import Families CSV
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setAddAttendeeModalOpen(true)}
-                                className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            >
-                                Add Attendee Manually
-                            </button>
+                            {userCapabilities?.canManagePayments && (
+                                <button
+                                    type="button"
+                                    onClick={() => setImportFamiliesModalOpen(true)}
+                                    className="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                                >
+                                    Import Families CSV
+                                </button>
+                            )}
+                            {userCapabilities?.canManageAttendees && (
+                                <button
+                                    type="button"
+                                    onClick={() => setAddAttendeeModalOpen(true)}
+                                    className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                >
+                                    Add Attendee Manually
+                                </button>
+                            )}
                             <Link
                                 href={`/events/${event.id}`}
                                 className="rounded-md border border-sidebar-border/70 px-3 py-2 text-sm text-foreground hover:bg-sidebar/50"
@@ -547,17 +551,27 @@ export default function EventAttendeesAdmin() {
 
                                         {activeAdminTab === 'rsvp' && (
                                             <td className="px-4 py-3 text-muted-foreground">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openPaymentModal(attendee)}
-                                                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                {userCapabilities?.canManagePayments ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openPaymentModal(attendee)}
+                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                            attendee.is_paid
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-amber-100 text-amber-800'
+                                                        }`}
+                                                    >
+                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                    </button>
+                                                ) : (
+                                                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
                                                         attendee.is_paid
                                                             ? 'bg-green-100 text-green-800'
                                                             : 'bg-amber-100 text-amber-800'
-                                                    }`}
-                                                >
-                                                    {attendee.is_paid ? 'Paid' : 'Unpaid'}
-                                                </button>
+                                                    }`}>
+                                                        {attendee.is_paid ? 'Paid' : 'Unpaid'}
+                                                    </span>
+                                                )}
                                             </td>
                                         )}
 

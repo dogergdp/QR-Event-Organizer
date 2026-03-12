@@ -103,4 +103,9 @@ export interface EventShowProps {
         paid?: 'all' | 'yes' | 'no';
         search?: string;
     };
+    userCapabilities?: {
+        canManageAttendees: boolean;
+        canManagePayments: boolean;
+        canMarkAttendance: boolean;
+    };
 }
