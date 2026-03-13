@@ -165,14 +165,6 @@ export default function EventAttendeesAdmin() {
     openAttendeeModal(attendee);
   };
 
-  const handleResetFilters = () => {
-    setFirstTimeFilter('all');
-    setWalkInFilter('all');
-    setPaidFilter('all');
-    setColorFilter('all');
-    setAgeRangeFilter(0, 150);
-  };
-
   const exportToCSV = () => {
     const headers = [
       'Family Name',
@@ -250,7 +242,7 @@ export default function EventAttendeesAdmin() {
     downloadCSV(csvContent, filename);
   };
 
-  const allAttendees = Array.isArray(attendees?.data) ? attendees.data : [];
+  const allAttendees = attendees?.data ?? [];
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -341,7 +333,6 @@ export default function EventAttendeesAdmin() {
             onColorChange={setColorFilter}
             onAgeRangeChange={setAgeRangeFilter}
             onExportCSV={exportToCSV}
-            onResetFilters={handleResetFilters}
           />
 
           {/* Table */}
