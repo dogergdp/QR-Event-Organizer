@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'contact_number',
         'birthdate',
+        'gender',
         'marital_status',
         'has_dg_leader',
         'dg_leader_name',

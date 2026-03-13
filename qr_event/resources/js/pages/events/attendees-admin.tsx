@@ -164,11 +164,9 @@ export default function EventAttendeesAdmin() {
     const formatPhoneNumber = (phoneNumber: string): string => {
         if (!phoneNumber) return '';
         const digits = phoneNumber.replace(/\D/g, '');
-        if (digits.length < 10) return phoneNumber;
-        const areaCode = digits.substring(digits.length - 10, digits.length - 6);
-        const exchange = digits.substring(digits.length - 6, digits.length - 3);
-        const subscriber = digits.substring(digits.length - 3);
-        return `(${areaCode}) ${exchange}-${subscriber}`;
+        if (digits.length !== 11) return phoneNumber;
+        // Format as (0918) 231-4139 structure
+        return `(${digits.substring(0, 4)}) ${digits.substring(4, 7)}-${digits.substring(7)}`;
     };
 
     const exportToCSV = () => {
@@ -176,6 +174,7 @@ export default function EventAttendeesAdmin() {
             'Family Name',
             'Member Name',
             'Age',
+            'Gender',
             'Contact Number',
             'First Time',
             'Walk-in',
@@ -193,12 +192,14 @@ export default function EventAttendeesAdmin() {
             const attendeeFirstName = attendee.user.first_name;
             const attendeeAge = calculateAge(attendee.user.birthdate);
             const formattedContact = formatPhoneNumber(attendee.user.contact_number || '');
+            const attendeeGender = attendee.user.gender || '';
 
             // Add main attendee row
             rows.push([
                 familyLastName,
                 attendeeFirstName,
                 attendeeAge === 'N/A' ? '' : attendeeAge,
+                attendeeGender,
                 formattedContact,
                 attendee.is_first_time ? 'Yes' : 'No',
                 attendee.is_walk_in ? 'Yes' : 'No',
@@ -216,6 +217,7 @@ export default function EventAttendeesAdmin() {
                         familyLastName,
                         plusOne.full_name || '',
                         plusOne.age?.toString() || '',
+                        plusOne.gender || '',
                         formattedContact, // Include formatted contact number from main attendee
                         '', // First time not applicable for plus ones
                         '', // Walk-in not applicable for plus ones

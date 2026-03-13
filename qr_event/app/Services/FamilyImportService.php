@@ -60,6 +60,7 @@ class FamilyImportService
                 'first_name' => $head['first_name'],
                 'last_name' => $head['surname'],
                 'birthdate' => $birthdate,
+                'gender' => $head['gender'],
                 'password' => Hash::make('password'),
             ]
         );
