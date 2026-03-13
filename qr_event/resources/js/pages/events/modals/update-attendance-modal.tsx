@@ -51,7 +51,7 @@ export default function UpdateAttendanceModal({
                                 className="h-4 w-4 rounded border-sidebar-border/70"
                             />
                             <span className="text-sm font-medium text-foreground">
-                                Mark {attendee.user.first_name} as attended
+                                {newAttendanceStatus ? 'Unmark' : 'Mark'} {attendee.user.first_name} as attended
                             </span>
                         </label>
                     </div>
@@ -59,7 +59,7 @@ export default function UpdateAttendanceModal({
                     {/* Plus ones */}
                     {attendee.plus_ones && attendee.plus_ones.length > 0 && (
                         <div className="rounded-md border border-sidebar-border/70 p-4">
-                            <h3 className="mb-3 font-medium text-foreground">Plus Ones Available</h3>
+                            <h3 className="mb-3 font-medium text-foreground">Plus Ones</h3>
                             <div className="space-y-2">
                                 {attendee.plus_ones.map((plusOne) => (
                                     <label

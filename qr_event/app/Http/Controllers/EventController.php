@@ -157,6 +157,7 @@ class EventController extends Controller
 
                 // Check if any plus one meets age criteria
                 $hasQualifyingPlusOne = false;
+                
                 if ($attendee->plus_ones) {
                     foreach ($attendee->plus_ones as $plusOne) {
                         $plusOneAge = $plusOne['age'] ?? null;
@@ -167,6 +168,7 @@ class EventController extends Controller
                     }
                 }
 
+                // Include attendee if head or any plus one meets age criteria
                 return $headMeetsAge || $hasQualifyingPlusOne;
             })->map(function ($attendee) {
                 return [

@@ -84,7 +84,7 @@ export const useAttendeeModals = () => {
         setNewAttendanceStatus(attendee.is_attended);
         setSelectedPlusOnes(
             (attendee.plus_ones ?? [])
-                .filter((plusOne: any) => plusOne.id)
+                .filter((plusOne: any) => plusOne.id && plusOne.is_attended)
                 .map((plusOne: any) => String(plusOne.id)),
         );
     }, []);
